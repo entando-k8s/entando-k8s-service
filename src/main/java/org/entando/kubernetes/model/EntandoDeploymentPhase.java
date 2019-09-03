@@ -1,20 +1,22 @@
-package org.entando.kubernetes.model.plugin;
+package org.entando.kubernetes.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 import io.fabric8.zjsonpatch.internal.guava.Strings;
 
 public enum EntandoDeploymentPhase {
+    REQUESTED,STARTED(),SUCCESSFUL(),FAILED()
+    ;
 
-    REQUESTED, STARTED, SUCCESSFUL, FAILED;
 
     @JsonCreator
-    public static EntandoDeploymentPhase forValue(final String value) {
-        if (Strings.isNullOrEmpty(value)) {
+    public static EntandoDeploymentPhase forValue(String value) {
+        if(Strings.isNullOrEmpty(value)){
             return null;
         }
         return EntandoDeploymentPhase.valueOf(value.toUpperCase());
     }
+
 
     @JsonValue
     public String toValue() {
@@ -22,6 +24,6 @@ public enum EntandoDeploymentPhase {
     }
 
     public boolean requiresSync() {
-        return this != STARTED;
+        return this!=STARTED;
     }
 }

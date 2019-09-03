@@ -12,8 +12,10 @@ import java.util.List;
 @Data
 public class EntandoPluginDeploymentRequest {
 
+    private @NotEmpty String id;
+    private @NotEmpty String namespace;
+    private @NotEmpty String entandoAppName;
     private @NotEmpty String image;
-    private @NotEmpty String plugin;
     private @NotEmpty String ingressPath;
     private @NotEmpty String healthCheckPath;
     private @NotEmpty String dbms;

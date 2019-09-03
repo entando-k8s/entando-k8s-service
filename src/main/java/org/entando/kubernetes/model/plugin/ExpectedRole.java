@@ -1,23 +1,49 @@
 package org.entando.kubernetes.model.plugin;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.keycloak.representations.idm.RoleRepresentation;
 
-import javax.validation.constraints.NotEmpty;
-
-@Data
-@JsonSerialize
 @JsonDeserialize
-@NoArgsConstructor
-@AllArgsConstructor
 public class ExpectedRole implements KubernetesResource {
 
-    @NotEmpty
     private String code;
     private String name;
 
+    public ExpectedRole() {
+        super();
+    }
+
+    public ExpectedRole(final String code) {
+        this();
+        this.setCode(code);
+    }
+
+    public ExpectedRole(String code, String name) {
+        this(code);
+        setName(name);
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    public RoleRepresentation toRepresentation() {
+        final RoleRepresentation roleRepresentation = new RoleRepresentation();
+        roleRepresentation.setName(this.getCode());
+        roleRepresentation.setDescription(this.getName());
+        return roleRepresentation;
+    }
 }
