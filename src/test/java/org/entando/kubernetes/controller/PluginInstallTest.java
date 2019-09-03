@@ -1,15 +1,11 @@
 package org.entando.kubernetes.controller;
 
 import io.fabric8.kubernetes.api.model.ObjectMeta;
-import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.entando.kubernetes.KubernetesClientMocker;
 import org.entando.kubernetes.model.DbmsImageVendor;
-import org.entando.kubernetes.model.EntandoPluginDeploymentRequest;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.entando.kubernetes.model.plugin.EntandoPluginSpec;
-import org.entando.kubernetes.model.plugin.ExpectedRole;
-import org.entando.kubernetes.model.plugin.Permission;
 import org.entando.kubernetes.service.KubernetesService;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,7 +21,6 @@ import org.springframework.test.context.support.DependencyInjectionTestExecution
 
 import java.util.Optional;
 
-import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;

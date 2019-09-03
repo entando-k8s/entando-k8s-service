@@ -68,34 +68,11 @@ public class KubernetesService {
         return getEntandoPluginOperations().inNamespace(namespace).list().getItems();
     }
 
-    public void deploy(EntandoPluginDeploymentRequest request) {
-        final EntandoPlugin plugin = new EntandoPlugin();
-        final ObjectMeta objectMeta = new ObjectMeta();
-
-        objectMeta.setName(request.getId());
-
-        EntandoPluginSpec.EntandoPluginSpecBuilder specBuilder = new EntandoPluginSpec.EntandoPluginSpecBuilder();
-        specBuilder.withDbms(DbmsImageVendor.forValue(request.getDbms()));
-        specBuilder.withImage(request.getImage());
-        specBuilder.withIngressPath(request.getIngressPath());
-        specBuilder.withHealthCheckPath(request.getHealthCheckPath());
-        specBuilder.withEntandoApp(request.getNamespace(),request.getEntandoAppName());
-        specBuilder.withReplicas(1);
-
-        request.getRoles().forEach(r -> specBuilder.withRole(r.getCode(), r.getName()));
-        request.getPermissions().forEach(p -> specBuilder.withPermission(p.getClientId(), p.getRole()));
-
-        plugin.setMetadata(objectMeta);
-        plugin.setSpec(specBuilder.build());
-        plugin.setApiVersion("entando.org/v1alpha1");
-
-        getEntandoPluginOperations().inNamespace(request.getNamespace()).create();
-    }
-
     public EntandoPlugin deploy(EntandoPlugin plugin) {
         if (Strings.isNullOrEmpty(plugin.getMetadata().getNamespace())) {
             plugin.getMetadata().setNamespace(client.getNamespace());
         }
+        plugin.setStatus(null);
         return getEntandoPluginOperations().inNamespace(plugin.getMetadata().getNamespace()).create(plugin);
     }
 
