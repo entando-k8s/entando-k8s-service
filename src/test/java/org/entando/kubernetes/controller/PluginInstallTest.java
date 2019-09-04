@@ -22,6 +22,7 @@ import org.springframework.test.context.support.DependencyInjectionTestExecution
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.entando.kubernetes.KubernetesHelpers.getTestEntandoPlugin;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -44,35 +45,21 @@ public class PluginInstallTest {
 
     @Test
     public void testDeployment() {
-        final EntandoPlugin request = new EntandoPlugin();
 
-        ObjectMeta pluginMetadata = new ObjectMeta();
-        pluginMetadata.setNamespace("another-namespace");
-        pluginMetadata.setName("avatar-plugin");
+        EntandoPlugin entandoPlugin = getTestEntandoPlugin();
 
-        EntandoPluginSpec.EntandoPluginSpecBuilder specBuilder = new EntandoPluginSpec.EntandoPluginSpecBuilder();
-        specBuilder.withImage("entando/entando-avatar-plugin")
-                .withIngressPath("/avatar")
-                .withHealthCheckPath("/actuator/health")
-                .withDbms(DbmsImageVendor.MYSQL)
-                .withRole("read", "Read")
-                .withPermission("another-client", "read");
-
-        request.setMetadata(pluginMetadata);
-        request.setSpec(specBuilder.build());
-
-        kubernetesService.deploy(request);
+        kubernetesService.deploy(entandoPlugin);
 
         final ArgumentCaptor<EntandoPlugin> captor = ArgumentCaptor.forClass(EntandoPlugin.class);
-        verify(mocker.mixedOperation.inNamespace("another-namespace"), times(1)).create(captor.capture());
+        verify(mocker.mixedOperation.inNamespace("plugin-namespace"), times(1)).create(captor.capture());
         final EntandoPlugin plugin = captor.getValue();
 
-        assertThat(plugin.getSpec().getIngressPath()).isEqualTo("/avatar");
+        assertThat(plugin.getSpec().getIngressPath()).isEqualTo("/pluginpath");
         assertThat(plugin.getSpec().getDbms()).isEqualTo(Optional.of(DbmsImageVendor.MYSQL));
-        assertThat(plugin.getSpec().getImage()).isEqualTo("entando/entando-avatar-plugin");
+        assertThat(plugin.getSpec().getImage()).isEqualTo("entando/entando-plugin-image");
         assertThat(plugin.getSpec().getHealthCheckPath()).isEqualTo("/actuator/health");
         assertThat(plugin.getSpec().getReplicas()).isEqualTo(1);
-        assertThat(plugin.getMetadata().getName()).isEqualTo("avatar-plugin");
+        assertThat(plugin.getMetadata().getName()).isEqualTo("plugin-name");
 
         assertThat(plugin.getSpec().getRoles()).hasSize(1);
         assertThat(plugin.getSpec().getRoles().get(0).getCode()).isEqualTo("read");

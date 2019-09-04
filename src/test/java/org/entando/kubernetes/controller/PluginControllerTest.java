@@ -1,6 +1,7 @@
 package org.entando.kubernetes.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.api.model.apps.DeploymentStatusBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -15,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.hateoas.Resource;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -27,14 +29,15 @@ import java.util.Collections;
 
 import static com.jayway.jsonpath.JsonPath.using;
 import static java.util.Collections.singletonList;
+import static net.bytebuddy.matcher.ElementMatchers.is;
 import static org.assertj.core.api.Java6Assertions.assertThat;
-import static org.entando.kubernetes.KubernetesHelpers.createDeploymentCondition;
-import static org.entando.kubernetes.KubernetesHelpers.createPodCondition;
+import static org.entando.kubernetes.KubernetesHelpers.*;
 import static org.entando.kubernetes.TestHelpers.extractFromJson;
 import static org.entando.kubernetes.model.plugin.EntandoPluginSpec.*;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -51,6 +54,7 @@ public class PluginControllerTest {
     @Autowired private KubernetesClient client;
 
     private KubernetesClientMocker mocker;
+    private ObjectMapper mapper = new ObjectMapper();
 
     @Before
     public void setUp() {
@@ -79,65 +83,7 @@ public class PluginControllerTest {
 
     @Test
     public void testList() throws Exception {
-        EntandoPlugin plugin = new EntandoPlugin();
-
-        ObjectMeta pluginMeta = new ObjectMetaBuilder().withName("plugin-name").withNamespace("plugin-namespace").build();
-
-        EntandoPluginSpec pluginSpec = new EntandoPluginSpecBuilder()
-                .withEntandoApp("entando-app-namespace", "entando-app")
-                .withIngressPath("/pluginpath")
-                .withReplicas(1)
-                .withKeycloakServer("keycloak-namespace", "keycloak-server")
-                .withDbms(DbmsImageVendor.MYSQL)
-                .withHealthCheckPath("/pluginpath/health")
-                .withImage("pluginimage")
-                .build();
-
-
-        EntandoCustomResourceStatus pluginStatus = new EntandoCustomResourceStatus();
-        pluginStatus.setEntandoDeploymentPhase(EntandoDeploymentPhase.SUCCESSFUL);
-
-        DbServerStatus pluginDbStatus = new DbServerStatus();
-
-        pluginDbStatus.setPodStatus
-                (new PodStatusBuilder()
-                        .withPhase("Running")
-                        .addToConditions(createPodCondition("2019-07-11T18:36:09Z", "Available"))
-                        .addToConditions(createPodCondition("2019-07-11T18:36:06Z", "Initialized"))
-                        .build());
-        pluginDbStatus.setDeploymentStatus(
-                new DeploymentStatusBuilder()
-                    .addToConditions(createDeploymentCondition("2019-07-11T18:36:06Z", "Some message",
-                            "MinimumReplicasAvailable", "Available"))
-                    .addToConditions(createDeploymentCondition("2019-07-11T18:36:03Z", "Some message",
-                            "NewReplicaSetAvailable", "Progressing"))
-                    .build());
-
-        pluginDbStatus.setPersistentVolumeClaimStatus(
-                new PersistentVolumeClaimStatusBuilder()
-                        .withPhase("Bound")
-                        .build());
-
-        JeeServerStatus pluginServerStatus = new JeeServerStatus();
-
-        pluginServerStatus.setPodStatus(
-                new PodStatusBuilder()
-                .withPhase("Running")
-                .addToConditions(createPodCondition("2019-07-11T18:36:06Z", "Initialized"))
-                .build());
-
-        pluginServerStatus.setDeploymentStatus(
-                new DeploymentStatusBuilder()
-                .addToConditions(createDeploymentCondition("2019-07-11T18:36:06Z", "Some message",
-                        "NewReplicaSetAvailable", "Progressing"))
-                .build());
-
-        pluginStatus.addDbServerStatus(pluginDbStatus);
-        pluginStatus.addJeeServerStatus(pluginServerStatus);
-
-        plugin.setSpec(pluginSpec);
-        plugin.setMetadata(pluginMeta);
-        plugin.setStatus(pluginStatus);
+        EntandoPlugin plugin = getTestEntandoPlugin();
 
         when(mocker.pluginList.getItems()).thenReturn(singletonList(plugin));
 
@@ -150,6 +96,32 @@ public class PluginControllerTest {
 
         assertThat(pluginResource.getContent()).isEqualToComparingFieldByFieldRecursively(plugin);
         assertThat(pluginResource.hasLink("self"));
+    }
+
+    @Test
+    public void testCreate() throws Exception {
+        EntandoPlugin plugin = getTestEntandoPlugin();
+
+        when(mocker.namespaceOperations.create(any(EntandoPlugin.class))).thenReturn(plugin);
+
+        mockMvc.perform(post(URL).content(mapper.writeValueAsBytes(plugin)).contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.metadata.name", equalTo(plugin.getMetadata().getName())))
+                .andExpect(jsonPath("$.metadata.namespace", equalTo(plugin.getMetadata().getNamespace())));
+
+
+    }
+
+    @Test
+    public void testDelete() throws Exception {
+        EntandoPlugin plugin = getTestEntandoPlugin();
+
+        when(mocker.namespaceOperations.delete(any(EntandoPlugin.class))).thenReturn(true);
+
+        mockMvc.perform(delete(String.format("%s/%s", URL, plugin.getMetadata().getName())))
+                .andDo(print())
+                .andExpect(status().isAccepted());
     }
 
 }
