@@ -2,20 +2,18 @@ package org.entando.kubernetes.model.plugin;
 
 import io.fabric8.kubernetes.api.builder.Function;
 import io.fabric8.kubernetes.client.CustomResourceDoneable;
+import org.entando.kubernetes.model.*;
 
-public class DoneableEntandoPlugin extends CustomResourceDoneable<EntandoPlugin> implements DoneableEntandoCustomResource<DoneableEntandoPlugin, EntandoPlugin> {
-
-    private final EntandoPlugin resource;
-
-    public DoneableEntandoPlugin(final EntandoPlugin resource, final Function function) {
+public class DoneableEntandoPlugin extends CustomResourceDoneable<EntandoPlugin> implements DoneableEntandoCustomResource<DoneableEntandoPlugin,EntandoPlugin> {
+    EntandoPlugin resource;
+    public DoneableEntandoPlugin(EntandoPlugin resource, Function function) {
         super(resource, function);
-        this.resource = resource;
+        this.resource=resource;
     }
-
-    public DoneableEntandoPlugin withStatus(AbstractServerStatus status) {
-        if (status instanceof DbServerStatus) {
+    public DoneableEntandoPlugin withStatus(AbstractServerStatus status){
+        if(status instanceof DbServerStatus) {
             this.resource.getStatus().addDbServerStatus((DbServerStatus) status);
-        } else {
+        }else{
             this.resource.getStatus().addJeeServerStatus((JeeServerStatus) status);
         }
         return this;
