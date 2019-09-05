@@ -10,7 +10,7 @@ public enum JeeServer {
     TOMCAT("entando/entando-de-app-tomcat"),
     JETTY("entando/entando-de-app-jetty");
 
-    private String imageName;
+    private final String imageName;
 
     JeeServer(String imageName) {
         this.imageName = imageName;
@@ -18,10 +18,7 @@ public enum JeeServer {
 
     @JsonCreator
     public static JeeServer forValue(String value) {
-        if(Strings.isNullOrEmpty(value)){
-            return null;
-        }
-        return JeeServer.valueOf(value.toUpperCase());
+        return Strings.isNullOrEmpty(value) ? null : JeeServer.valueOf(value.toUpperCase());
     }
 
     @JsonValue

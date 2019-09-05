@@ -3,54 +3,58 @@ package org.entando.kubernetes.model.plugin;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import org.entando.kubernetes.model.DbmsImageVendor;
+import org.entando.kubernetes.model.plugin.EntandoPluginSpec.EntandoPluginSpecBuilder;
 
-import java.util.*;
 
-
-@JsonDeserialize
+@JsonDeserialize(builder = EntandoPluginSpecBuilder.class)
+@SuppressWarnings({"PMD.UseConcurrentHashMap", "PMD.AccessorClassGeneration"})
 public class EntandoPluginSpec implements KubernetesResource {
 
     @JsonProperty
-    private String entandoAppName;
+    private final String entandoAppName;
     @JsonProperty
-    private String entandoAppNamespace;
+    private final String entandoAppNamespace;
     @JsonProperty
-    private String image;
+    private final String image;
     @JsonProperty
-    private int replicas = 1;
+    private final int replicas;
     @JsonProperty
-    private String dbms;
+    private final String dbms;
     @JsonProperty
-    private List<ExpectedRole> roles = new ArrayList<>();
+    private final List<ExpectedRole> roles;
     @JsonProperty
-    private List<Permission> permissions = new ArrayList<>();
+    private final List<Permission> permissions;
     @JsonProperty
-    private Map<String, Object> parameters = new HashMap<>();
+    private final Map<String, Object> parameters = new HashMap<>();
     @JsonProperty
-    private String ingressPath;
+    private final String ingressPath;
     @JsonProperty
-    private String keycloakServerNamespace;
+    private final String keycloakServerNamespace;
     @JsonProperty
-    private String keycloakServerName;
+    private final String keycloakServerName;
     @JsonProperty
-    private String healthCheckPath;
-    public EntandoPluginSpec(){
+    private final String healthCheckPath;
 
-    }
-    public EntandoPluginSpec(String entandoAppNamespace, String entandoAppName, String image, DbmsImageVendor dbms, int replicas, String ingressPath, String keycloakServerNamespace, String keycloakServerName, String healthCheckPath, List<ExpectedRole> roles, List<Permission> permissions) {
-        this.entandoAppNamespace = entandoAppNamespace;
-        this.entandoAppName = entandoAppName;
-        this.image = image;
-        this.dbms = dbms.toValue();
-        this.replicas = replicas;
-        this.ingressPath = ingressPath;
-        this.keycloakServerNamespace = keycloakServerNamespace;
-        this.keycloakServerName = keycloakServerName;
-        this.healthCheckPath = healthCheckPath;
-        this.roles = roles;
-        this.permissions = permissions;
+    private EntandoPluginSpec(EntandoPluginSpecBuilder builder) {
+        this.entandoAppNamespace = builder.entandoAppNamespace;
+        this.entandoAppName = builder.entandoAppName;
+        this.image = builder.image;
+        this.dbms = builder.dbms.toValue();
+        this.replicas = builder.replicas;
+        this.ingressPath = builder.ingressPath;
+        this.keycloakServerNamespace = builder.keycloakServerNamespace;
+        this.keycloakServerName = builder.keycloakServerName;
+        this.healthCheckPath = builder.healthCheckPath;
+        this.roles = builder.roles;
+        this.permissions = builder.permissions;
     }
 
     @JsonIgnore
@@ -62,6 +66,7 @@ public class EntandoPluginSpec implements KubernetesResource {
     public String getEntandoAppNamespace() {
         return entandoAppNamespace;
     }
+
     @JsonIgnore
     public String getImage() {
         return image;
@@ -106,28 +111,28 @@ public class EntandoPluginSpec implements KubernetesResource {
     public String getKeycloakServerNamespace() {
         return keycloakServerNamespace;
     }
+
     @JsonIgnore
     public String getKeycloakServerName() {
         return keycloakServerName;
     }
 
+    @JsonPOJOBuilder
+    @SuppressWarnings("PMD.TooManyMethods")
     public static class EntandoPluginSpecBuilder {
-       private String entandoAppName;
-       private String entandoAppNamespace;
-       private String image;
-       private int replicas = 1;
-       private DbmsImageVendor dbms;
-       private List<ExpectedRole> roles = new ArrayList<>();
-       private List<Permission> permissions = new ArrayList<>();
-       private Map<String, Object> parameters = new HashMap<>();
-       private String ingressPath;
-       private String keycloakServerNamespace;
+
+        private String entandoAppName;
+        private String entandoAppNamespace;
+        private String image;
+        private int replicas = 1;
+        private DbmsImageVendor dbms;
+        private List<ExpectedRole> roles = new ArrayList<>();
+        private List<Permission> permissions = new ArrayList<>();
+        private Map<String, Object> parameters = new HashMap<>();
+        private String ingressPath;
+        private String keycloakServerNamespace;
         private String keycloakServerName;
         private String healthCheckPath;
-
-        public EntandoPluginSpecBuilder() {
-
-        }
 
         public EntandoPluginSpecBuilder withDbms(DbmsImageVendor dbms) {
             this.dbms = dbms;
@@ -143,14 +148,26 @@ public class EntandoPluginSpec implements KubernetesResource {
             this.image = image;
             return this;
         }
+
         public EntandoPluginSpecBuilder withKeycloakServer(String namespace, String name) {
-            this.keycloakServerName=name;
-            this.keycloakServerNamespace=namespace;
+            this.keycloakServerName = name;
+            this.keycloakServerNamespace = namespace;
             return this;
         }
+
+        public EntandoPluginSpecBuilder withEntandoAppName(String name) {
+            this.entandoAppName = name;
+            return this;
+        }
+
+        public EntandoPluginSpecBuilder withEntandoAppNamespace(String namespace) {
+            this.entandoAppNamespace = namespace;
+            return this;
+        }
+
         public EntandoPluginSpecBuilder withEntandoApp(String namespace, String name) {
-            this.entandoAppName=name;
-            this.entandoAppNamespace=namespace;
+            this.entandoAppName = name;
+            this.entandoAppNamespace = namespace;
             return this;
         }
 
@@ -158,21 +175,55 @@ public class EntandoPluginSpec implements KubernetesResource {
             this.replicas = replicas;
             return this;
         }
-        public EntandoPluginSpecBuilder withRole(String code, String name){
-            roles.add(new ExpectedRole(code,name));
+
+        public EntandoPluginSpecBuilder withRoles(List<ExpectedRole> roles) {
+            this.roles = roles;
             return this;
         }
-        public EntandoPluginSpecBuilder withPermission(String clientId, String role){
-            permissions.add(new Permission(clientId,role));
+
+        public EntandoPluginSpecBuilder withPermissions(List<Permission> permissions) {
+            this.permissions = permissions;
             return this;
         }
-        public EntandoPluginSpec build() {
-            return new EntandoPluginSpec(entandoAppNamespace, entandoAppName, image, dbms, replicas, ingressPath, keycloakServerNamespace, keycloakServerName,healthCheckPath, roles, permissions);
+
+        public EntandoPluginSpecBuilder withParameters(Map<String, Object> parameters) {
+            this.parameters = parameters;
+            return this;
+        }
+
+        public EntandoPluginSpecBuilder withKeycloakServerNamespace(String keycloakServerNamespace) {
+            this.keycloakServerNamespace = keycloakServerNamespace;
+            return this;
+        }
+
+        public EntandoPluginSpecBuilder withKeycloakServerName(String keycloakServerName) {
+            this.keycloakServerName = keycloakServerName;
+            return this;
+        }
+
+        public EntandoPluginSpecBuilder addRole(String code, String name) {
+            roles.add(new ExpectedRole(code, name));
+            return this;
+        }
+
+        public EntandoPluginSpecBuilder addPermission(String clientId, String role) {
+            permissions.add(new Permission(clientId, role));
+            return this;
+        }
+
+        public EntandoPluginSpecBuilder addParameter(String name, Object value) {
+            this.parameters.put(name, value);
+            return this;
         }
 
         public EntandoPluginSpecBuilder withHealthCheckPath(String healthCheckPath) {
             this.healthCheckPath = healthCheckPath;
             return this;
         }
+
+        public EntandoPluginSpec build() {
+            return new EntandoPluginSpec(this);
+        }
+
     }
 }

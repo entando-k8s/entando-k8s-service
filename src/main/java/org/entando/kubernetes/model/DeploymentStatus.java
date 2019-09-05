@@ -1,9 +1,8 @@
 package org.entando.kubernetes.model;
 
 import io.fabric8.kubernetes.api.model.apps.DeploymentCondition;
-import lombok.Data;
-
 import java.util.List;
+import lombok.Data;
 
 @Data
 public class DeploymentStatus {

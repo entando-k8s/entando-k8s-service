@@ -2,39 +2,20 @@ package org.entando.kubernetes.service;
 
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
-import io.fabric8.kubernetes.api.model.PodCondition;
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
-import io.fabric8.kubernetes.api.model.apps.DeploymentCondition;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.Watch;
-import io.fabric8.kubernetes.client.Watcher;
-import io.fabric8.kubernetes.client.dsl.FilterWatchListMultiDeletable;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
-import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.zjsonpatch.internal.guava.Strings;
-import lombok.NonNull;
-import lombok.extern.slf4j.Slf4j;
-import org.entando.kubernetes.model.*;
-import org.entando.kubernetes.model.plugin.DoneableEntandoPlugin;
-import org.entando.kubernetes.model.EntandoCustomResourceStatus;
-import org.entando.kubernetes.model.EntandoDeploymentPhase;
-import org.entando.kubernetes.model.plugin.EntandoPlugin;
-import org.entando.kubernetes.model.plugin.EntandoPluginList;
-import org.entando.kubernetes.model.plugin.EntandoPluginSpec;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
-
-import static java.util.Comparator.comparing;
-import static java.util.Optional.ofNullable;
+import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
+import org.entando.kubernetes.model.plugin.DoneableEntandoPlugin;
+import org.entando.kubernetes.model.plugin.EntandoPlugin;
+import org.entando.kubernetes.model.plugin.EntandoPluginList;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
@@ -77,32 +58,23 @@ public class KubernetesService {
     }
 
 
-    private LocalDateTime localDateTime(final PodCondition condition) {
-        return LocalDateTime.parse(condition.getLastTransitionTime(), DateTimeFormatter.ISO_OFFSET_DATE_TIME);
-    }
-
-    private LocalDateTime localDateTime(final DeploymentCondition condition) {
-        return LocalDateTime.parse(condition.getLastTransitionTime(), DateTimeFormatter.ISO_OFFSET_DATE_TIME);
-    }
-
-    private <T> List<T> sort(final List<T> list, final Comparator<T> comparator) {
-        final List<T> sortedList = new ArrayList<>(list);
-        sortedList.sort(comparator);
-        return sortedList;
-    }
-
     public Optional<EntandoPlugin> findPluginById(String pluginId) {
-        return getEntandoPluginOperations().inAnyNamespace().list().getItems().stream().filter(pl -> pl.getMetadata().getName().equals(pluginId)).findFirst();
+        return getEntandoPluginOperations().inAnyNamespace().list().getItems().stream()
+                .filter(pl -> pl.getMetadata().getName().equals(pluginId)).findFirst();
     }
 
     public Optional<EntandoPlugin> findPluginByIdAndNamespace(String pluginId, String namespace) {
-        return getEntandoPluginOperations().inNamespace(namespace).list().getItems().stream().filter(pl -> pl.getMetadata().getName().equals(pluginId)).findFirst();
+        return getEntandoPluginOperations().inNamespace(namespace).list().getItems().stream()
+                .filter(pl -> pl.getMetadata().getName().equals(pluginId)).findFirst();
     }
 
+    //CHECKSTYLE:OFF
     private MixedOperation<EntandoPlugin, EntandoPluginList, DoneableEntandoPlugin, Resource<EntandoPlugin, DoneableEntandoPlugin>> getEntandoPluginOperations() {
+    //CHECKSTYLE:ON
         CustomResourceDefinition entandoPluginCrd = client.customResourceDefinitions()
                 .withName(ENTANDOPLUGIN_CRD_NAME).get();
-        return client.customResources(entandoPluginCrd, EntandoPlugin.class, EntandoPluginList.class, DoneableEntandoPlugin.class);
+        return client.customResources(entandoPluginCrd, EntandoPlugin.class, EntandoPluginList.class,
+                DoneableEntandoPlugin.class);
     }
 
 }

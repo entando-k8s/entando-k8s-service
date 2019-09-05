@@ -2,9 +2,8 @@ package org.entando.kubernetes.model;
 
 import io.fabric8.kubernetes.api.model.ContainerStatus;
 import io.fabric8.kubernetes.api.model.PodCondition;
-import lombok.Data;
-
 import java.util.List;
+import lombok.Data;
 
 @Data
 public class PodStatus {

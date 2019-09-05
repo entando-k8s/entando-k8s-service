@@ -6,6 +6,7 @@ import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
 @ComponentScan("org.entando")
+@SuppressWarnings("PMD")
 public class EntandoKubernetesJavaApplication {
 
     public static void main(final String[] args) {

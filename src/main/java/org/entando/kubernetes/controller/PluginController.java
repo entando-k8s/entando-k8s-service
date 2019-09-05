@@ -1,5 +1,12 @@
 package org.entando.kubernetes.controller;
 
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
+import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
+
+import java.net.URI;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,15 +19,14 @@ import org.springframework.hateoas.Resource;
 import org.springframework.hateoas.Resources;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.net.URI;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 
 @Slf4j
@@ -35,7 +41,8 @@ public class PluginController {
     private final @NonNull EntandoPluginResourceAssembler resourceAssembler;
 
     @GetMapping(path = "", produces = JSON)
-    public ResponseEntity<Resources<Resource<EntandoPlugin>>> list(@RequestParam(value = "namespace", required = false, defaultValue = "") String namespace )  {
+    public ResponseEntity<Resources<Resource<EntandoPlugin>>> list(
+            @RequestParam(value = "namespace", required = false, defaultValue = "") String namespace) {
         log.info("Listing all deployed plugins in any namespace");
         List<EntandoPlugin> plugins;
         if (Strings.isEmpty(namespace)) {
@@ -43,11 +50,12 @@ public class PluginController {
         } else {
             plugins = kubernetesService.getAllPluginsInNamespace(namespace);
         }
-        return ResponseEntity.ok(new Resources<>(plugins.stream().map(resourceAssembler::toResource).collect(Collectors.toList())));
+        return ResponseEntity
+                .ok(new Resources<>(plugins.stream().map(resourceAssembler::toResource).collect(Collectors.toList())));
     }
 
     @GetMapping(path = "/{pluginId}", produces = JSON)
-    public ResponseEntity<Resource<EntandoPlugin>> get(@PathVariable final String pluginId)  {
+    public ResponseEntity<Resource<EntandoPlugin>> get(@PathVariable final String pluginId) {
         log.info("Requesting plugins with identifier {} in any namespace", pluginId);
         Optional<EntandoPlugin> plugin = kubernetesService.findPluginById(pluginId);
         return ResponseEntity.ok(resourceAssembler.toResource(plugin.orElseThrow(PluginNotFoundException::new)));

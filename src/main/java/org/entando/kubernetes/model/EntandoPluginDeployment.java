@@ -1,10 +1,9 @@
 package org.entando.kubernetes.model;
 
-import lombok.Data;
-
+import java.util.Map;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
-import java.util.Map;
+import lombok.Data;
 
 @Data
 public class EntandoPluginDeployment {
