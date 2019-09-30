@@ -10,6 +10,7 @@ public class Permission implements KubernetesResource {
     private String role;
 
     public Permission() {
+        // Required for deserialization
     }
 
     public Permission(final String clientId, final String role) {

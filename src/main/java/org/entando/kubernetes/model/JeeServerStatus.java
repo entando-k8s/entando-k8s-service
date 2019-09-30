@@ -7,6 +7,7 @@ import io.fabric8.kubernetes.api.model.extensions.IngressStatus;
 @JsonSerialize
 @JsonDeserialize
 public class JeeServerStatus extends AbstractServerStatus {
+
     private IngressStatus ingressStatus;
 
     public IngressStatus getIngressStatus() {

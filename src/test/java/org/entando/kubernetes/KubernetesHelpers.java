@@ -42,8 +42,8 @@ public class KubernetesHelpers {
                 .withDbms(DbmsImageVendor.MYSQL)
                 .withHealthCheckPath("/actuator/health")
                 .withImage("entando/entando-plugin-image")
-                .withRole("read", "Read")
-                .withPermission("another-client", "read")
+                .addRole("read", "Read")
+                .addPermission("another-client", "read")
                 .build();
 
 

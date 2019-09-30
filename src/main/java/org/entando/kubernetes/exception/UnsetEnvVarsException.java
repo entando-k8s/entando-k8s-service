@@ -5,7 +5,7 @@ import org.springframework.http.HttpStatus;
 
 public class UnsetEnvVarsException extends HttpException {
 
-    public UnsetEnvVarsException(final Object ... envs) {
+    public UnsetEnvVarsException(final Object... envs) {
         super(HttpStatus.BAD_REQUEST, "org.entando.error.unsetVarsException", envs);
     }
 

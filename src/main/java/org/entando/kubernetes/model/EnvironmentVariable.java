@@ -1,8 +1,7 @@
 package org.entando.kubernetes.model;
 
-import lombok.Data;
-
 import javax.validation.constraints.NotEmpty;
+import lombok.Data;
 
 @Data
 public class EnvironmentVariable {

@@ -1,12 +1,11 @@
 package org.entando.kubernetes.model;
 
-import lombok.Data;
-
+import java.util.List;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
-import java.util.List;
+import lombok.Data;
 
 @Data
 public class EntandoPluginData {
@@ -26,7 +25,8 @@ public class EntandoPluginData {
     @NotNull
     private int port;
 
-    @NotNull @Valid
+    @NotNull
+    @Valid
     private List<EnvironmentVariable> envVariables;
 
 }

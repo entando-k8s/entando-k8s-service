@@ -9,6 +9,7 @@ import io.fabric8.kubernetes.api.model.ServiceStatus;
 import io.fabric8.kubernetes.api.model.apps.DeploymentStatus;
 
 public class AbstractServerStatus implements KubernetesResource {
+
     private String qualifier;
     private ServiceStatus serviceStatus;
     private DeploymentStatus deploymentStatus;

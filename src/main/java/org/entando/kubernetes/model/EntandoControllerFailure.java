@@ -3,6 +3,7 @@ package org.entando.kubernetes.model;
 import io.fabric8.kubernetes.api.model.KubernetesResource;
 
 public class EntandoControllerFailure implements KubernetesResource {
+
     private String failedObjectType;
     private String failedObjectName;
     private String errorMessage;

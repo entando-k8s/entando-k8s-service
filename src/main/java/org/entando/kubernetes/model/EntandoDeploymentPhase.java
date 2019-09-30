@@ -5,16 +5,12 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import io.fabric8.zjsonpatch.internal.guava.Strings;
 
 public enum EntandoDeploymentPhase {
-    REQUESTED,STARTED(),SUCCESSFUL(),FAILED()
-    ;
+    REQUESTED, STARTED(), SUCCESSFUL(), FAILED();
 
 
     @JsonCreator
     public static EntandoDeploymentPhase forValue(String value) {
-        if(Strings.isNullOrEmpty(value)){
-            return null;
-        }
-        return EntandoDeploymentPhase.valueOf(value.toUpperCase());
+        return Strings.isNullOrEmpty(value) ? null : EntandoDeploymentPhase.valueOf(value.toUpperCase());
     }
 
 
@@ -24,6 +20,6 @@ public enum EntandoDeploymentPhase {
     }
 
     public boolean requiresSync() {
-        return this!=STARTED;
+        return this != STARTED;
     }
 }

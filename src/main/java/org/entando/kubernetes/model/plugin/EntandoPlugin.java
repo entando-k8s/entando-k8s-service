@@ -14,12 +14,14 @@ import org.springframework.hateoas.core.Relation;
 @JsonDeserialize()
 @Relation(collectionRelation = "plugins")
 public class EntandoPlugin extends CustomResource implements EntandoCustomResource, RequiresKeycloak {
+
     @JsonProperty
     private EntandoPluginSpec spec;
     @JsonProperty
     private EntandoCustomResourceStatus entandoStatus;
 
     public EntandoPlugin() {
+        super();
         setApiVersion("entando.org/v1alpha1");
     }
 
