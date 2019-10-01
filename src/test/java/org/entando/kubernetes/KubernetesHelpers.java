@@ -3,9 +3,11 @@ package org.entando.kubernetes;
 import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.api.model.apps.DeploymentCondition;
 import io.fabric8.kubernetes.api.model.apps.DeploymentStatusBuilder;
+import java.util.Arrays;
 import org.entando.kubernetes.model.*;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.entando.kubernetes.model.plugin.EntandoPluginSpec;
+import org.entando.kubernetes.model.plugin.EntandoPluginSpecBuilder;
 
 public class KubernetesHelpers {
 
@@ -34,7 +36,7 @@ public class KubernetesHelpers {
 
         ObjectMeta pluginMeta = new ObjectMetaBuilder().withName("plugin-name").withNamespace("plugin-namespace").build();
 
-        EntandoPluginSpec pluginSpec = new EntandoPluginSpec.EntandoPluginSpecBuilder()
+        EntandoPluginSpec pluginSpec = new EntandoPluginSpecBuilder()
                 .withEntandoApp("entando-app-namespace", "entando-app")
                 .withIngressPath("/pluginpath")
                 .withReplicas(1)
@@ -42,15 +44,15 @@ public class KubernetesHelpers {
                 .withDbms(DbmsImageVendor.MYSQL)
                 .withHealthCheckPath("/actuator/health")
                 .withImage("entando/entando-plugin-image")
-                .addRole("read", "Read")
-                .addPermission("another-client", "read")
+                .addNewRole("read", "Read")
+                .addNewPermission("another-client", "read")
                 .build();
 
 
         EntandoCustomResourceStatus pluginStatus = new EntandoCustomResourceStatus();
         pluginStatus.setEntandoDeploymentPhase(EntandoDeploymentPhase.SUCCESSFUL);
 
-        DbServerStatus pluginDbStatus = new DbServerStatus();
+        DbServerStatus pluginDbStatus = new DbServerStatus("db");
 
         pluginDbStatus.setPodStatus
                 (new PodStatusBuilder()
@@ -66,12 +68,12 @@ public class KubernetesHelpers {
                                 "NewReplicaSetAvailable", "Progressing"))
                         .build());
 
-        pluginDbStatus.setPersistentVolumeClaimStatus(
+        pluginDbStatus.setPersistentVolumeClaimStatuses(Arrays.asList(
                 new PersistentVolumeClaimStatusBuilder()
                         .withPhase("Bound")
-                        .build());
+                        .build()));
 
-        JeeServerStatus pluginServerStatus = new JeeServerStatus();
+        WebServerStatus pluginServerStatus = new WebServerStatus("server");
 
         pluginServerStatus.setPodStatus(
                 new PodStatusBuilder()
@@ -85,8 +87,8 @@ public class KubernetesHelpers {
                                 "NewReplicaSetAvailable", "Progressing"))
                         .build());
 
-        pluginStatus.addDbServerStatus(pluginDbStatus);
-        pluginStatus.addJeeServerStatus(pluginServerStatus);
+        pluginStatus.putServerStatus(pluginDbStatus);
+        pluginStatus.putServerStatus(pluginServerStatus);
 
         plugin.setSpec(pluginSpec);
         plugin.setMetadata(pluginMeta);
