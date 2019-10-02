@@ -1,3 +1,6 @@
+[![Build Status](https://jenkins.entandocloud.com/buildStatus/icon?job=de-entando-k8s-service-master)](https://jenkins.entandocloud.com/view/Digital%20Exchange/job/de-entando-k8s-service-master/)
+[![Coverage Status](https://coveralls.io/repos/github/entando/entando-k8s-service/badge.svg?branch=migrate-models)](https://coveralls.io/github/entando/entando-k8s-service?branch=migrate-models)
+
 # Entando K8s Service
 This service serves as an abstraction layer to the Kubernetes Plugin custom resource. It is meant to be used by `entando-core` to deploy and check status of the plugins on the cluster.
 

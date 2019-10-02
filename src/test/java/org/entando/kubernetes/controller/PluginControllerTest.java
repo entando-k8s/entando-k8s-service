@@ -86,13 +86,13 @@ public class PluginControllerTest {
         EntandoPlugin plugin = getTestEntandoPlugin();
 
         when(mocker.pluginList.getItems()).thenReturn(singletonList(plugin));
-
+        //@Luca I don't understand why using entando-k8s-custom-model changes this to entandoPluginList
         MvcResult result =  mockMvc.perform(get(URL))
                 .andDo(print()).andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.plugins", hasSize(1)))
+                .andExpect(jsonPath("$._embedded.entandoPluginList", hasSize(1)))
                 .andReturn();
 
-        Resource<EntandoPlugin> pluginResource = extractFromJson(result.getResponse().getContentAsString(), "$._embedded.plugins[0]", new TypeReference<Resource<EntandoPlugin>>() {});
+        Resource<EntandoPlugin> pluginResource = extractFromJson(result.getResponse().getContentAsString(), "$._embedded.entandoPluginList[0]", new TypeReference<Resource<EntandoPlugin>>() {});
 
         assertThat(pluginResource.getContent()).isEqualToComparingFieldByFieldRecursively(plugin);
         assertThat(pluginResource.hasLink("self"));

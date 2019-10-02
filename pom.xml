@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.entando</groupId>
     <artifactId>entando-k8s-service</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>6.0.0-SNAPSHOT</version>
 
     <packaging>jar</packaging>
 
@@ -19,12 +19,42 @@
         <version>2.0.2.RELEASE</version>
         <relativePath/>
     </parent>
-
+    <url>http://www.entando.com/</url>
+    <licenses>
+        <license>
+            <name>GNU LESSER GENERAL PUBLIC LICENSE,  Version 2.1, February 1999</name>
+            <url>https://www.gnu.org/licenses/lgpl-2.1.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <organization>
+        <name>Entando Inc.</name>
+        <url>http://www.entando.com/</url>
+    </organization>
+    <distributionManagement>
+        <repository>
+            <id>${maven.release.repository.id}</id>
+            <name>Releases</name>
+            <url>${maven.release.repository.url}</url>
+        </repository>
+        <snapshotRepository>
+            <id>${maven.snapshot.repository.id}</id>
+            <name>Snapshot</name>
+            <url>${maven.snapshot.repository.url}</url>
+        </snapshotRepository>
+    </distributionManagement>
     <properties>
+        <maven.release.repository.id>sonatype-nexus-stage</maven.release.repository.id>
+        <maven.snapshot.repository.id>sonatype-nexus-snapshot</maven.snapshot.repository.id>
+        <maven.snapshot.repository.url>https://oss.sonatype.org/content/repositories/snapshots</maven.snapshot.repository.url>
+        <maven.release.repository.url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</maven.release.repository.url>
+
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <java.version>1.8</java.version>
         <entando.commons.version>1.0.0-SNAPSHOT</entando.commons.version>
+        <jib-maven-plugin.version>1.2.0</jib-maven-plugin.version>
+        <jib.registry>docker.io</jib.registry>
     </properties>
 
     <reporting>
@@ -61,8 +91,20 @@
             <groupId>org.entando</groupId>
             <artifactId>web-commons</artifactId>
             <version>${entando.commons.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.projectlombok</groupId>
+                    <artifactId>lombok</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.2</version>
+            <scope>provided</scope>
+        </dependency>
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-yaml</artifactId>
@@ -74,11 +116,10 @@
             <artifactId>commons-lang3</artifactId>
             <version>3.9</version>
         </dependency>
-
         <dependency>
-            <groupId>io.fabric8</groupId>
-            <artifactId>kubernetes-client</artifactId>
-            <version>4.2.2</version>
+            <groupId>org.entando.kubernetes</groupId>
+            <artifactId>entando-k8s-custom-model</artifactId>
+            <version>6.0.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.security.oauth.boot</groupId>
@@ -132,6 +173,64 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+    <profiles>
+        <profile>
+            <id>prepare-for-central</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <version>2.10.1</version>
+                        <executions>
+                            <execution>
+                                <id>attach-javadocs</id>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                                <configuration>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>1.5</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.owasp</groupId>
+                        <artifactId>dependency-check-maven</artifactId>
+                        <version>4.0.2</version>
+                        <executions>
+                            <execution>
+                                <goals>
+                                    <goal>aggregate</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <skip>false</skip>
+                            <autoUpdate>true</autoUpdate>
+                            <format>XML</format>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
     <build>
         <finalName>generated-artifact</finalName>
@@ -141,7 +240,19 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
-
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.0.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -239,6 +350,42 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.google.cloud.tools</groupId>
+                <artifactId>jib-maven-plugin</artifactId>
+                <version>${jib-maven-plugin.version}</version>
+                <configuration>
+                    <allowInsecureRegistries>true</allowInsecureRegistries>
+                    <from>
+                        <image>entando/entando-alpine-base:${project.version}</image>
+                    </from>
+                    <to>
+                        <image>${jib.registry}/entando/${project.artifactId}:${project.version}</image>
+                    </to>
+                    <extraDirectories>
+                        <paths>src/main/jib</paths>
+                        <permissions>
+                            <permission>
+                                <file>/entrypoint.sh</file>
+                                <mode>777</mode>
+                            </permission>
+                        </permissions>
+                    </extraDirectories>
+                    <container>
+                        <entrypoint>
+                            <shell>/bin/bash</shell>
+                            <option>-c</option>
+                            <arg>/entrypoint.sh "@"</arg>
+                        </entrypoint>
+                        <ports>
+                            <port>8083</port>
+                        </ports>
+                        <environment>
+                        </environment>
+                        <useCurrentTimestamp>true</useCurrentTimestamp>
+                    </container>
+                </configuration>
             </plugin>
         </plugins>
     </build>
