@@ -363,23 +363,9 @@
                     <to>
                         <image>${jib.registry}/entando/${project.artifactId}:${project.version}</image>
                     </to>
-                    <extraDirectories>
-                        <paths>src/main/jib</paths>
-                        <permissions>
-                            <permission>
-                                <file>/entrypoint.sh</file>
-                                <mode>777</mode>
-                            </permission>
-                        </permissions>
-                    </extraDirectories>
                     <container>
-                        <entrypoint>
-                            <shell>/bin/bash</shell>
-                            <option>-c</option>
-                            <arg>/entrypoint.sh "@"</arg>
-                        </entrypoint>
                         <ports>
-                            <port>8083</port>
+                            <port>8084</port>
                         </ports>
                         <environment>
                         </environment>

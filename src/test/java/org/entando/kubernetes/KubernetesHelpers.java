@@ -40,7 +40,6 @@ public class KubernetesHelpers {
                 .withEntandoApp("entando-app-namespace", "entando-app")
                 .withIngressPath("/pluginpath")
                 .withReplicas(1)
-                .withKeycloakServer("keycloak-namespace", "keycloak-server")
                 .withDbms(DbmsImageVendor.MYSQL)
                 .withHealthCheckPath("/actuator/health")
                 .withImage("entando/entando-plugin-image")
