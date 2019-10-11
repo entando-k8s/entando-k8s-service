@@ -3,7 +3,7 @@ package org.entando.kubernetes.service;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
 import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
 
-import org.entando.kubernetes.controller.PluginController;
+import org.entando.kubernetes.controller.EntandoPluginController;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.springframework.hateoas.Resource;
 import org.springframework.hateoas.ResourceAssembler;
@@ -24,8 +24,8 @@ public class EntandoPluginResourceAssembler implements ResourceAssembler<Entando
     }
 
     private void applyRel(Resource<EntandoPlugin> response) {
-        response.add(linkTo(methodOn(PluginController.class).get(response.getContent().getMetadata().getName()))
+        response.add(linkTo(methodOn(EntandoPluginController.class).get(response.getContent().getMetadata().getName()))
                 .withSelfRel());
-        response.add(linkTo(methodOn(PluginController.class).list(null)).withRel("plugins"));
+        response.add(linkTo(methodOn(EntandoPluginController.class).list(null)).withRel("plugins"));
     }
 }

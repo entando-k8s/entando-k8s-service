@@ -13,19 +13,19 @@ import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.entando.kubernetes.model.plugin.DoneableEntandoPlugin;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
+import org.entando.kubernetes.model.plugin.EntandoPluginBuilder;
 import org.entando.kubernetes.model.plugin.EntandoPluginList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-public class KubernetesService {
+public class EntandoPluginService {
 
-    public static final String ENTANDOPLUGIN_CRD_NAME = "entandoplugins.entando.org";
+    @NonNull
+    private final KubernetesClient client;
 
-    private final @NonNull KubernetesClient client;
-
-    public KubernetesService(@Autowired final KubernetesClient client) {
+    public EntandoPluginService(@Autowired final KubernetesClient client) {
         this.client = client;
     }
 
@@ -38,41 +38,55 @@ public class KubernetesService {
         EntandoPlugin pluginToRemove = new EntandoPlugin();
         ObjectMeta pluginMeta = new ObjectMetaBuilder().withName(pluginId).withNamespace(namespace).build();
         pluginToRemove.setMetadata(pluginMeta);
-        getEntandoPluginOperations().inAnyNamespace().delete(pluginToRemove);
+        getPluginOperations().inAnyNamespace().delete(pluginToRemove);
     }
 
     public List<EntandoPlugin> getAllPlugins() {
-        return getEntandoPluginOperations().inAnyNamespace().list().getItems();
+        return getPluginOperations().inAnyNamespace().list().getItems();
     }
 
     public List<EntandoPlugin> getAllPluginsInNamespace(String namespace) {
-        return getEntandoPluginOperations().inNamespace(namespace).list().getItems();
+        return getPluginOperations().inNamespace(namespace).list().getItems();
     }
 
     public EntandoPlugin deploy(EntandoPlugin plugin) {
+        EntandoPlugin cleanPlugin = pluginCleanUp(plugin);
+        return getPluginOperations().inNamespace(cleanPlugin.getMetadata().getNamespace()).create(cleanPlugin);
+    }
+
+    private EntandoPlugin pluginCleanUp(EntandoPlugin plugin) {
+        //TODO verify the plugin has a name
+        //assert !Strings.isNullOrEmpty(plugin.getMetadata().getName());
         if (Strings.isNullOrEmpty(plugin.getMetadata().getNamespace())) {
             plugin.getMetadata().setNamespace(client.getNamespace());
         }
-        plugin.setStatus(null);
-        return getEntandoPluginOperations().inNamespace(plugin.getMetadata().getNamespace()).create(plugin);
+        EntandoPlugin newPlugin = new EntandoPluginBuilder()
+                .withNewMetadata()
+                    .withName(plugin.getMetadata().getName())
+                    .withNamespace(plugin.getMetadata().getNamespace())
+                .endMetadata()
+                .withSpec(plugin.getSpec())
+                .build();
+        newPlugin.setStatus(null);
+        return newPlugin;
     }
 
 
     public Optional<EntandoPlugin> findPluginById(String pluginId) {
-        return getEntandoPluginOperations().inAnyNamespace().list().getItems().stream()
+        return getPluginOperations().inAnyNamespace().list().getItems().stream()
                 .filter(pl -> pl.getMetadata().getName().equals(pluginId)).findFirst();
     }
 
     public Optional<EntandoPlugin> findPluginByIdAndNamespace(String pluginId, String namespace) {
-        return getEntandoPluginOperations().inNamespace(namespace).list().getItems().stream()
+        return getPluginOperations().inNamespace(namespace).list().getItems().stream()
                 .filter(pl -> pl.getMetadata().getName().equals(pluginId)).findFirst();
     }
 
     //CHECKSTYLE:OFF
-    private MixedOperation<EntandoPlugin, EntandoPluginList, DoneableEntandoPlugin, Resource<EntandoPlugin, DoneableEntandoPlugin>> getEntandoPluginOperations() {
-    //CHECKSTYLE:ON
+    private MixedOperation<EntandoPlugin, EntandoPluginList, DoneableEntandoPlugin, Resource<EntandoPlugin, DoneableEntandoPlugin>> getPluginOperations() {
+        //CHECKSTYLE:ON
         CustomResourceDefinition entandoPluginCrd = client.customResourceDefinitions()
-                .withName(ENTANDOPLUGIN_CRD_NAME).get();
+                .withName(EntandoPlugin.CRD_NAME).get();
         return client.customResources(entandoPluginCrd, EntandoPlugin.class, EntandoPluginList.class,
                 DoneableEntandoPlugin.class);
     }

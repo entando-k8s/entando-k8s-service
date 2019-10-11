@@ -14,7 +14,7 @@ import org.apache.logging.log4j.util.Strings;
 import org.entando.kubernetes.exception.PluginNotFoundException;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.entando.kubernetes.service.EntandoPluginResourceAssembler;
-import org.entando.kubernetes.service.KubernetesService;
+import org.entando.kubernetes.service.EntandoPluginService;
 import org.springframework.hateoas.Resource;
 import org.springframework.hateoas.Resources;
 import org.springframework.http.MediaType;
@@ -33,11 +33,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/plugins")
 @RequiredArgsConstructor
-public class PluginController {
+public class EntandoPluginController {
 
     private static final String JSON = MediaType.APPLICATION_JSON_VALUE;
 
-    private final @NonNull KubernetesService kubernetesService;
+    private final @NonNull EntandoPluginService entandoPluginService;
     private final @NonNull EntandoPluginResourceAssembler resourceAssembler;
 
     @GetMapping(path = "", produces = JSON)
@@ -46,9 +46,9 @@ public class PluginController {
         log.info("Listing all deployed plugins in any namespace");
         List<EntandoPlugin> plugins;
         if (Strings.isEmpty(namespace)) {
-            plugins = kubernetesService.getAllPlugins();
+            plugins = entandoPluginService.getAllPlugins();
         } else {
-            plugins = kubernetesService.getAllPluginsInNamespace(namespace);
+            plugins = entandoPluginService.getAllPluginsInNamespace(namespace);
         }
         return ResponseEntity
                 .ok(new Resources<>(plugins.stream().map(resourceAssembler::toResource).collect(Collectors.toList())));
@@ -57,20 +57,20 @@ public class PluginController {
     @GetMapping(path = "/{pluginId}", produces = JSON)
     public ResponseEntity<Resource<EntandoPlugin>> get(@PathVariable final String pluginId) {
         log.info("Requesting plugins with identifier {} in any namespace", pluginId);
-        Optional<EntandoPlugin> plugin = kubernetesService.findPluginById(pluginId);
+        Optional<EntandoPlugin> plugin = entandoPluginService.findPluginById(pluginId);
         return ResponseEntity.ok(resourceAssembler.toResource(plugin.orElseThrow(PluginNotFoundException::new)));
     }
 
     @DeleteMapping(path = "/{pluginId}", produces = JSON)
     public ResponseEntity delete(@PathVariable String pluginId) {
         log.info("Deleting plugin with identifier {}", pluginId);
-        kubernetesService.deletePlugin(pluginId);
+        entandoPluginService.deletePlugin(pluginId);
         return ResponseEntity.accepted().build();
     }
 
     @PostMapping(consumes = JSON, produces = JSON)
     public ResponseEntity<Resource<EntandoPlugin>> create(@RequestBody EntandoPlugin entandoPlugin) {
-        EntandoPlugin deployedPlugin = kubernetesService.deploy(entandoPlugin);
+        EntandoPlugin deployedPlugin = entandoPluginService.deploy(entandoPlugin);
         URI resourceLink = linkTo(methodOn(getClass()).get(deployedPlugin.getMetadata().getName())).toUri();
         return ResponseEntity.created(resourceLink).body(resourceAssembler.toResource(deployedPlugin));
     }

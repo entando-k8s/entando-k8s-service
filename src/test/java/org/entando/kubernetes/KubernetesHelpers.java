@@ -37,7 +37,6 @@ public class KubernetesHelpers {
         ObjectMeta pluginMeta = new ObjectMetaBuilder().withName("plugin-name").withNamespace("plugin-namespace").build();
 
         EntandoPluginSpec pluginSpec = new EntandoPluginSpecBuilder()
-                .withEntandoApp("entando-app-namespace", "entando-app")
                 .withIngressPath("/pluginpath")
                 .withReplicas(1)
                 .withDbms(DbmsImageVendor.MYSQL)
