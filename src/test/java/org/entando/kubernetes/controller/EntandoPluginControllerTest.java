@@ -46,7 +46,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 @RunWith(SpringRunner.class)
 @TestExecutionListeners({ DependencyInjectionTestExecutionListener.class })
-public class PluginControllerTest {
+public class EntandoPluginControllerTest {
 
     private static final String URL = "/plugins";
 

@@ -1,12 +1,10 @@
 package org.entando.kubernetes.controller;
 
-import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.entando.kubernetes.KubernetesClientMocker;
 import org.entando.kubernetes.model.DbmsImageVendor;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
-import org.entando.kubernetes.model.plugin.EntandoPluginSpec;
-import org.entando.kubernetes.service.KubernetesService;
+import org.entando.kubernetes.service.EntandoPluginService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,7 +31,7 @@ import static org.mockito.Mockito.verify;
 @TestExecutionListeners({ DependencyInjectionTestExecutionListener.class })
 public class PluginInstallTest {
 
-    @Autowired private KubernetesService kubernetesService;
+    @Autowired private EntandoPluginService entandoPluginService;
     @Autowired private KubernetesClient client;
 
     private KubernetesClientMocker mocker;
@@ -48,7 +46,7 @@ public class PluginInstallTest {
 
         EntandoPlugin entandoPlugin = getTestEntandoPlugin();
 
-        kubernetesService.deploy(entandoPlugin);
+        entandoPluginService.deploy(entandoPlugin);
 
         final ArgumentCaptor<EntandoPlugin> captor = ArgumentCaptor.forClass(EntandoPlugin.class);
         verify(mocker.mixedOperation.inNamespace("plugin-namespace"), times(1)).create(captor.capture());
@@ -58,7 +56,7 @@ public class PluginInstallTest {
         assertThat(plugin.getSpec().getDbms()).isEqualTo(Optional.of(DbmsImageVendor.MYSQL));
         assertThat(plugin.getSpec().getImage()).isEqualTo("entando/entando-plugin-image");
         assertThat(plugin.getSpec().getHealthCheckPath()).isEqualTo("/actuator/health");
-        assertThat(plugin.getSpec().getReplicas()).isEqualTo(1);
+        assertThat(plugin.getSpec().getReplicas().get()).isEqualTo(1);
         assertThat(plugin.getMetadata().getName()).isEqualTo("plugin-name");
 
         assertThat(plugin.getSpec().getRoles()).hasSize(1);

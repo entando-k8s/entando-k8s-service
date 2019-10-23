@@ -1,10 +1,8 @@
 package org.entando.kubernetes;
 
-import io.fabric8.kubernetes.api.model.PodCondition;
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinitionList;
 import io.fabric8.kubernetes.api.model.apiextensions.DoneableCustomResourceDefinition;
-import io.fabric8.kubernetes.api.model.apps.DeploymentCondition;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
@@ -12,7 +10,7 @@ import io.fabric8.kubernetes.client.dsl.*;
 import org.entando.kubernetes.model.plugin.DoneableEntandoPlugin;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.entando.kubernetes.model.plugin.EntandoPluginList;
-import org.entando.kubernetes.service.KubernetesService;
+import org.entando.kubernetes.service.EntandoPluginService;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
@@ -50,7 +48,7 @@ public class KubernetesClientMocker {
 
     private void defineMocks() {
         when(client.customResourceDefinitions()).thenReturn(resourceOperation);
-        when(resourceOperation.withName(KubernetesService.ENTANDOPLUGIN_CRD_NAME)).thenReturn(resource);
+        when(resourceOperation.withName(EntandoPlugin.CRD_NAME)).thenReturn(resource);
         when(resource.get()).thenReturn(customResourceDefinition);
         when(client.customResources(same(customResourceDefinition), same(EntandoPlugin.class),
                 same(EntandoPluginList.class), same(DoneableEntandoPlugin.class)))
