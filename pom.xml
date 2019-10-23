@@ -222,7 +222,7 @@
                             </execution>
                         </executions>
                         <configuration>
-                            <skip>false</skip>
+                            <skip>true</skip>
                             <autoUpdate>true</autoUpdate>
                             <format>XML</format>
                         </configuration>
