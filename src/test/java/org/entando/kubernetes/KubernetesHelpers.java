@@ -36,15 +36,14 @@ public class KubernetesHelpers {
 
         ObjectMeta pluginMeta = new ObjectMetaBuilder().withName("plugin-name").withNamespace("plugin-namespace").build();
 
-        EntandoPluginSpec pluginSpec = new EntandoPluginSpecBuilder()
-                .withIngressPath("/pluginpath")
-                .withReplicas(1)
-                .withDbms(DbmsImageVendor.MYSQL)
+        EntandoPluginSpec pluginSpec = ((EntandoPluginSpecBuilder) new EntandoPluginSpecBuilder<>()
                 .withHealthCheckPath("/actuator/health")
                 .withImage("entando/entando-plugin-image")
                 .addNewRole("read", "Read")
                 .addNewPermission("another-client", "read")
-                .build();
+                .withIngressPath("/pluginpath")
+                .withReplicas(1)
+                .withDbms(DbmsImageVendor.MYSQL)).build();
 
 
         EntandoCustomResourceStatus pluginStatus = new EntandoCustomResourceStatus();

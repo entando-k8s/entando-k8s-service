@@ -56,7 +56,7 @@ public class PluginInstallTest {
         assertThat(plugin.getSpec().getDbms()).isEqualTo(Optional.of(DbmsImageVendor.MYSQL));
         assertThat(plugin.getSpec().getImage()).isEqualTo("entando/entando-plugin-image");
         assertThat(plugin.getSpec().getHealthCheckPath()).isEqualTo("/actuator/health");
-        assertThat(plugin.getSpec().getReplicas()).isEqualTo(1);
+        assertThat(plugin.getSpec().getReplicas().get()).isEqualTo(1);
         assertThat(plugin.getMetadata().getName()).isEqualTo("plugin-name");
 
         assertThat(plugin.getSpec().getRoles()).hasSize(1);
