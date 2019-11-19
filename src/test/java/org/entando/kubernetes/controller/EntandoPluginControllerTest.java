@@ -1,14 +1,32 @@
 package org.entando.kubernetes.controller;
 
+import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Java6Assertions.assertThat;
+import static org.entando.kubernetes.KubernetesHelpers.getTestEntandoPlugin;
+import static org.entando.kubernetes.TestHelpers.extractFromJson;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.fabric8.kubernetes.api.model.*;
-import io.fabric8.kubernetes.api.model.apps.DeploymentStatusBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import java.text.SimpleDateFormat;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
 import org.entando.kubernetes.KubernetesClientMocker;
-import org.entando.kubernetes.model.*;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
-import org.entando.kubernetes.model.plugin.EntandoPluginSpec;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,34 +42,19 @@ import org.springframework.test.context.support.DependencyInjectionTestExecution
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import java.io.IOException;
-import java.util.Collections;
-
-import static com.jayway.jsonpath.JsonPath.using;
-import static java.util.Collections.singletonList;
-import static net.bytebuddy.matcher.ElementMatchers.is;
-import static org.assertj.core.api.Java6Assertions.assertThat;
-import static org.entando.kubernetes.KubernetesHelpers.*;
-import static org.entando.kubernetes.TestHelpers.extractFromJson;
-import static org.entando.kubernetes.model.plugin.EntandoPluginSpec.*;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @RunWith(SpringRunner.class)
-@TestExecutionListeners({ DependencyInjectionTestExecutionListener.class })
+@TestExecutionListeners({DependencyInjectionTestExecutionListener.class})
 public class EntandoPluginControllerTest {
 
     private static final String URL = "/plugins";
 
-    @Autowired private MockMvc mockMvc;
-    @Autowired private KubernetesClient client;
+    @Autowired
+    private MockMvc mockMvc;
+    @Autowired
+    private KubernetesClient client;
 
     private KubernetesClientMocker mocker;
     private ObjectMapper mapper = new ObjectMapper();
@@ -87,14 +90,22 @@ public class EntandoPluginControllerTest {
 
         when(mocker.pluginList.getItems()).thenReturn(singletonList(plugin));
         //@Luca I don't understand why using entando-k8s-custom-model changes this to entandoPluginList
-        MvcResult result =  mockMvc.perform(get(URL))
+        MvcResult result = mockMvc.perform(get(URL))
                 .andDo(print()).andExpect(status().isOk())
                 .andExpect(jsonPath("$._embedded.entandoPluginList", hasSize(1)))
                 .andReturn();
 
-        Resource<EntandoPlugin> pluginResource = extractFromJson(result.getResponse().getContentAsString(), "$._embedded.entandoPluginList[0]", new TypeReference<Resource<EntandoPlugin>>() {});
+        Resource<EntandoPlugin> pluginResource = extractFromJson(result.getResponse().getContentAsString(),
+                "$._embedded.entandoPluginList[0]", new TypeReference<Resource<EntandoPlugin>>() {
+                });
 
-        assertThat(pluginResource.getContent()).isEqualToComparingFieldByFieldRecursively(plugin);
+        assertThat(pluginResource.getContent()).usingComparatorForType(new Comparator<Date>() {
+            @Override
+            public int compare(Date o1, Date o2) {
+                SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
+                return f.format(o1).compareTo(f.format(o2));
+            }
+        }, Date.class).isEqualToComparingFieldByFieldRecursively(plugin);
         assertThat(pluginResource.hasLink("self"));
     }
 
@@ -109,7 +120,6 @@ public class EntandoPluginControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.metadata.name", equalTo(plugin.getMetadata().getName())))
                 .andExpect(jsonPath("$.metadata.namespace", equalTo(plugin.getMetadata().getNamespace())));
-
 
     }
 

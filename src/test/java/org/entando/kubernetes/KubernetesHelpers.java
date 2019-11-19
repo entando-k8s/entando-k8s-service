@@ -36,7 +36,7 @@ public class KubernetesHelpers {
 
         ObjectMeta pluginMeta = new ObjectMetaBuilder().withName("plugin-name").withNamespace("plugin-namespace").build();
 
-        EntandoPluginSpec pluginSpec = ((EntandoPluginSpecBuilder) new EntandoPluginSpecBuilder<>()
+        EntandoPluginSpec pluginSpec = ((EntandoPluginSpecBuilder) new EntandoPluginSpecBuilder()
                 .withHealthCheckPath("/actuator/health")
                 .withImage("entando/entando-plugin-image")
                 .addNewRole("read", "Read")
