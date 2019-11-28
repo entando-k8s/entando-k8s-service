@@ -30,11 +30,13 @@ public class EntandoPluginService {
     }
 
     public void deletePlugin(String pluginId) {
+        log.info("Delete plugin {} from any namespace", pluginId);
         Optional<EntandoPlugin> entandoPlugin = findPluginById(pluginId);
         entandoPlugin.ifPresent(pl -> deletePluginInNamespace(pluginId, pl.getMetadata().getNamespace()));
     }
 
     public void deletePluginInNamespace(String pluginId, String namespace) {
+        log.info("Delete plugin {} from namespace {}", pluginId, namespace);
         EntandoPlugin pluginToRemove = new EntandoPlugin();
         ObjectMeta pluginMeta = new ObjectMetaBuilder().withName(pluginId).withNamespace(namespace).build();
         pluginToRemove.setMetadata(pluginMeta);
@@ -50,6 +52,7 @@ public class EntandoPluginService {
     }
 
     public EntandoPlugin deploy(EntandoPlugin plugin) {
+        log.info("Deploying plugin {} in namespace {}", plugin.getMetadata().getName(), plugin.getMetadata().getNamespace());
         EntandoPlugin cleanPlugin = pluginCleanUp(plugin);
         return getPluginOperations().inNamespace(cleanPlugin.getMetadata().getNamespace()).create(cleanPlugin);
     }

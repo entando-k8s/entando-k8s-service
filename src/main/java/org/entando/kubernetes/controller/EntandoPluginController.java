@@ -11,7 +11,8 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
-import org.entando.kubernetes.exception.PluginNotFoundException;
+import org.entando.kubernetes.exception.BadRequestExceptionFactory;
+import org.entando.kubernetes.exception.NotFoundExceptionFactory;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.entando.kubernetes.service.EntandoPluginResourceAssembler;
 import org.entando.kubernetes.service.EntandoPluginService;
@@ -58,7 +59,7 @@ public class EntandoPluginController {
     public ResponseEntity<Resource<EntandoPlugin>> get(@PathVariable final String pluginId) {
         log.info("Requesting plugins with identifier {} in any namespace", pluginId);
         Optional<EntandoPlugin> plugin = entandoPluginService.findPluginById(pluginId);
-        return ResponseEntity.ok(resourceAssembler.toResource(plugin.orElseThrow(PluginNotFoundException::new)));
+        return ResponseEntity.ok(resourceAssembler.toResource(plugin.orElseThrow(NotFoundExceptionFactory::entandoPlugin)));
     }
 
     @DeleteMapping(path = "/{pluginId}", produces = JSON)
@@ -70,10 +71,18 @@ public class EntandoPluginController {
 
     @PostMapping(consumes = JSON, produces = JSON)
     public ResponseEntity<Resource<EntandoPlugin>> create(@RequestBody EntandoPlugin entandoPlugin) {
+        throwExceptionIfAlreadyDeployed(entandoPlugin);
         EntandoPlugin deployedPlugin = entandoPluginService.deploy(entandoPlugin);
         URI resourceLink = linkTo(methodOn(getClass()).get(deployedPlugin.getMetadata().getName())).toUri();
         return ResponseEntity.created(resourceLink).body(resourceAssembler.toResource(deployedPlugin));
     }
 
+    private void throwExceptionIfAlreadyDeployed(EntandoPlugin entandoPlugin) {
+        Optional<EntandoPlugin> alreadyDeployedPlugin = entandoPluginService.findPluginByIdAndNamespace(
+                entandoPlugin.getMetadata().getName(), entandoPlugin.getMetadata().getNamespace());
+        if (alreadyDeployedPlugin.isPresent()) {
+            throw BadRequestExceptionFactory.pluginAlreadyDeployed(alreadyDeployedPlugin.get());
+        }
+    }
 
 }

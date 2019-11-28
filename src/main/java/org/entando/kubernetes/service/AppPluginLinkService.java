@@ -36,10 +36,16 @@ public class AppPluginLinkService {
     }
 
     public EntandoAppPluginLink deploy(EntandoAppPluginLink newLink) {
+        log.info("Link creation between EntandoApp {} on namespace {} and EntandoPlugin {} on namespace {}",
+                newLink.getSpec().getEntandoAppName(), newLink.getSpec().getEntandoAppNamespace(),
+                newLink.getSpec().getEntandoPluginName(), newLink.getSpec().getEntandoPluginNamespace());
         return getLinksOperations().inNamespace(newLink.getMetadata().getNamespace()).create(newLink);
     }
 
     public void delete(EntandoAppPluginLink l) {
+        log.info("Deleting link between EntandoApp {} on namespace {} and EntandoPlugin {} on namespace {}",
+                l.getSpec().getEntandoAppName(), l.getSpec().getEntandoAppNamespace(),
+                l.getSpec().getEntandoPluginName(), l.getSpec().getEntandoPluginNamespace());
         getLinksOperations().inNamespace(l.getMetadata().getNamespace()).delete(l);
     }
 

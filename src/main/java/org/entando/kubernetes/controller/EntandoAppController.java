@@ -1,14 +1,13 @@
 package org.entando.kubernetes.controller;
 
-import static java.util.Optional.ofNullable;
-
+import com.google.common.base.Strings;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.entando.kubernetes.exception.EntandoAppNotFoundException;
+import org.entando.kubernetes.exception.NotFoundExceptionFactory;
 import org.entando.kubernetes.model.app.EntandoApp;
 import org.entando.kubernetes.model.link.EntandoAppPluginLink;
 import org.entando.kubernetes.model.link.EntandoAppPluginLinkBuilder;
@@ -36,6 +35,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/apps")
 @RequiredArgsConstructor
+@SuppressWarnings("PMD.ExcessiveImports")
 public class EntandoAppController {
 
     private static final String JSON = MediaType.APPLICATION_JSON_VALUE;
@@ -67,7 +67,7 @@ public class EntandoAppController {
         log.debug("Requesting app with name {} in namespace {}", name, namespace);
         Optional<EntandoApp> entandoApp = entandoAppService.findAppByNameAndNamespace(name, namespace);
         return ResponseEntity
-                .ok(appResourceAssembler.toResource(entandoApp.orElseThrow(EntandoAppNotFoundException::new)));
+                .ok(appResourceAssembler.toResource(entandoApp.orElseThrow(NotFoundExceptionFactory::entandoApp)));
     }
 
     @GetMapping(path = "/{namespace}/{name}/links", produces = JSON)
@@ -75,7 +75,7 @@ public class EntandoAppController {
             @PathVariable("namespace") String namespace, @PathVariable("name") String name) {
         EntandoApp entandoApp = entandoAppService
                 .findAppByNameAndNamespace(name, namespace)
-                .orElseThrow(EntandoAppNotFoundException::new);
+                .orElseThrow(NotFoundExceptionFactory::entandoApp);
         List<EntandoAppPluginLink> appLinks = entandoAppPluginLinkService.listAppLinks(entandoApp);
         List<Resource<EntandoAppPluginLink>> linkResources = appLinks.stream()
                 .map(linkResourceAssembler::toResource)
@@ -87,13 +87,9 @@ public class EntandoAppController {
     public ResponseEntity<Resource<EntandoAppPluginLink>> linkToPlugin(
             @PathVariable("namespace") String namespace, @PathVariable("name") String name,
             @RequestBody EntandoPlugin entandoPlugin) {
-        String pluginName = entandoPlugin.getMetadata().getName();
-        String pluginNamespace = ofNullable(entandoPlugin.getMetadata().getNamespace()).orElse(namespace);
-        Optional<EntandoPlugin> optionalPlugin = entandoPluginService
-                .findPluginByIdAndNamespace(pluginName, pluginNamespace);
-        if (!optionalPlugin.isPresent()) {
-            entandoPluginService.deploy(entandoPlugin);
-        }
+        EntandoPlugin plugin = deployPluginIfNotAvailableOnCluster(entandoPlugin, namespace);
+        String pluginName = plugin.getMetadata().getName();
+        String pluginNamespace = plugin.getMetadata().getNamespace();
         EntandoAppPluginLink newLink = new EntandoAppPluginLinkBuilder()
                 .withNewMetadata()
                 .withName(String.format("%s-%s-link", name, pluginName))
@@ -116,6 +112,19 @@ public class EntandoAppController {
                 .filter(el -> el.getSpec().getEntandoPluginName().equals(pluginId)).findFirst();
         linkToRemove.ifPresent(entandoAppPluginLinkService::delete);
         return ResponseEntity.accepted().build();
+    }
+
+    private EntandoPlugin deployPluginIfNotAvailableOnCluster(EntandoPlugin plugin, String fallbackNamespace) {
+        String pluginName = plugin.getMetadata().getName();
+        Optional<EntandoPlugin> optionalPlugin = entandoPluginService.findPluginById(pluginName);
+        return optionalPlugin.orElseGet(() -> {
+            String pluginNamespace = Optional.ofNullable(plugin.getMetadata().getNamespace())
+                    .filter(ns -> !Strings.isNullOrEmpty(ns))
+                    .orElse(fallbackNamespace);
+            plugin.getMetadata().setNamespace(pluginNamespace);
+            return entandoPluginService.deploy(plugin);
+        });
+
     }
 
 }
