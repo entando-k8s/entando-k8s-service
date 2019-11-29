@@ -1,6 +1,5 @@
 package org.entando.kubernetes.controller;
 
-import com.google.common.base.Strings;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -119,7 +118,7 @@ public class EntandoAppController {
         Optional<EntandoPlugin> optionalPlugin = entandoPluginService.findPluginById(pluginName);
         return optionalPlugin.orElseGet(() -> {
             String pluginNamespace = Optional.ofNullable(plugin.getMetadata().getNamespace())
-                    .filter(ns -> !Strings.isNullOrEmpty(ns))
+                    .filter(ns -> !ns.isEmpty())
                     .orElse(fallbackNamespace);
             plugin.getMetadata().setNamespace(pluginNamespace);
             return entandoPluginService.deploy(plugin);
