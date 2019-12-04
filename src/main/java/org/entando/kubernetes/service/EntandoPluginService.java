@@ -7,25 +7,23 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.zjsonpatch.internal.guava.Strings;
-import java.util.List;
-import java.util.Optional;
-import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.entando.kubernetes.model.plugin.DoneableEntandoPlugin;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.entando.kubernetes.model.plugin.EntandoPluginBuilder;
 import org.entando.kubernetes.model.plugin.EntandoPluginList;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
 
 @Slf4j
-@Component
+@Service
 public class EntandoPluginService {
 
-    @NonNull
     private final KubernetesClient client;
 
-    public EntandoPluginService(@Autowired final KubernetesClient client) {
+    public EntandoPluginService(KubernetesClient client) {
         this.client = client;
     }
 

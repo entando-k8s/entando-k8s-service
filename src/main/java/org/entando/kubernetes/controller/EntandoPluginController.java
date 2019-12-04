@@ -33,13 +33,17 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 @RestController
 @RequestMapping("/plugins")
-@RequiredArgsConstructor
 public class EntandoPluginController {
 
     private static final String JSON = MediaType.APPLICATION_JSON_VALUE;
 
-    private final @NonNull EntandoPluginService entandoPluginService;
-    private final @NonNull EntandoPluginResourceAssembler resourceAssembler;
+    private final EntandoPluginService entandoPluginService;
+    private final EntandoPluginResourceAssembler resourceAssembler;
+
+    public EntandoPluginController(EntandoPluginService entandoPluginService, EntandoPluginResourceAssembler resourceAssembler) {
+        this.entandoPluginService = entandoPluginService;
+        this.resourceAssembler = resourceAssembler;
+    }
 
     @GetMapping(path = "", produces = JSON)
     public ResponseEntity<Resources<Resource<EntandoPlugin>>> list(
