@@ -19,7 +19,19 @@ import org.springframework.core.io.ClassPathResource;
 
 public class EntandoPluginTestHelper {
 
-    public static String BASE_PLUGIN_ENDPOINT = "/plugins";
+    public static final String BASE_PLUGIN_ENDPOINT = "/plugins";
+    public static final String TEST_PLUGIN_NAME = "my-plugin";
+    public static final String TEST_PLUGIN_NAMESPACE = "my-plugin-namespace";
+
+    public static EntandoPlugin createTestEntandoPlugin(KubernetesClient client) {
+        EntandoPlugin ep = getTestEntandoPlugin();
+
+        KubernetesDeserializer
+                .registerCustomKind(ep.getApiVersion(), ep.getKind(), EntandoPlugin.class);
+
+        return getEntandoPluginOperations(client).inNamespace(ep.getMetadata().getNamespace()).createOrReplace(ep);
+
+    }
 
     public static void createEntandoPlugin(KubernetesClient client, String pluginName) {
         EntandoPluginTestHelper.createEntandoPlugin(client, pluginName, client.getConfiguration().getNamespace());
@@ -38,7 +50,7 @@ public class EntandoPluginTestHelper {
 
 
     public static MixedOperation<EntandoPlugin, EntandoPluginList, DoneableEntandoPlugin,
-                Resource<EntandoPlugin, DoneableEntandoPlugin>> getEntandoPluginOperations(KubernetesClient client) {
+            Resource<EntandoPlugin, DoneableEntandoPlugin>> getEntandoPluginOperations(KubernetesClient client) {
         CustomResourceDefinition entandoPluginCrd = createEntandoPluginCrd(client);
 
         return client.customResources(entandoPluginCrd, EntandoPlugin.class, EntandoPluginList.class,
@@ -63,6 +75,26 @@ public class EntandoPluginTestHelper {
             return client.customResourceDefinitions().createOrReplace(entandoPluginCrd);
         }
         return entandoPluginCrd;
+    }
+
+    public static EntandoPlugin getTestEntandoPlugin() {
+        EntandoPlugin entandoPlugin = new EntandoPluginBuilder().withNewSpec()
+                .withImage("entando/entando-avatar-plugin")
+                .withDbms(DbmsImageVendor.POSTGRESQL)
+                .withReplicas(1)
+                .withHealthCheckPath("/management/health")
+                .withIngressPath("/dummyPlugin")
+                .withSecurityLevel(PluginSecurityLevel.LENIENT)
+                .withIngressHostName("dummyPlugin.test")
+                .endSpec()
+                .build();
+
+        entandoPlugin.setMetadata(new ObjectMetaBuilder()
+                .withName(TEST_PLUGIN_NAME)
+                .withNamespace(TEST_PLUGIN_NAMESPACE)
+                .build());
+        entandoPlugin.setApiVersion("entando.org/v1alpha1");
+        return entandoPlugin;
     }
 
     public static EntandoPlugin getTestEntandoPlugin(String name) {

@@ -20,20 +20,26 @@ import org.springframework.core.io.ClassPathResource;
 
 public class EntandoAppTestHelper {
 
-    public static String BASE_APP_ENDPOINT = "/apps";
+    public static final String BASE_APP_ENDPOINT = "/apps";
+    public static final String TEST_APP_NAME = "my-app";
+    public static final String TEST_APP_NAMESPACE = "my-app-namespace";
 
     public static void createEntandoApp(KubernetesClient client, String appName) {
         EntandoAppTestHelper.createEntandoApp(client, appName, client.getNamespace());
     }
 
-    public static void createEntandoApp(KubernetesClient client, String appName, String appNamespace) {
+    public static EntandoApp createTestEntandoApp(KubernetesClient client) {
+        return createEntandoApp(client, TEST_APP_NAME, TEST_APP_NAMESPACE);
+    }
+
+    public static EntandoApp createEntandoApp(KubernetesClient client, String appName, String appNamespace) {
 
         EntandoApp ea = getTestEntandoApp(appName);
         ea.getMetadata().setNamespace(appNamespace);
 
         KubernetesDeserializer.registerCustomKind(ea.getApiVersion(), ea.getKind(), EntandoApp.class);
 
-        getEntandoAppOperations(client).inNamespace(appNamespace).createOrReplace(ea);
+        return getEntandoAppOperations(client).inNamespace(appNamespace).createOrReplace(ea);
     }
 
 
@@ -64,6 +70,20 @@ public class EntandoAppTestHelper {
             return client.customResourceDefinitions().createOrReplace(entandoAppCrd);
         }
         return entandoAppCrd;
+    }
+
+    public static EntandoApp getTestEntandoApp() {
+        EntandoApp entandoApp = new EntandoAppBuilder().withNewSpec()
+                .withDbms(DbmsImageVendor.POSTGRESQL)
+                .withReplicas(1)
+                .withEntandoImageVersion("6.0.0-SNAPSHOT")
+                .withStandardServerImage(JeeServer.WILDFLY)
+                .endSpec()
+                .build();
+
+        entandoApp.setMetadata(new ObjectMetaBuilder().withName("my-app").build());
+        entandoApp.setApiVersion("entando.org/v1alpha1");
+        return entandoApp;
     }
 
     public static EntandoApp getTestEntandoApp(String name) {
