@@ -41,13 +41,13 @@ public class EntandoLinkServiceTest {
     @Test
     public void shouldNotFindAnyLinkIfNoAppIsAvailable() {
         EntandoApp testApp = EntandoAppTestHelper.getTestEntandoApp();
-        assert(linkService.listAppLinks(testApp).isEmpty());
+        assertTrue(linkService.listAppLinks(testApp).isEmpty());
     }
     @Test
     public void shouldNotFindAnyLinkIfAppHasNoLink() {
         EntandoApp testApp = EntandoAppTestHelper.getTestEntandoApp();
         EntandoAppTestHelper.createTestEntandoApp(client);
-        assert(linkService.listAppLinks(testApp).isEmpty());
+        assertTrue(linkService.listAppLinks(testApp).isEmpty());
     }
 
     @Test
