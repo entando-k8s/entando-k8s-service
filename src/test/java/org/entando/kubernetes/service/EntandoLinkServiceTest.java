@@ -18,19 +18,19 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-public class EntandoAppPluginLinkServiceTest {
+public class EntandoLinkServiceTest {
 
     @Rule
     public KubernetesServer server = new KubernetesServer(false, true);
 
-    private AppPluginLinkService linkService;
+    private EntandoLinkService linkService;
 
     private KubernetesClient client;
 
     @Before
     public void setUp() {
         client = server.getClient();
-        linkService = new AppPluginLinkService(client);
+        linkService = new EntandoLinkService(client);
         EntandoLinkTestHelper.createEntandoAppPluginLinkCrd(client);
         EntandoAppTestHelper.createEntandoAppCrd(client);
         EntandoPluginTestHelper.createEntandoPluginCrd(client);
@@ -70,6 +70,23 @@ public class EntandoAppPluginLinkServiceTest {
         assertEquals(TEST_PLUGIN_NAMESPACE, createdLink.getSpec().getEntandoPluginNamespace());
 
         assertEquals(1, linkService.listEntandoAppLinks(TEST_APP_NAMESPACE, TEST_APP_NAME).size());
+    }
+
+    @Test
+    public void shouldGenerateLinkWithAppropriateInfoFromAppAndPlugin() {
+        EntandoApp ea = EntandoAppTestHelper.getTestEntandoApp();
+        EntandoPlugin ep = EntandoPluginTestHelper.getTestEntandoPlugin();
+
+        EntandoAppPluginLink generatedLink = linkService.generateForAppAndPlugin(ea, ep);
+        assertEquals(ea.getMetadata().getName(), generatedLink.getSpec().getEntandoAppName());
+        assertEquals(ea.getMetadata().getNamespace(), generatedLink.getSpec().getEntandoAppNamespace());
+        assertEquals(ep.getMetadata().getName(), generatedLink.getSpec().getEntandoPluginName());
+        assertEquals(ep.getMetadata().getNamespace(), generatedLink.getSpec().getEntandoPluginNamespace());
+
+        assertEquals(ea.getMetadata().getNamespace(), generatedLink.getMetadata().getNamespace());
+        assertEquals(
+                String.format("%s-%s-link", ea.getMetadata().getName(), ep.getMetadata().getName()),
+                generatedLink.getMetadata().getName());
     }
 
 

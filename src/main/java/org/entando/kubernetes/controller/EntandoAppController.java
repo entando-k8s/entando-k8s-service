@@ -11,7 +11,7 @@ import org.entando.kubernetes.model.app.EntandoApp;
 import org.entando.kubernetes.model.link.EntandoAppPluginLink;
 import org.entando.kubernetes.model.link.EntandoAppPluginLinkBuilder;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
-import org.entando.kubernetes.service.AppPluginLinkService;
+import org.entando.kubernetes.service.EntandoLinkService;
 import org.entando.kubernetes.service.EntandoAppPluginLinkResourceAssembler;
 import org.entando.kubernetes.service.EntandoAppResourceAssembler;
 import org.entando.kubernetes.service.EntandoAppService;
@@ -40,7 +40,8 @@ public class EntandoAppController {
     private static final String JSON = MediaType.APPLICATION_JSON_VALUE;
 
     private final @NonNull EntandoAppService entandoAppService;
-    private final @NonNull AppPluginLinkService entandoAppPluginLinkService;
+    private final @NonNull
+    EntandoLinkService entandoLinkService;
     private final @NonNull EntandoPluginService entandoPluginService;
     private final @NonNull EntandoAppResourceAssembler appResourceAssembler;
     private final @NonNull EntandoAppPluginLinkResourceAssembler linkResourceAssembler;
@@ -75,7 +76,7 @@ public class EntandoAppController {
         EntandoApp entandoApp = entandoAppService
                 .findAppByNameAndNamespace(name, namespace)
                 .orElseThrow(NotFoundExceptionFactory::entandoApp);
-        List<EntandoAppPluginLink> appLinks = entandoAppPluginLinkService.listAppLinks(entandoApp);
+        List<EntandoAppPluginLink> appLinks = entandoLinkService.listAppLinks(entandoApp);
         List<Resource<EntandoAppPluginLink>> linkResources = appLinks.stream()
                 .map(linkResourceAssembler::toResource)
                 .collect(Collectors.toList());
@@ -87,29 +88,20 @@ public class EntandoAppController {
             @PathVariable("namespace") String namespace, @PathVariable("name") String name,
             @RequestBody EntandoPlugin entandoPlugin) {
         EntandoPlugin plugin = deployPluginIfNotAvailableOnCluster(entandoPlugin, namespace);
-        String pluginName = plugin.getMetadata().getName();
-        String pluginNamespace = plugin.getMetadata().getNamespace();
-        EntandoAppPluginLink newLink = new EntandoAppPluginLinkBuilder()
-                .withNewMetadata()
-                .withName(String.format("%s-%s-link", name, pluginName))
-                .withNamespace(namespace)
-                .endMetadata()
-                .withNewSpec()
-                .withEntandoApp(namespace, name)
-                .withEntandoPlugin(pluginNamespace, pluginName)
-                .endSpec()
-                .build();
-        EntandoAppPluginLink deployedLink = entandoAppPluginLinkService.deploy(newLink);
+        EntandoApp entandoApp = entandoAppService.findAppByNameAndNamespace(name, namespace)
+                .orElseThrow(NotFoundExceptionFactory::entandoApp);
+        EntandoAppPluginLink newLink = entandoLinkService.generateForAppAndPlugin(entandoApp, plugin);
+        EntandoAppPluginLink deployedLink = entandoLinkService.deploy(newLink);
         return ResponseEntity.status(HttpStatus.CREATED).body(linkResourceAssembler.toResource(deployedLink));
     }
 
     @DeleteMapping(path = "/{namespace}/{name}/links/{pluginId}", produces = JSON)
     public ResponseEntity delete(@PathVariable("namespace") String namespace, @PathVariable("name") String name,
             @PathVariable("pluginId") String pluginId) {
-        List<EntandoAppPluginLink> appLinks = entandoAppPluginLinkService.listEntandoAppLinks(namespace, name);
+        List<EntandoAppPluginLink> appLinks = entandoLinkService.listEntandoAppLinks(namespace, name);
         Optional<EntandoAppPluginLink> linkToRemove = appLinks.stream()
                 .filter(el -> el.getSpec().getEntandoPluginName().equals(pluginId)).findFirst();
-        linkToRemove.ifPresent(entandoAppPluginLinkService::delete);
+        linkToRemove.ifPresent(entandoLinkService::delete);
         return ResponseEntity.accepted().build();
     }
 

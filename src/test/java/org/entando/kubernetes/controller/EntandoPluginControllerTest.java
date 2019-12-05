@@ -1,5 +1,7 @@
 package org.entando.kubernetes.controller;
 
+import static org.entando.kubernetes.util.EntandoPluginTestHelper.TEST_PLUGIN_NAME;
+import static org.entando.kubernetes.util.EntandoPluginTestHelper.TEST_PLUGIN_NAMESPACE;
 import static org.hamcrest.core.StringEndsWith.endsWith;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
@@ -65,28 +67,27 @@ public class EntandoPluginControllerTest {
     public void shouldReturnAListWithOnePlugin() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoPluginTestHelper.BASE_PLUGIN_ENDPOINT)
-                .queryParam("namespace", "my-namespace")
+                .queryParam("namespace", TEST_PLUGIN_NAMESPACE)
                 .build().toUri();
 
 
-        EntandoPlugin tempPlugin = EntandoPluginTestHelper.getTestEntandoPlugin("my-plugin");
-        tempPlugin.getMetadata().setNamespace("my-namespace");
+        EntandoPlugin tempPlugin = EntandoPluginTestHelper.getTestEntandoPlugin();
         when(entandoPluginService.getAllPluginsInNamespace(any(String.class))).thenReturn(Collections.singletonList(tempPlugin));
 
         mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(jsonPath("$._embedded.entandoPluginList").isNotEmpty())
-                .andExpect(jsonPath("$._embedded.entandoPluginList[0].metadata.name" ).value("my-plugin"))
-                .andExpect(jsonPath("$._embedded.entandoPluginList[0].metadata.namespace").value("my-namespace"));
+                .andExpect(jsonPath("$._embedded.entandoPluginList[0].metadata.name" ).value(TEST_PLUGIN_NAME))
+                .andExpect(jsonPath("$._embedded.entandoPluginList[0].metadata.namespace").value(TEST_PLUGIN_NAMESPACE));
 
-        verify(entandoPluginService, times(1)).getAllPluginsInNamespace("my-namespace");
+        verify(entandoPluginService, times(1)).getAllPluginsInNamespace(TEST_PLUGIN_NAMESPACE);
     }
 
     @Test
     public void shouldReturn404IfPluginNotFound() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoPluginTestHelper.BASE_PLUGIN_ENDPOINT)
-                .pathSegment("my-plugin")
+                .pathSegment(TEST_PLUGIN_NAME)
                 .build().toUri();
         mvc.perform(get(uri)
                 .accept(MediaType.APPLICATION_JSON))
@@ -99,9 +100,9 @@ public class EntandoPluginControllerTest {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoPluginTestHelper.BASE_PLUGIN_ENDPOINT)
                 .build().toUri();
-        EntandoPlugin tempPlugin = EntandoPluginTestHelper.getTestEntandoPlugin("my-plugin");
+        EntandoPlugin tempPlugin = EntandoPluginTestHelper.getTestEntandoPlugin();
 
-        when(entandoPluginService.findPluginByIdAndNamespace(eq("my-plugin"), any()))
+        when(entandoPluginService.findPluginByIdAndNamespace(eq(TEST_PLUGIN_NAME), any()))
                 .thenReturn(Optional.of(tempPlugin));
 
         mvc.perform(post(uri)
@@ -119,7 +120,7 @@ public class EntandoPluginControllerTest {
                 .fromUriString(EntandoPluginTestHelper.BASE_PLUGIN_ENDPOINT)
                 .build().toUri();
 
-        EntandoPlugin tempPlugin = EntandoPluginTestHelper.getTestEntandoPlugin("my-plugin");
+        EntandoPlugin tempPlugin = EntandoPluginTestHelper.getTestEntandoPlugin();
         tempPlugin.getMetadata().setNamespace("my-namespace");
 
         when(entandoPluginService.deploy(any(EntandoPlugin.class))).thenReturn(tempPlugin);
@@ -130,7 +131,7 @@ public class EntandoPluginControllerTest {
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$._links.self").exists())
-                .andExpect(jsonPath("$._links.self.href").value(endsWith("plugins/my-plugin")))
+                .andExpect(jsonPath("$._links.self.href").value(endsWith("plugins/"+TEST_PLUGIN_NAME)))
                 .andExpect(jsonPath("$._links.plugins").exists());
 
     }
@@ -139,7 +140,7 @@ public class EntandoPluginControllerTest {
     public void shouldReturnAcceptedWhenDeletingAPlugin() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoPluginTestHelper.BASE_PLUGIN_ENDPOINT)
-                .pathSegment("my-plugin")
+                .pathSegment(TEST_PLUGIN_NAME)
                 .build().toUri();
 
         mvc.perform(delete(uri)

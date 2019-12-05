@@ -11,17 +11,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.entando.kubernetes.model.app.EntandoApp;
 import org.entando.kubernetes.model.link.DoneableEntandoAppPluginLink;
 import org.entando.kubernetes.model.link.EntandoAppPluginLink;
+import org.entando.kubernetes.model.link.EntandoAppPluginLinkBuilder;
 import org.entando.kubernetes.model.link.EntandoAppPluginLinkList;
+import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
-public class AppPluginLinkService {
+public class EntandoLinkService {
 
     private final @NonNull KubernetesClient client;
 
-    public AppPluginLinkService(@Autowired final KubernetesClient client) {
+    public EntandoLinkService(@Autowired final KubernetesClient client) {
         this.client = client;
     }
 
@@ -47,6 +49,23 @@ public class AppPluginLinkService {
                 l.getSpec().getEntandoAppName(), l.getSpec().getEntandoAppNamespace(),
                 l.getSpec().getEntandoPluginName(), l.getSpec().getEntandoPluginNamespace());
         getLinksOperations().inNamespace(l.getMetadata().getNamespace()).delete(l);
+    }
+
+    public EntandoAppPluginLink generateForAppAndPlugin(EntandoApp app, EntandoPlugin plugin) {
+        String appNamespace = app.getMetadata().getNamespace();
+        String appName = app.getMetadata().getName();
+        String pluginName = plugin.getMetadata().getName();
+        String pluginNamespace = plugin.getMetadata().getNamespace();
+        return new EntandoAppPluginLinkBuilder()
+                .withNewMetadata()
+                .withName(String.format("%s-%s-link", appName, pluginName))
+                .withNamespace(appNamespace)
+                .endMetadata()
+                .withNewSpec()
+                .withEntandoApp(appNamespace, appName)
+                .withEntandoPlugin(pluginNamespace, pluginName)
+                .endSpec()
+                .build();
     }
 
     //CHECKSTYLE:OFF
