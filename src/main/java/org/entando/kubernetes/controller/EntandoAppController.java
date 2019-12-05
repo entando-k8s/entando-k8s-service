@@ -3,18 +3,16 @@ package org.entando.kubernetes.controller;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.entando.kubernetes.exception.NotFoundExceptionFactory;
 import org.entando.kubernetes.model.app.EntandoApp;
 import org.entando.kubernetes.model.link.EntandoAppPluginLink;
-import org.entando.kubernetes.model.link.EntandoAppPluginLinkBuilder;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
-import org.entando.kubernetes.service.EntandoLinkService;
 import org.entando.kubernetes.service.EntandoAppPluginLinkResourceAssembler;
 import org.entando.kubernetes.service.EntandoAppResourceAssembler;
 import org.entando.kubernetes.service.EntandoAppService;
+import org.entando.kubernetes.service.EntandoLinkService;
 import org.entando.kubernetes.service.EntandoPluginService;
 import org.springframework.hateoas.Resource;
 import org.springframework.hateoas.Resources;
@@ -39,12 +37,11 @@ public class EntandoAppController {
 
     private static final String JSON = MediaType.APPLICATION_JSON_VALUE;
 
-    private final @NonNull EntandoAppService entandoAppService;
-    private final @NonNull
-    EntandoLinkService entandoLinkService;
-    private final @NonNull EntandoPluginService entandoPluginService;
-    private final @NonNull EntandoAppResourceAssembler appResourceAssembler;
-    private final @NonNull EntandoAppPluginLinkResourceAssembler linkResourceAssembler;
+    private final EntandoAppService entandoAppService;
+    private final EntandoLinkService entandoLinkService;
+    private final EntandoPluginService entandoPluginService;
+    private final EntandoAppResourceAssembler appResourceAssembler;
+    private final EntandoAppPluginLinkResourceAssembler linkResourceAssembler;
 
     @GetMapping(path = "", produces = JSON)
     public ResponseEntity<Resources<Resource<EntandoApp>>> list() {

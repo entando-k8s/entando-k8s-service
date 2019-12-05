@@ -5,9 +5,11 @@ import static org.entando.kubernetes.util.EntandoAppTestHelper.TEST_APP_NAMESPAC
 import static org.entando.kubernetes.util.EntandoPluginTestHelper.TEST_PLUGIN_NAME;
 import static org.entando.kubernetes.util.EntandoPluginTestHelper.TEST_PLUGIN_NAMESPACE;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
+import java.util.List;
 import org.entando.kubernetes.model.app.EntandoApp;
 import org.entando.kubernetes.model.link.EntandoAppPluginLink;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
@@ -87,6 +89,17 @@ public class EntandoLinkServiceTest {
         assertEquals(
                 String.format("%s-%s-link", ea.getMetadata().getName(), ep.getMetadata().getName()),
                 generatedLink.getMetadata().getName());
+    }
+
+    @Test
+    public void shouldDeleteEntandoAppPluginLink() {
+        EntandoAppPluginLink el = EntandoLinkTestHelper.createTestEntandoAppPluginLink(client);
+        linkService.delete(el);
+        List<EntandoAppPluginLink> links = EntandoLinkTestHelper
+                .getEntandoAppPluginLinkOperations(client)
+                .inNamespace(el.getMetadata().getNamespace())
+                .list().getItems();
+        assertTrue(links.isEmpty());
     }
 
 

@@ -6,7 +6,8 @@ import org.springframework.http.HttpStatus;
 
 public final class BadRequestExceptionFactory {
 
-    private BadRequestExceptionFactory() { }
+    private BadRequestExceptionFactory() {
+    }
 
     public static HttpException pluginAlreadyDeployed(EntandoPlugin plugin) {
         return new HttpException(HttpStatus.BAD_REQUEST,

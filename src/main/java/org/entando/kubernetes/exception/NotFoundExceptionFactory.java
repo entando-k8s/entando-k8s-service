@@ -3,7 +3,9 @@ package org.entando.kubernetes.exception;
 import org.entando.web.exception.NotFoundException;
 
 public final class NotFoundExceptionFactory {
-    private NotFoundExceptionFactory() {}
+
+    private NotFoundExceptionFactory() {
+    }
 
     public static NotFoundException deployment() {
         return new NotFoundException("org.entando.error.deploymentNotFound");

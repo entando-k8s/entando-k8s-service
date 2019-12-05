@@ -7,15 +7,14 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.zjsonpatch.internal.guava.Strings;
+import java.util.List;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.entando.kubernetes.model.plugin.DoneableEntandoPlugin;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.entando.kubernetes.model.plugin.EntandoPluginBuilder;
 import org.entando.kubernetes.model.plugin.EntandoPluginList;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @Service
@@ -50,7 +49,8 @@ public class EntandoPluginService {
     }
 
     public EntandoPlugin deploy(EntandoPlugin plugin) {
-        log.info("Deploying plugin {} in namespace {}", plugin.getMetadata().getName(), plugin.getMetadata().getNamespace());
+        log.info("Deploying plugin {} in namespace {}", plugin.getMetadata().getName(),
+                plugin.getMetadata().getNamespace());
         EntandoPlugin cleanPlugin = pluginCleanUp(plugin);
         return getPluginOperations().inNamespace(cleanPlugin.getMetadata().getNamespace()).create(cleanPlugin);
     }
@@ -63,8 +63,8 @@ public class EntandoPluginService {
         }
         EntandoPlugin newPlugin = new EntandoPluginBuilder()
                 .withNewMetadata()
-                    .withName(plugin.getMetadata().getName())
-                    .withNamespace(plugin.getMetadata().getNamespace())
+                .withName(plugin.getMetadata().getName())
+                .withNamespace(plugin.getMetadata().getNamespace())
                 .endMetadata()
                 .withSpec(plugin.getSpec())
                 .build();

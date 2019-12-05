@@ -7,8 +7,6 @@ import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
 import org.entando.kubernetes.exception.BadRequestExceptionFactory;
@@ -40,7 +38,8 @@ public class EntandoPluginController {
     private final EntandoPluginService entandoPluginService;
     private final EntandoPluginResourceAssembler resourceAssembler;
 
-    public EntandoPluginController(EntandoPluginService entandoPluginService, EntandoPluginResourceAssembler resourceAssembler) {
+    public EntandoPluginController(EntandoPluginService entandoPluginService,
+            EntandoPluginResourceAssembler resourceAssembler) {
         this.entandoPluginService = entandoPluginService;
         this.resourceAssembler = resourceAssembler;
     }
@@ -63,7 +62,8 @@ public class EntandoPluginController {
     public ResponseEntity<Resource<EntandoPlugin>> get(@PathVariable final String pluginId) {
         log.info("Requesting plugins with identifier {} in any namespace", pluginId);
         Optional<EntandoPlugin> plugin = entandoPluginService.findPluginById(pluginId);
-        return ResponseEntity.ok(resourceAssembler.toResource(plugin.orElseThrow(NotFoundExceptionFactory::entandoPlugin)));
+        return ResponseEntity
+                .ok(resourceAssembler.toResource(plugin.orElseThrow(NotFoundExceptionFactory::entandoPlugin)));
     }
 
     @DeleteMapping(path = "/{pluginId}", produces = JSON)
