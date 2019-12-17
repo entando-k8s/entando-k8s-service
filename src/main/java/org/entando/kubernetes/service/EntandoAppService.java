@@ -6,7 +6,6 @@ import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import java.util.List;
 import java.util.Optional;
-import lombok.NonNull;
 import org.entando.kubernetes.model.app.DoneableEntandoApp;
 import org.entando.kubernetes.model.app.EntandoApp;
 import org.entando.kubernetes.model.app.EntandoAppList;
@@ -16,7 +15,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class EntandoAppService {
 
-    private final @NonNull KubernetesClient client;
+    private final KubernetesClient client;
 
     public EntandoAppService(@Autowired final KubernetesClient client) {
         this.client = client;

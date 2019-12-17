@@ -1,11 +1,9 @@
 package org.entando.kubernetes.controller;
 
-import static java.util.Collections.singletonList;
-import static org.assertj.core.api.Java6Assertions.assertThat;
-import static org.entando.kubernetes.KubernetesHelpers.getTestEntandoPlugin;
-import static org.entando.kubernetes.TestHelpers.extractFromJson;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
+import static org.entando.kubernetes.util.EntandoPluginTestHelper.TEST_PLUGIN_NAME;
+import static org.entando.kubernetes.util.EntandoPluginTestHelper.TEST_PLUGIN_NAMESPACE;
+import static org.hamcrest.core.StringEndsWith.endsWith;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -18,120 +16,137 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.fabric8.kubernetes.client.KubernetesClient;
-import java.text.SimpleDateFormat;
+import java.net.URI;
 import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import org.entando.kubernetes.KubernetesClientMocker;
+import java.util.Optional;
+import org.apache.http.client.utils.URIBuilder;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
-import org.junit.Before;
+import org.entando.kubernetes.service.EntandoPluginService;
+import org.entando.kubernetes.util.EntandoPluginTestHelper;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.hateoas.Resource;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestExecutionListeners;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.test.context.support.DependencyInjectionTestExecutionListener;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.web.util.UriBuilder;
+import org.springframework.web.util.UriComponentsBuilder;
 
+@RunWith(SpringRunner.class)
 @SpringBootTest
 @AutoConfigureMockMvc
-@ActiveProfiles("test")
-@RunWith(SpringRunner.class)
-@TestExecutionListeners({DependencyInjectionTestExecutionListener.class})
 public class EntandoPluginControllerTest {
 
-    private static final String URL = "/plugins";
+    @Autowired
+    private MockMvc mvc;
 
     @Autowired
-    private MockMvc mockMvc;
-    @Autowired
-    private KubernetesClient client;
+    private ObjectMapper mapper;
 
-    private KubernetesClientMocker mocker;
-    private ObjectMapper mapper = new ObjectMapper();
-
-    @Before
-    public void setUp() {
-        mocker = new KubernetesClientMocker(client);
-    }
+    @MockBean
+    private EntandoPluginService entandoPluginService;
 
     @Test
-    public void testListEmpty() throws Exception {
-        when(mocker.pluginList.getItems()).thenReturn(Collections.emptyList());
+    public void shouldReturnEmptyListIfNotPluginIsDeployed() throws Exception {
+        URI uri = UriComponentsBuilder
+                .fromUriString(EntandoPluginTestHelper.BASE_PLUGIN_ENDPOINT)
+                .build().toUri();
 
-        mockMvc.perform(get(URL))
-                .andDo(print()).andExpect(status().isOk())
+        mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().is2xxSuccessful())
                 .andExpect(content().json("{}"));
+
+        verify(entandoPluginService, times(1)).getAllPlugins();
     }
 
     @Test
-    public void testNotFound() throws Exception {
-        final String pluginId = "arbitrary-plugin";
-        mocker.mockResult(pluginId, null);
+    public void shouldReturnAListWithOnePlugin() throws Exception {
+        URI uri = UriComponentsBuilder
+                .fromUriString(EntandoPluginTestHelper.BASE_PLUGIN_ENDPOINT)
+                .queryParam("namespace", TEST_PLUGIN_NAMESPACE)
+                .build().toUri();
 
-        mockMvc.perform(get(String.format("%s/%s", URL, pluginId)))
-                .andDo(print()).andExpect(status().isNotFound());
 
-        verify(mocker.mixedOperation, times(1)).inAnyNamespace();
+        EntandoPlugin tempPlugin = EntandoPluginTestHelper.getTestEntandoPlugin();
+        when(entandoPluginService.getAllPluginsInNamespace(any(String.class))).thenReturn(Collections.singletonList(tempPlugin));
+
+        mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().is2xxSuccessful())
+                .andExpect(jsonPath("$._embedded.entandoPluginList").isNotEmpty())
+                .andExpect(jsonPath("$._embedded.entandoPluginList[0].metadata.name" ).value(TEST_PLUGIN_NAME))
+                .andExpect(jsonPath("$._embedded.entandoPluginList[0].metadata.namespace").value(TEST_PLUGIN_NAMESPACE));
+
+        verify(entandoPluginService, times(1)).getAllPluginsInNamespace(TEST_PLUGIN_NAMESPACE);
     }
 
     @Test
-    public void testList() throws Exception {
-        EntandoPlugin plugin = getTestEntandoPlugin();
+    public void shouldReturn404IfPluginNotFound() throws Exception {
+        URI uri = UriComponentsBuilder
+                .fromUriString(EntandoPluginTestHelper.BASE_PLUGIN_ENDPOINT)
+                .pathSegment(TEST_PLUGIN_NAME)
+                .build().toUri();
+        mvc.perform(get(uri)
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
 
-        when(mocker.pluginList.getItems()).thenReturn(singletonList(plugin));
-        //@Luca I don't understand why using entando-k8s-custom-model changes this to entandoPluginList
-        MvcResult result = mockMvc.perform(get(URL))
-                .andDo(print()).andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.entandoPluginList", hasSize(1)))
-                .andReturn();
-
-        Resource<EntandoPlugin> pluginResource = extractFromJson(result.getResponse().getContentAsString(),
-                "$._embedded.entandoPluginList[0]", new TypeReference<Resource<EntandoPlugin>>() {
-                });
-
-        assertThat(pluginResource.getContent()).usingComparatorForType(new Comparator<Date>() {
-            @Override
-            public int compare(Date o1, Date o2) {
-                SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ");
-                return f.format(o1).compareTo(f.format(o2));
-            }
-        }, Date.class).isEqualToComparingFieldByFieldRecursively(plugin);
-        assertThat(pluginResource.hasLink("self"));
     }
 
     @Test
-    public void testCreate() throws Exception {
-        EntandoPlugin plugin = getTestEntandoPlugin();
+    public void shouldThrowBadRequestExceptionForAlreadyDeployedPlugin() throws Exception {
+        URI uri = UriComponentsBuilder
+                .fromUriString(EntandoPluginTestHelper.BASE_PLUGIN_ENDPOINT)
+                .build().toUri();
+        EntandoPlugin tempPlugin = EntandoPluginTestHelper.getTestEntandoPlugin();
 
-        when(mocker.namespaceOperations.create(any(EntandoPlugin.class))).thenReturn(plugin);
+        when(entandoPluginService.findPluginByIdAndNamespace(eq(TEST_PLUGIN_NAME), any()))
+                .thenReturn(Optional.of(tempPlugin));
 
-        mockMvc.perform(post(URL).content(mapper.writeValueAsBytes(plugin)).contentType(MediaType.APPLICATION_JSON))
-                .andDo(print())
+        mvc.perform(post(uri)
+                .content(mapper.writeValueAsString(tempPlugin))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andDo(print());
+
+    }
+
+    @Test
+    public void shouldReturnCreatedForNewlyDeployedPlugin() throws Exception {
+        URI uri = UriComponentsBuilder
+                .fromUriString(EntandoPluginTestHelper.BASE_PLUGIN_ENDPOINT)
+                .build().toUri();
+
+        EntandoPlugin tempPlugin = EntandoPluginTestHelper.getTestEntandoPlugin();
+        tempPlugin.getMetadata().setNamespace("my-namespace");
+
+        when(entandoPluginService.deploy(any(EntandoPlugin.class))).thenReturn(tempPlugin);
+
+        mvc.perform(post(uri)
+                .content(mapper.writeValueAsString(tempPlugin))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.metadata.name", equalTo(plugin.getMetadata().getName())))
-                .andExpect(jsonPath("$.metadata.namespace", equalTo(plugin.getMetadata().getNamespace())));
+                .andExpect(jsonPath("$._links.self").exists())
+                .andExpect(jsonPath("$._links.self.href").value(endsWith("plugins/"+TEST_PLUGIN_NAME)))
+                .andExpect(jsonPath("$._links.plugins").exists());
 
     }
 
     @Test
-    public void testDelete() throws Exception {
-        EntandoPlugin plugin = getTestEntandoPlugin();
+    public void shouldReturnAcceptedWhenDeletingAPlugin() throws Exception {
+        URI uri = UriComponentsBuilder
+                .fromUriString(EntandoPluginTestHelper.BASE_PLUGIN_ENDPOINT)
+                .pathSegment(TEST_PLUGIN_NAME)
+                .build().toUri();
 
-        when(mocker.namespaceOperations.delete(any(EntandoPlugin.class))).thenReturn(true);
-
-        mockMvc.perform(delete(String.format("%s/%s", URL, plugin.getMetadata().getName())))
-                .andDo(print())
+        mvc.perform(delete(uri)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isAccepted());
-    }
 
+    }
 }

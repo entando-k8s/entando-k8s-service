@@ -9,32 +9,31 @@ import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.zjsonpatch.internal.guava.Strings;
 import java.util.List;
 import java.util.Optional;
-import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.entando.kubernetes.model.plugin.DoneableEntandoPlugin;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.entando.kubernetes.model.plugin.EntandoPluginBuilder;
 import org.entando.kubernetes.model.plugin.EntandoPluginList;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 @Slf4j
-@Component
+@Service
 public class EntandoPluginService {
 
-    @NonNull
     private final KubernetesClient client;
 
-    public EntandoPluginService(@Autowired final KubernetesClient client) {
+    public EntandoPluginService(KubernetesClient client) {
         this.client = client;
     }
 
     public void deletePlugin(String pluginId) {
+        log.info("Delete plugin {} from any namespace", pluginId);
         Optional<EntandoPlugin> entandoPlugin = findPluginById(pluginId);
         entandoPlugin.ifPresent(pl -> deletePluginInNamespace(pluginId, pl.getMetadata().getNamespace()));
     }
 
     public void deletePluginInNamespace(String pluginId, String namespace) {
+        log.info("Delete plugin {} from namespace {}", pluginId, namespace);
         EntandoPlugin pluginToRemove = new EntandoPlugin();
         ObjectMeta pluginMeta = new ObjectMetaBuilder().withName(pluginId).withNamespace(namespace).build();
         pluginToRemove.setMetadata(pluginMeta);
@@ -50,6 +49,8 @@ public class EntandoPluginService {
     }
 
     public EntandoPlugin deploy(EntandoPlugin plugin) {
+        log.info("Deploying plugin {} in namespace {}", plugin.getMetadata().getName(),
+                plugin.getMetadata().getNamespace());
         EntandoPlugin cleanPlugin = pluginCleanUp(plugin);
         return getPluginOperations().inNamespace(cleanPlugin.getMetadata().getNamespace()).create(cleanPlugin);
     }
@@ -62,8 +63,8 @@ public class EntandoPluginService {
         }
         EntandoPlugin newPlugin = new EntandoPluginBuilder()
                 .withNewMetadata()
-                    .withName(plugin.getMetadata().getName())
-                    .withNamespace(plugin.getMetadata().getNamespace())
+                .withName(plugin.getMetadata().getName())
+                .withNamespace(plugin.getMetadata().getNamespace())
                 .endMetadata()
                 .withSpec(plugin.getSpec())
                 .build();
