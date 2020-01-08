@@ -81,6 +81,7 @@ public class EntandoDeBundleTestHelper {
                 .withName("inail_bundle")
                 .addNewVersion("0.0.1")
                 .addNewKeyword("entando6")
+                .addNewKeyword("digital-exchange")
                 .addNewDistTag("latest", "0.0.1")
                 .and()
                 .addNewTag()

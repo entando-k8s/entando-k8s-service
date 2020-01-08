@@ -6,6 +6,7 @@ import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.entando.kubernetes.model.debundle.DoneableEntandoDeBundle;
 import org.entando.kubernetes.model.debundle.EntandoDeBundle;
 import org.entando.kubernetes.model.debundle.EntandoDeBundleList;
@@ -32,6 +33,30 @@ public class EntandoDeService {
         return getBundleOperations().inNamespace(namespace).list().getItems();
     }
 
+    public List<EntandoDeBundle> findBundlesByName(String bundleName) {
+        return getAllBundles().stream()
+                .filter(b -> b.getSpec().getDetails().getName().equals(bundleName))
+                .collect(Collectors.toList());
+    }
+
+    public List<EntandoDeBundle> findBundlesByNameAndNamespace(String bundleName, String namespace) {
+        return getAllBundlesInNamespace(namespace).stream()
+                .filter(b -> b.getSpec().getDetails().getName().equals(bundleName))
+                .collect(Collectors.toList());
+    }
+
+    public List<EntandoDeBundle> findBundlesByAnyKeywords(List<String> keywords) {
+        return getAllBundles().stream()
+                .filter(b -> b.getSpec().getDetails().getKeywords().stream().anyMatch(keywords::contains))
+                .collect(Collectors.toList());
+    }
+
+    public List<EntandoDeBundle> findBundlesByAllKeywords(List<String> keywords) {
+        return getAllBundles().stream()
+                .filter(b -> keywords.containsAll(b.getSpec().getDetails().getKeywords()))
+                .collect(Collectors.toList());
+    }
+
     //CHECKSTYLE:OFF
     private MixedOperation<EntandoDeBundle, EntandoDeBundleList, DoneableEntandoDeBundle, Resource<EntandoDeBundle, DoneableEntandoDeBundle>> getBundleOperations() {
         //CHECKSTYLE:ON
@@ -40,4 +65,5 @@ public class EntandoDeService {
         return client.customResources(entandoDeBundleCrd, EntandoDeBundle.class, EntandoDeBundleList.class,
                 DoneableEntandoDeBundle.class);
     }
+
 }
