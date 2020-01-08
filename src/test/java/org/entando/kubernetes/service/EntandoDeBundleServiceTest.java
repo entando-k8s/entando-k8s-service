@@ -8,49 +8,48 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import org.entando.kubernetes.model.debundle.EntandoDeBundle;
-import org.entando.kubernetes.model.debundle.EntandoDeBundleBuilder;
 import org.entando.kubernetes.util.EntandoDeBundleTestHelper;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
-public class EntandoDeServiceTest {
+public class EntandoDeBundleServiceTest {
 
     @Rule
     public KubernetesServer server = new KubernetesServer(false, true);
 
-    private EntandoDeService entandoDeService;
+    private EntandoDeBundleService entandoDeBundleService;
 
     private KubernetesClient client;
 
     @Before
     public void setup() {
         client = server.getClient();
-        entandoDeService = new EntandoDeService(client);
+        entandoDeBundleService = new EntandoDeBundleService(client);
         EntandoDeBundleTestHelper.createEntandoDeBundleCrd(client);
     }
 
     @Test
     public void shouldStartCorrectly() {
-        assertThat(entandoDeService).isNotNull();
+        assertThat(entandoDeBundleService).isNotNull();
     }
 
     @Test
     public void shouldReturnEmptyListIfNoBundleIsAvailableInTheCluster() {
-        assertThat(entandoDeService.getAllBundles().isEmpty()).isTrue();
+        assertThat(entandoDeBundleService.getAllBundles().isEmpty()).isTrue();
     }
 
     @Test
     public void shouldReturnBundlesAvailableInTheCluster() {
         EntandoDeBundleTestHelper.createTestEntandoDeBundle(client);
-        assertThat(entandoDeService.getAllBundles().isEmpty()).isFalse();
+        assertThat(entandoDeBundleService.getAllBundles().isEmpty()).isFalse();
     }
 
     @Test
     public void shouldReturnBundlesAvailableInASpecificNamespace() {
         EntandoDeBundle bundleA = EntandoDeBundleTestHelper.createTestEntandoDeBundleInNamespace(client, "namespaceA");
         EntandoDeBundle bundleB = EntandoDeBundleTestHelper.createTestEntandoDeBundleInNamespace(client, "namespaceB");
-        List<EntandoDeBundle> bundlesInNamespaceB = entandoDeService.getAllBundlesInNamespace("namespaceB");
+        List<EntandoDeBundle> bundlesInNamespaceB = entandoDeBundleService.getAllBundlesInNamespace("namespaceB");
         assertThat(bundlesInNamespaceB.size()).isEqualTo(1);
         assertThat(bundlesInNamespaceB.get(0).getMetadata().getNamespace()).isEqualTo("namespaceB");
     }
@@ -59,7 +58,7 @@ public class EntandoDeServiceTest {
     public void shouldFindBundleByName() {
         EntandoDeBundle bundle = EntandoDeBundleTestHelper.createTestEntandoDeBundle(client);
         String bundleName = bundle.getSpec().getDetails().getName();
-        List<EntandoDeBundle> foundBundles = entandoDeService.findBundlesByName(bundleName);
+        List<EntandoDeBundle> foundBundles = entandoDeBundleService.findBundlesByName(bundleName);
         assertThat(foundBundles).hasSize(1);
         assertThat(foundBundles.get(0).getSpec().getDetails().getName()).isEqualTo(bundleName);
     }
@@ -69,7 +68,8 @@ public class EntandoDeServiceTest {
         EntandoDeBundle bundle = EntandoDeBundleTestHelper.createTestEntandoDeBundle(client);
         String bundleName = bundle.getSpec().getDetails().getName();
         String bundleNamespace = bundle.getMetadata().getNamespace();
-        List<EntandoDeBundle> foundBundles = entandoDeService.findBundlesByNameAndNamespace(bundleName, bundleNamespace);
+        List<EntandoDeBundle> foundBundles = entandoDeBundleService
+                .findBundlesByNameAndNamespace(bundleName, bundleNamespace);
         assertThat(foundBundles).hasSize(1);
         assertThat(foundBundles.get(0).getSpec().getDetails().getName()).isEqualTo(bundleName);
     }
@@ -78,7 +78,8 @@ public class EntandoDeServiceTest {
     public void shouldNotFindBundleByNameInWrongNamespace() {
         EntandoDeBundle bundle = EntandoDeBundleTestHelper.createTestEntandoDeBundle(client);
         String bundleName = bundle.getSpec().getDetails().getName();
-        List<EntandoDeBundle> foundBundles = entandoDeService.findBundlesByNameAndNamespace(bundleName, "myNamespace");
+        List<EntandoDeBundle> foundBundles = entandoDeBundleService
+                .findBundlesByNameAndNamespace(bundleName, "myNamespace");
         assertThat(foundBundles).hasSize(0);
     }
 
@@ -86,7 +87,7 @@ public class EntandoDeServiceTest {
     public void shouldFindBundlesWithKeywords() {
         EntandoDeBundle bundle = EntandoDeBundleTestHelper.createTestEntandoDeBundle(client);
         List<String> bundleKeywords = Collections.singletonList("entando6");
-        List<EntandoDeBundle> foundBundles = entandoDeService.findBundlesByAnyKeywords(bundleKeywords);
+        List<EntandoDeBundle> foundBundles = entandoDeBundleService.findBundlesByAnyKeywords(bundleKeywords);
         assertThat(foundBundles).hasSize(1);
     }
 
@@ -94,7 +95,7 @@ public class EntandoDeServiceTest {
     public void shouldFindBundlesWithAllKeywords() {
         EntandoDeBundle bundle = EntandoDeBundleTestHelper.createTestEntandoDeBundle(client);
         List<String> bundleKeywords = bundle.getSpec().getDetails().getKeywords();
-        List<EntandoDeBundle> foundBundles = entandoDeService.findBundlesByAllKeywords(bundleKeywords);
+        List<EntandoDeBundle> foundBundles = entandoDeBundleService.findBundlesByAllKeywords(bundleKeywords);
         assertThat(foundBundles).hasSize(1);
     }
 
@@ -102,7 +103,7 @@ public class EntandoDeServiceTest {
     public void shouldNotFindBundleBecauseMissingAKeywords() {
         EntandoDeBundle bundle = EntandoDeBundleTestHelper.createTestEntandoDeBundle(client);
         List<String> bundleKeywords = Arrays.asList("entando6", "my-custom-keyword");
-        List<EntandoDeBundle> foundBundles = entandoDeService.findBundlesByAllKeywords(bundleKeywords);
+        List<EntandoDeBundle> foundBundles = entandoDeBundleService.findBundlesByAllKeywords(bundleKeywords);
         assertThat(foundBundles).hasSize(0);
     }
 

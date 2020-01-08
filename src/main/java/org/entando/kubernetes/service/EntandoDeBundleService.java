@@ -4,24 +4,20 @@ import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.entando.kubernetes.model.debundle.DoneableEntandoDeBundle;
 import org.entando.kubernetes.model.debundle.EntandoDeBundle;
 import org.entando.kubernetes.model.debundle.EntandoDeBundleList;
-import org.entando.kubernetes.model.plugin.DoneableEntandoPlugin;
-import org.entando.kubernetes.model.plugin.EntandoPlugin;
-import org.entando.kubernetes.model.plugin.EntandoPluginList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class EntandoDeService {
+public class EntandoDeBundleService {
 
     private final KubernetesClient client;
 
-    public EntandoDeService(@Autowired final KubernetesClient client) {
+    public EntandoDeBundleService(@Autowired final KubernetesClient client) {
         this.client = client;
     }
 
