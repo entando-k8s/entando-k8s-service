@@ -5,7 +5,6 @@ import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
-import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import io.fabric8.kubernetes.internal.KubernetesDeserializer;
 import java.io.IOException;
 import java.util.List;
@@ -15,14 +14,14 @@ import org.entando.kubernetes.model.debundle.EntandoDeBundleBuilder;
 import org.entando.kubernetes.model.debundle.EntandoDeBundleList;
 import org.entando.kubernetes.model.debundle.EntandoDeBundleSpec;
 import org.entando.kubernetes.model.debundle.EntandoDeBundleSpecBuilder;
-import org.entando.kubernetes.model.plugin.EntandoPlugin;
+import org.entando.kubernetes.service.EntandoDeBundleService;
 import org.springframework.core.io.ClassPathResource;
 
 public class EntandoDeBundleTestHelper {
 
     public static final String BASE_BUNDLES_ENDPOINT = "/de-bundles";
     public static final String TEST_BUNDLE_NAME = "my-bundle";
-    public static final String TEST_BUNDLE_NAMESPACE = "my-bundle-namespace";
+    public static final String TEST_BUNDLE_NAMESPACE = EntandoDeBundleService.DEFAULT_BUNDLES_NAMESPACE;
 
     public static EntandoDeBundle createTestEntandoDeBundle(KubernetesClient client) {
         EntandoDeBundle eb = getTestEntandoDeBundle();

@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class EntandoDeBundleService {
 
+    public static final String DEFAULT_BUNDLES_NAMESPACE = "entando-de-bundles";
     private final KubernetesClient client;
 
     public EntandoDeBundleService(@Autowired final KubernetesClient client) {
@@ -22,7 +23,7 @@ public class EntandoDeBundleService {
     }
 
     public List<EntandoDeBundle> getAllBundles() {
-        return getBundleOperations().inAnyNamespace().list().getItems();
+        return getBundleOperations().inNamespace(DEFAULT_BUNDLES_NAMESPACE).list().getItems();
     }
 
     public List<EntandoDeBundle> getAllBundlesInNamespace(String namespace) {
