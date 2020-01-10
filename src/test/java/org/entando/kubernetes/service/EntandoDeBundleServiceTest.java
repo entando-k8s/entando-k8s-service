@@ -7,6 +7,7 @@ import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import org.entando.kubernetes.model.debundle.EntandoDeBundle;
 import org.entando.kubernetes.util.EntandoDeBundleTestHelper;
 import org.junit.Before;
@@ -68,19 +69,19 @@ public class EntandoDeBundleServiceTest {
         EntandoDeBundle bundle = EntandoDeBundleTestHelper.createTestEntandoDeBundle(client);
         String bundleName = bundle.getSpec().getDetails().getName();
         String bundleNamespace = bundle.getMetadata().getNamespace();
-        List<EntandoDeBundle> foundBundles = entandoDeBundleService
-                .findBundlesByNameAndNamespace(bundleName, bundleNamespace);
-        assertThat(foundBundles).hasSize(1);
-        assertThat(foundBundles.get(0).getSpec().getDetails().getName()).isEqualTo(bundleName);
+        Optional<EntandoDeBundle> foundBundles = entandoDeBundleService
+                .findBundleByNameAndNamespace(bundleName, bundleNamespace);
+        assertThat(foundBundles).isNotEmpty();
+        assertThat(foundBundles.get().getSpec().getDetails().getName()).isEqualTo(bundleName);
     }
 
     @Test
     public void shouldNotFindBundleByNameInWrongNamespace() {
         EntandoDeBundle bundle = EntandoDeBundleTestHelper.createTestEntandoDeBundle(client);
         String bundleName = bundle.getSpec().getDetails().getName();
-        List<EntandoDeBundle> foundBundles = entandoDeBundleService
-                .findBundlesByNameAndNamespace(bundleName, "myNamespace");
-        assertThat(foundBundles).hasSize(0);
+        Optional<EntandoDeBundle> foundBundles = entandoDeBundleService
+                .findBundleByNameAndNamespace(bundleName, "myNamespace");
+        assertThat(foundBundles).isEmpty();
     }
 
     @Test

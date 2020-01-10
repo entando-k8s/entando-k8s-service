@@ -5,6 +5,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import org.entando.kubernetes.model.debundle.DoneableEntandoDeBundle;
 import org.entando.kubernetes.model.debundle.EntandoDeBundle;
@@ -36,10 +37,10 @@ public class EntandoDeBundleService {
                 .collect(Collectors.toList());
     }
 
-    public List<EntandoDeBundle> findBundlesByNameAndNamespace(String bundleName, String namespace) {
+    public Optional<EntandoDeBundle> findBundleByNameAndNamespace(String bundleName, String namespace) {
         return getAllBundlesInNamespace(namespace).stream()
                 .filter(b -> b.getSpec().getDetails().getName().equals(bundleName))
-                .collect(Collectors.toList());
+                .findFirst();
     }
 
     public List<EntandoDeBundle> findBundlesByAnyKeywords(List<String> keywords) {
