@@ -14,14 +14,14 @@ import org.entando.kubernetes.model.debundle.EntandoDeBundleBuilder;
 import org.entando.kubernetes.model.debundle.EntandoDeBundleList;
 import org.entando.kubernetes.model.debundle.EntandoDeBundleSpec;
 import org.entando.kubernetes.model.debundle.EntandoDeBundleSpecBuilder;
-import org.entando.kubernetes.service.EntandoDeBundleService;
+import org.entando.kubernetes.service.KubernetesUtils;
 import org.springframework.core.io.ClassPathResource;
 
 public class EntandoDeBundleTestHelper {
 
     public static final String BASE_BUNDLES_ENDPOINT = "/de-bundles";
     public static final String TEST_BUNDLE_NAME = "my-bundle";
-    public static final String TEST_BUNDLE_NAMESPACE = EntandoDeBundleService.DEFAULT_BUNDLES_NAMESPACE;
+    public static final String TEST_BUNDLE_NAMESPACE = KubernetesUtils.ENTANDO_BUNDLES_NAMESPACE_FALLBACK;
 
     public static EntandoDeBundle createTestEntandoDeBundle(KubernetesClient client) {
         EntandoDeBundle eb = getTestEntandoDeBundle();

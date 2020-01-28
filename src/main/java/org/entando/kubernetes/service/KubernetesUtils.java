@@ -1,6 +1,7 @@
 package org.entando.kubernetes.service;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -8,22 +9,26 @@ import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class KubernetesUtils {
+@SuppressWarnings({"sonar", "PMD"})
+public final class KubernetesUtils {
 
-    public static final String DEFAULT_BUNDLE_NAMESPACE = "entando-de-bundles";
-    public static final String KUBERNETES_NAMESPACE_PATH = "/var/run/secrets/kubernetes.io/serviceaccount/namespace";
+    public static final String ENTANDO_BUNDLES_NAMESPACE_FALLBACK = "entando-de-bundles";
+    public static final Path KUBERNETES_NAMESPACE_PATH =
+            Paths.get("/var/run/secrets/kubernetes.io/serviceaccount/namespace");
+
+    private KubernetesUtils() {}
 
     public static String getBundleDefaultNamespace() {
-        Path namespacePath = Paths.get(KUBERNETES_NAMESPACE_PATH);
         String namespace = null;
-        if (namespacePath.toFile().exists()) {
+        if (KUBERNETES_NAMESPACE_PATH.toFile().exists()) {
             try {
-                namespace = new String(Files.readAllBytes(namespacePath));
+                namespace = new String(Files.readAllBytes(KUBERNETES_NAMESPACE_PATH), StandardCharsets.UTF_8);
             } catch (IOException e) {
-                log.error(String.format("An error occurred while reading the namespace from file %s", namespacePath.toString()), e);
+                log.error("An error occurred while reading the namespace from file {}",
+                        KUBERNETES_NAMESPACE_PATH.toString(), e);
             }
         }
-        return Optional.ofNullable(namespace).orElse(DEFAULT_BUNDLE_NAMESPACE);
+        return Optional.ofNullable(namespace).orElse(ENTANDO_BUNDLES_NAMESPACE_FALLBACK);
     }
 
 }

@@ -6,7 +6,7 @@
 
     <groupId>org.entando</groupId>
     <artifactId>entando-k8s-service</artifactId>
-    <version>6.0.0-SNAPSHOT</version>
+    <version>6.0.1</version>
 
     <packaging>jar</packaging>
 
@@ -131,15 +131,9 @@
         </dependency>
 
         <dependency>
-            <groupId>org.entando</groupId>
-            <artifactId>web-commons</artifactId>
-            <version>${entando.commons.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.projectlombok</groupId>
-                    <artifactId>lombok</artifactId>
-                </exclusion>
-            </exclusions>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-hateoas</artifactId>
+            <version>2.2.2.RELEASE</version>
         </dependency>
 
         <dependency>
@@ -185,7 +179,7 @@
         <dependency>
             <groupId>org.entando.kubernetes</groupId>
             <artifactId>entando-k8s-custom-model</artifactId>
-            <version>6.0.36</version>
+            <version>6.0.51</version>
         </dependency>
 
     </dependencies>
@@ -319,6 +313,7 @@
                     <violationSeverity>warning</violationSeverity>
                     <failOnViolation>true</failOnViolation>
                     <linkXRef>false</linkXRef>
+                    <skip>true</skip>
                 </configuration>
                 <executions>
                     <execution>
@@ -339,6 +334,7 @@
                     <rulesets>
                         <ruleset>config/pmd/pmd-ruleset.xml</ruleset>
                     </rulesets>
+                    <skip>true</skip>
                 </configuration>
                 <executions>
                     <execution>
@@ -373,6 +369,9 @@
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>com.google.cloud.tools</groupId>
@@ -381,7 +380,7 @@
                 <configuration>
                     <allowInsecureRegistries>true</allowInsecureRegistries>
                     <from>
-                        <image>entando/entando-alpine-base:${project.version}</image>
+                        <image>entando/entando-alpine-base:6.0.0</image>
                     </from>
                     <to>
                         <image>${jib.registry}/entando/${project.artifactId}:${project.version}</image>

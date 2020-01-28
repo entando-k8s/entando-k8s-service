@@ -44,7 +44,7 @@ public class EntandoDeBundleController {
     @GetMapping(path = "/namespaces/{namespace}", produces = JSON)
     public ResponseEntity<Resources<Resource<EntandoDeBundle>>> getAllBundlesInNamespace(
             @PathVariable("namespace") String namespace) {
-        log.info("Listing available entando-de-bundles in namespace " + namespace);
+        log.info("Listing available entando-de-bundles in namespace {}", namespace);
         List<EntandoDeBundle> deBundles = entandoBundleService.getAllBundlesInNamespace(namespace);
         return ResponseEntity.ok(new Resources<>(
                 deBundles.stream()
@@ -56,7 +56,7 @@ public class EntandoDeBundleController {
     public ResponseEntity<Resource<EntandoDeBundle>> getBundleInNamespaceWithId(
             @PathVariable("namespace") String namespace,
             @PathVariable("name") String name) {
-        log.info("Getting entando-de-bundle with name " + name + " in namespace " + namespace);
+        log.info("Getting entando-de-bundle with name {} in namespace {}", name, namespace);
         Optional<EntandoDeBundle> ob = entandoBundleService.findBundleByNameAndNamespace(name, namespace);
         EntandoDeBundle bundle = ob.orElseThrow(() -> NotFoundExceptionFactory.entandoDeBundle(name, namespace));
         return ResponseEntity.ok(resourceAssembler.toResource(bundle));
