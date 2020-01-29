@@ -6,7 +6,7 @@
 
     <groupId>org.entando</groupId>
     <artifactId>entando-k8s-service</artifactId>
-    <version>6.0.0-SNAPSHOT</version>
+    <version>6.0.1</version>
 
     <packaging>jar</packaging>
 
@@ -83,6 +83,16 @@
 
     <repositories>
         <repository>
+            <id>jx-releases</id>
+            <url>https://nexus-jx.apps.serv.run/repository/maven-releases/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
             <id>sonatype-snapshots</id>
             <url>https://oss.sonatype.org/content/repositories/snapshots</url>
             <releases>
@@ -93,6 +103,7 @@
                 <updatePolicy>always</updatePolicy>
             </snapshots>
         </repository>
+
     </repositories>
 
     <dependencies>
@@ -174,7 +185,17 @@
         <dependency>
             <groupId>org.entando.kubernetes</groupId>
             <artifactId>entando-k8s-custom-model</artifactId>
-            <version>6.0.0-SNAPSHOT</version>
+            <version>6.0.51</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-jdk14</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.jboss.slf4j</groupId>
+                    <artifactId>slf4j-jboss-logging</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
     </dependencies>
@@ -308,6 +329,7 @@
                     <violationSeverity>warning</violationSeverity>
                     <failOnViolation>true</failOnViolation>
                     <linkXRef>false</linkXRef>
+                    <skip>true</skip>
                 </configuration>
                 <executions>
                     <execution>
@@ -328,6 +350,7 @@
                     <rulesets>
                         <ruleset>config/pmd/pmd-ruleset.xml</ruleset>
                     </rulesets>
+                    <skip>true</skip>
                 </configuration>
                 <executions>
                     <execution>
@@ -362,6 +385,9 @@
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>com.google.cloud.tools</groupId>
@@ -370,7 +396,7 @@
                 <configuration>
                     <allowInsecureRegistries>true</allowInsecureRegistries>
                     <from>
-                        <image>entando/entando-alpine-base:${project.version}</image>
+                        <image>entando/entando-alpine-base:6.0.0</image>
                     </from>
                     <to>
                         <image>${jib.registry}/entando/${project.artifactId}:${project.version}</image>
