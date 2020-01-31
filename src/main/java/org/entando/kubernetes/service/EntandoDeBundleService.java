@@ -23,7 +23,7 @@ public class EntandoDeBundleService {
     }
 
 
-    public List<EntandoDeBundle> getAllBundles() {
+    public List<EntandoDeBundle> getAllBundlesInDefaultNamespace() {
         return getBundleOperations().inNamespace(KubernetesUtils.getBundleDefaultNamespace()).list().getItems();
     }
 
@@ -32,7 +32,7 @@ public class EntandoDeBundleService {
     }
 
     public List<EntandoDeBundle> findBundlesByName(String bundleName) {
-        return getAllBundles().stream()
+        return getAllBundlesInDefaultNamespace().stream()
                 .filter(b -> b.getSpec().getDetails().getName().equals(bundleName))
                 .collect(Collectors.toList());
     }
@@ -44,13 +44,13 @@ public class EntandoDeBundleService {
     }
 
     public List<EntandoDeBundle> findBundlesByAnyKeywords(List<String> keywords) {
-        return getAllBundles().stream()
+        return getAllBundlesInDefaultNamespace().stream()
                 .filter(b -> b.getSpec().getDetails().getKeywords().stream().anyMatch(keywords::contains))
                 .collect(Collectors.toList());
     }
 
     public List<EntandoDeBundle> findBundlesByAllKeywords(List<String> keywords) {
-        return getAllBundles().stream()
+        return getAllBundlesInDefaultNamespace().stream()
                 .filter(b -> keywords.containsAll(b.getSpec().getDetails().getKeywords()))
                 .collect(Collectors.toList());
     }

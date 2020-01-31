@@ -37,13 +37,13 @@ public class EntandoDeBundleServiceTest {
 
     @Test
     public void shouldReturnEmptyListIfNoBundleIsAvailableInTheCluster() {
-        assertThat(entandoDeBundleService.getAllBundles().isEmpty()).isTrue();
+        assertThat(entandoDeBundleService.getAllBundlesInDefaultNamespace().isEmpty()).isTrue();
     }
 
     @Test
     public void shouldReturnBundlesAvailableInTheCluster() {
         EntandoDeBundleTestHelper.createTestEntandoDeBundle(client);
-        assertThat(entandoDeBundleService.getAllBundles().isEmpty()).isFalse();
+        assertThat(entandoDeBundleService.getAllBundlesInDefaultNamespace().isEmpty()).isFalse();
     }
 
     @Test

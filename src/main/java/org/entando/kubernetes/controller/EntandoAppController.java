@@ -9,13 +9,13 @@ import org.entando.kubernetes.exception.NotFoundExceptionFactory;
 import org.entando.kubernetes.model.app.EntandoApp;
 import org.entando.kubernetes.model.link.EntandoAppPluginLink;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
-import org.entando.kubernetes.service.EntandoAppPluginLinkResourceAssembler;
-import org.entando.kubernetes.service.EntandoAppResourceAssembler;
+import org.entando.kubernetes.service.assembler.EntandoAppPluginLinkResourceAssembler;
+import org.entando.kubernetes.service.assembler.EntandoAppResourceAssembler;
 import org.entando.kubernetes.service.EntandoAppService;
 import org.entando.kubernetes.service.EntandoLinkService;
 import org.entando.kubernetes.service.EntandoPluginService;
-import org.springframework.hateoas.Resource;
-import org.springframework.hateoas.Resources;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.CollectionModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -44,44 +44,44 @@ public class EntandoAppController {
     private final EntandoAppPluginLinkResourceAssembler linkResourceAssembler;
 
     @GetMapping(path = "", produces = JSON)
-    public ResponseEntity<Resources<Resource<EntandoApp>>> list() {
+    public ResponseEntity<CollectionModel<EntityModel<EntandoApp>>> list() {
         log.info("Listing all deployed plugins in any namespace");
         List<EntandoApp> entandoApps = entandoAppService.listEntandoApps();
-        return ResponseEntity.ok(new Resources<>(
-                entandoApps.stream().map(appResourceAssembler::toResource).collect(Collectors.toList())));
+        return ResponseEntity.ok(new CollectionModel<>(
+                entandoApps.stream().map(appResourceAssembler::toModel).collect(Collectors.toList())));
     }
 
     @GetMapping(path = "/{namespace}", produces = JSON)
-    public ResponseEntity<Resources<Resource<EntandoApp>>> listInNamespace(@PathVariable final String namespace) {
+    public ResponseEntity<CollectionModel<EntityModel<EntandoApp>>> listInNamespace(@PathVariable final String namespace) {
         log.debug("Listing deployed apps in namespace {}", namespace);
         List<EntandoApp> entandoApps = entandoAppService.listEntandoAppsInNamespace(namespace);
-        return ResponseEntity.ok(new Resources<>(
-                entandoApps.stream().map(appResourceAssembler::toResource).collect(Collectors.toList())));
+        return ResponseEntity.ok(new CollectionModel<>(
+                entandoApps.stream().map(appResourceAssembler::toModel).collect(Collectors.toList())));
     }
 
     @GetMapping(path = "/{namespace}/{name}", produces = JSON)
-    public ResponseEntity<Resource<EntandoApp>> get(@PathVariable String namespace, @PathVariable String name) {
+    public ResponseEntity<EntityModel<EntandoApp>> get(@PathVariable String namespace, @PathVariable String name) {
         log.debug("Requesting app with name {} in namespace {}", name, namespace);
         Optional<EntandoApp> entandoApp = entandoAppService.findAppByNameAndNamespace(name, namespace);
         return ResponseEntity
-                .ok(appResourceAssembler.toResource(entandoApp.orElseThrow(NotFoundExceptionFactory::entandoApp)));
+                .ok(appResourceAssembler.toModel(entandoApp.orElseThrow(NotFoundExceptionFactory::entandoApp)));
     }
 
     @GetMapping(path = "/{namespace}/{name}/links", produces = JSON)
-    public ResponseEntity<Resources<Resource<EntandoAppPluginLink>>> listLinks(
+    public ResponseEntity<CollectionModel<EntityModel<EntandoAppPluginLink>>> listLinks(
             @PathVariable("namespace") String namespace, @PathVariable("name") String name) {
         EntandoApp entandoApp = entandoAppService
                 .findAppByNameAndNamespace(name, namespace)
                 .orElseThrow(NotFoundExceptionFactory::entandoApp);
         List<EntandoAppPluginLink> appLinks = entandoLinkService.listAppLinks(entandoApp);
-        List<Resource<EntandoAppPluginLink>> linkResources = appLinks.stream()
-                .map(linkResourceAssembler::toResource)
+        List<EntityModel<EntandoAppPluginLink>> linkResources = appLinks.stream()
+                .map(linkResourceAssembler::toModel)
                 .collect(Collectors.toList());
-        return ResponseEntity.ok(new Resources<>(linkResources));
+        return ResponseEntity.ok(new CollectionModel<>(linkResources));
     }
 
     @PostMapping(path = "/{namespace}/{name}/links", consumes = JSON, produces = JSON)
-    public ResponseEntity<Resource<EntandoAppPluginLink>> linkToPlugin(
+    public ResponseEntity<EntityModel<EntandoAppPluginLink>> linkToPlugin(
             @PathVariable("namespace") String namespace, @PathVariable("name") String name,
             @RequestBody EntandoPlugin entandoPlugin) {
         EntandoPlugin plugin = deployPluginIfNotAvailableOnCluster(entandoPlugin, namespace);
@@ -89,7 +89,7 @@ public class EntandoAppController {
                 .orElseThrow(NotFoundExceptionFactory::entandoApp);
         EntandoAppPluginLink newLink = entandoLinkService.generateForAppAndPlugin(entandoApp, plugin);
         EntandoAppPluginLink deployedLink = entandoLinkService.deploy(newLink);
-        return ResponseEntity.status(HttpStatus.CREATED).body(linkResourceAssembler.toResource(deployedLink));
+        return ResponseEntity.status(HttpStatus.CREATED).body(linkResourceAssembler.toModel(deployedLink));
     }
 
     @DeleteMapping(path = "/{namespace}/{name}/links/{pluginId}", produces = JSON)

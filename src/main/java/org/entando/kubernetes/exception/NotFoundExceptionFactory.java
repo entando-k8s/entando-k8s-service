@@ -1,26 +1,25 @@
 package org.entando.kubernetes.exception;
 
-import org.entando.web.exception.HttpException;
-import org.entando.web.exception.NotFoundException;
-import org.springframework.http.HttpStatus;
+import org.zalando.problem.Problem;
+import org.zalando.problem.Status;
+import org.zalando.problem.ThrowableProblem;
 
 public final class NotFoundExceptionFactory {
 
     private NotFoundExceptionFactory() {
     }
 
-    public static NotFoundException entandoApp() {
-        return new NotFoundException("org.entando.error.appNotFound");
+    public static ThrowableProblem entandoApp() {
+        return Problem.valueOf(Status.NOT_FOUND);
     }
 
-    public static NotFoundException entandoPlugin() {
-        return new NotFoundException("org.entando.error.pluginNotFound");
+    public static ThrowableProblem entandoPlugin() {
+        return Problem.valueOf(Status.NOT_FOUND);
     }
 
-    public static HttpException entandoDeBundle(String name, String namespace) {
-        return new HttpException(HttpStatus.NOT_FOUND,
-                "org.entando.error.bundleNotFound",
-                new String[]{name, namespace});
+    public static ThrowableProblem entandoDeBundle(String name, String namespace) {
+        return Problem.valueOf(Status.NOT_FOUND,
+                String.format("Bundle with name %s not found in namespace %s", name, namespace));
     }
 
 }

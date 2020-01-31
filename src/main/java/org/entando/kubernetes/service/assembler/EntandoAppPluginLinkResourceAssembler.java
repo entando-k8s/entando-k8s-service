@@ -1,23 +1,23 @@
-package org.entando.kubernetes.service;
+package org.entando.kubernetes.service.assembler;
 
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import org.entando.kubernetes.controller.EntandoAppController;
 import org.entando.kubernetes.controller.EntandoPluginController;
 import org.entando.kubernetes.model.link.EntandoAppPluginLink;
-import org.springframework.hateoas.Resource;
-import org.springframework.hateoas.ResourceAssembler;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.server.RepresentationModelAssembler;
 import org.springframework.stereotype.Service;
 
 @Service
 public class EntandoAppPluginLinkResourceAssembler implements
-        ResourceAssembler<EntandoAppPluginLink, Resource<EntandoAppPluginLink>> {
+        RepresentationModelAssembler<EntandoAppPluginLink, EntityModel<EntandoAppPluginLink>> {
 
 
     @Override
-    public Resource<EntandoAppPluginLink> toResource(EntandoAppPluginLink entity) {
-        Resource<EntandoAppPluginLink> response = new Resource<>(entity);
+    public EntityModel<EntandoAppPluginLink> toModel(EntandoAppPluginLink entity) {
+        EntityModel<EntandoAppPluginLink> response = new EntityModel<>(entity);
 
         applyRel(response);
 
@@ -25,7 +25,7 @@ public class EntandoAppPluginLinkResourceAssembler implements
 
     }
 
-    private void applyRel(Resource<EntandoAppPluginLink> response) {
+    private void applyRel(EntityModel<EntandoAppPluginLink> response) {
         EntandoAppPluginLink link = response.getContent();
         response.add(linkTo(methodOn(EntandoAppController.class)
                 .get(link.getSpec().getEntandoAppNamespace(), link.getSpec().getEntandoAppName())).withRel("app"));

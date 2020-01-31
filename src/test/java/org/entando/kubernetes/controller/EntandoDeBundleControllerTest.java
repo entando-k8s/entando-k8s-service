@@ -18,7 +18,6 @@ import java.util.Optional;
 import org.entando.kubernetes.model.debundle.EntandoDeBundle;
 import org.entando.kubernetes.service.EntandoDeBundleService;
 import org.entando.kubernetes.util.EntandoDeBundleTestHelper;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,7 +54,7 @@ public class EntandoDeBundleControllerTest {
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(content().json("{}"));
 
-        verify(entandoDeBundleService, times(1)).getAllBundles();
+        verify(entandoDeBundleService, times(1)).getAllBundlesInDefaultNamespace();
     }
 
     @Test
@@ -65,7 +64,7 @@ public class EntandoDeBundleControllerTest {
                 .build().toUri();
 
         EntandoDeBundle tempBundle = EntandoDeBundleTestHelper.getTestEntandoDeBundle();
-        when(entandoDeBundleService.getAllBundles()).thenReturn(Collections.singletonList(tempBundle));
+        when(entandoDeBundleService.getAllBundlesInDefaultNamespace()).thenReturn(Collections.singletonList(tempBundle));
 
         mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is2xxSuccessful())
@@ -74,7 +73,7 @@ public class EntandoDeBundleControllerTest {
                 .andExpect(jsonPath("$._embedded.entandoDeBundleList[0].metadata.namespace").value(TEST_BUNDLE_NAMESPACE));
 
 
-        verify(entandoDeBundleService, times(1)).getAllBundles();
+        verify(entandoDeBundleService, times(1)).getAllBundlesInDefaultNamespace();
     }
 
     @Test

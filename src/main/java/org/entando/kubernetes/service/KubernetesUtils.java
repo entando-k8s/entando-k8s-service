@@ -16,19 +16,22 @@ public final class KubernetesUtils {
     public static final Path KUBERNETES_NAMESPACE_PATH =
             Paths.get("/var/run/secrets/kubernetes.io/serviceaccount/namespace");
 
+    private static String namespace = null;
     private KubernetesUtils() {}
 
     public static String getBundleDefaultNamespace() {
-        String namespace = null;
-        if (KUBERNETES_NAMESPACE_PATH.toFile().exists()) {
-            try {
-                namespace = new String(Files.readAllBytes(KUBERNETES_NAMESPACE_PATH), StandardCharsets.UTF_8);
-            } catch (IOException e) {
-                log.error("An error occurred while reading the namespace from file {}",
-                        KUBERNETES_NAMESPACE_PATH.toString(), e);
+        if (namespace == null) {
+            if (KUBERNETES_NAMESPACE_PATH.toFile().exists()) {
+                try {
+                    namespace = new String(Files.readAllBytes(KUBERNETES_NAMESPACE_PATH), StandardCharsets.UTF_8);
+                } catch (IOException e) {
+                    log.error("An error occurred while reading the namespace from file {}",
+                            KUBERNETES_NAMESPACE_PATH.toString(), e);
+                }
             }
+            namespace = Optional.ofNullable(namespace).orElse(ENTANDO_BUNDLES_NAMESPACE_FALLBACK);
         }
-        return Optional.ofNullable(namespace).orElse(ENTANDO_BUNDLES_NAMESPACE_FALLBACK);
+        return namespace;
     }
 
 }

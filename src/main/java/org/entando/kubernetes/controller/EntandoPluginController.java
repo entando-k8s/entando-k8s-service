@@ -1,7 +1,7 @@
 package org.entando.kubernetes.controller;
 
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.linkTo;
-import static org.springframework.hateoas.mvc.ControllerLinkBuilder.methodOn;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import java.net.URI;
 import java.util.List;
@@ -12,10 +12,10 @@ import org.apache.logging.log4j.util.Strings;
 import org.entando.kubernetes.exception.BadRequestExceptionFactory;
 import org.entando.kubernetes.exception.NotFoundExceptionFactory;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
-import org.entando.kubernetes.service.EntandoPluginResourceAssembler;
 import org.entando.kubernetes.service.EntandoPluginService;
-import org.springframework.hateoas.Resource;
-import org.springframework.hateoas.Resources;
+import org.entando.kubernetes.service.assembler.EntandoPluginResourceAssembler;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -45,7 +45,7 @@ public class EntandoPluginController {
     }
 
     @GetMapping(path = "", produces = JSON)
-    public ResponseEntity<Resources<Resource<EntandoPlugin>>> list(
+    public ResponseEntity<CollectionModel<EntityModel<EntandoPlugin>>> list(
             @RequestParam(value = "namespace", required = false, defaultValue = "") String namespace) {
         log.info("Listing all deployed plugins in any namespace");
         List<EntandoPlugin> plugins;
@@ -55,15 +55,15 @@ public class EntandoPluginController {
             plugins = entandoPluginService.getAllPluginsInNamespace(namespace);
         }
         return ResponseEntity
-                .ok(new Resources<>(plugins.stream().map(resourceAssembler::toResource).collect(Collectors.toList())));
+                .ok(new CollectionModel<>(plugins.stream().map(resourceAssembler::toModel).collect(Collectors.toList())));
     }
 
     @GetMapping(path = "/{pluginId}", produces = JSON)
-    public ResponseEntity<Resource<EntandoPlugin>> get(@PathVariable final String pluginId) {
+    public ResponseEntity<EntityModel<EntandoPlugin>> get(@PathVariable final String pluginId) {
         log.info("Requesting plugins with identifier {} in any namespace", pluginId);
         Optional<EntandoPlugin> plugin = entandoPluginService.findPluginById(pluginId);
         return ResponseEntity
-                .ok(resourceAssembler.toResource(plugin.orElseThrow(NotFoundExceptionFactory::entandoPlugin)));
+                .ok(resourceAssembler.toModel(plugin.orElseThrow(NotFoundExceptionFactory::entandoPlugin)));
     }
 
     @DeleteMapping(path = "/{pluginId}", produces = JSON)
@@ -74,11 +74,11 @@ public class EntandoPluginController {
     }
 
     @PostMapping(consumes = JSON, produces = JSON)
-    public ResponseEntity<Resource<EntandoPlugin>> create(@RequestBody EntandoPlugin entandoPlugin) {
+    public ResponseEntity<EntityModel<EntandoPlugin>> create(@RequestBody EntandoPlugin entandoPlugin) {
         throwExceptionIfAlreadyDeployed(entandoPlugin);
         EntandoPlugin deployedPlugin = entandoPluginService.deploy(entandoPlugin);
         URI resourceLink = linkTo(methodOn(getClass()).get(deployedPlugin.getMetadata().getName())).toUri();
-        return ResponseEntity.created(resourceLink).body(resourceAssembler.toResource(deployedPlugin));
+        return ResponseEntity.created(resourceLink).body(resourceAssembler.toModel(deployedPlugin));
     }
 
     private void throwExceptionIfAlreadyDeployed(EntandoPlugin entandoPlugin) {
