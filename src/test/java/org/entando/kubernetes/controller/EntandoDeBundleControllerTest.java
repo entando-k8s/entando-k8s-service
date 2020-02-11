@@ -12,9 +12,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import java.net.URI;
 import java.util.Collections;
 import java.util.Optional;
+import org.entando.kubernetes.EntandoKubernetesJavaApplication;
+import org.entando.kubernetes.config.TestJwtDecoderConfig;
+import org.entando.kubernetes.config.TestKubernetesConfig;
+import org.entando.kubernetes.config.TestSecurityConfiguration;
 import org.entando.kubernetes.model.debundle.EntandoDeBundle;
 import org.entando.kubernetes.service.EntandoDeBundleService;
 import org.entando.kubernetes.util.EntandoDeBundleTestHelper;
@@ -23,15 +28,27 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest
+@SpringBootTest(
+        webEnvironment = WebEnvironment.RANDOM_PORT,
+        classes = {
+                EntandoKubernetesJavaApplication.class,
+                TestSecurityConfiguration.class,
+                TestKubernetesConfig.class,
+                TestJwtDecoderConfig.class
+        })
 @AutoConfigureMockMvc
+@ActiveProfiles("test")
 public class EntandoDeBundleControllerTest {
 
     @Autowired
@@ -49,12 +66,13 @@ public class EntandoDeBundleControllerTest {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoDeBundleTestHelper.BASE_BUNDLES_ENDPOINT)
                 .build().toUri();
+        when(entandoDeBundleService.getBundles()).thenReturn(Collections.emptyList());
 
         mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(content().json("{}"));
 
-        verify(entandoDeBundleService, times(1)).getAllBundlesInDefaultNamespace();
+        verify(entandoDeBundleService, times(1)).getBundles();
     }
 
     @Test
@@ -64,7 +82,7 @@ public class EntandoDeBundleControllerTest {
                 .build().toUri();
 
         EntandoDeBundle tempBundle = EntandoDeBundleTestHelper.getTestEntandoDeBundle();
-        when(entandoDeBundleService.getAllBundlesInDefaultNamespace()).thenReturn(Collections.singletonList(tempBundle));
+        when(entandoDeBundleService.getBundles()).thenReturn(Collections.singletonList(tempBundle));
 
         mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is2xxSuccessful())
@@ -73,7 +91,7 @@ public class EntandoDeBundleControllerTest {
                 .andExpect(jsonPath("$._embedded.entandoDeBundleList[0].metadata.namespace").value(TEST_BUNDLE_NAMESPACE));
 
 
-        verify(entandoDeBundleService, times(1)).getAllBundlesInDefaultNamespace();
+        verify(entandoDeBundleService, times(1)).getBundles();
     }
 
     @Test
@@ -84,7 +102,7 @@ public class EntandoDeBundleControllerTest {
                 .build().toUri();
 
         EntandoDeBundle tempBundle = EntandoDeBundleTestHelper.getTestEntandoDeBundle();
-        when(entandoDeBundleService.getAllBundlesInNamespace(anyString())).thenReturn(Collections.singletonList(tempBundle));
+        when(entandoDeBundleService.getBundlesInNamespace(anyString())).thenReturn(Collections.singletonList(tempBundle));
 
         mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is2xxSuccessful())
@@ -93,7 +111,7 @@ public class EntandoDeBundleControllerTest {
                 .andExpect(jsonPath("$._embedded.entandoDeBundleList[0].metadata.namespace").value(TEST_BUNDLE_NAMESPACE));
 
 
-        verify(entandoDeBundleService, times(1)).getAllBundlesInNamespace(TEST_BUNDLE_NAMESPACE);
+        verify(entandoDeBundleService, times(1)).getBundlesInNamespace(TEST_BUNDLE_NAMESPACE);
     }
 
 //    public void shouldReturnAListWithOneBundleWhenFilteringByName() throws Exception {
@@ -147,7 +165,7 @@ public class EntandoDeBundleControllerTest {
                 .andExpect(content().json("{}"));
 
 
-        verify(entandoDeBundleService, times(1)).getAllBundlesInNamespace("namespaceA");
+        verify(entandoDeBundleService, times(1)).getBundlesInNamespace("namespaceA");
     }
 
 }

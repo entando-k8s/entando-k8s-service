@@ -2,6 +2,7 @@ package org.entando.kubernetes.service;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
+import java.util.Collections;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.entando.kubernetes.util.EntandoPluginTestHelper;
 import org.junit.Before;
@@ -28,25 +29,25 @@ public class EntandoPluginServiceTest {
     @Before
     public void setUp() {
         client = server.getClient();
-        entandoPluginService = new EntandoPluginService(client);
+        entandoPluginService = new EntandoPluginService(client, Collections.singletonList(TEST_PLUGIN_NAMESPACE));
         EntandoPluginTestHelper.createEntandoPluginCrd(client);
     }
 
     @Test
     public void shouldReturnAnEmptyListIfNoPluginAvailable() {
-        assertTrue(entandoPluginService.getAllPlugins().isEmpty());
+        assertTrue(entandoPluginService.getPlugins().isEmpty());
     }
 
     @Test
     public void shouldReturnOnePlugin() throws IOException {
         EntandoPluginTestHelper.createTestEntandoPlugin(client);
-        assertEquals(1, entandoPluginService.getAllPlugins().size());
+        assertEquals(1, entandoPluginService.getPlugins().size());
     }
 
     @Test
     public void shoudReturnPluginInClientNamespace() throws IOException {
         EntandoPluginTestHelper.createTestEntandoPlugin(client);
-        assertEquals(1, entandoPluginService.getAllPluginsInNamespace(TEST_PLUGIN_NAMESPACE).size());
+        assertEquals(1, entandoPluginService.getPluginsInNamespace(TEST_PLUGIN_NAMESPACE).size());
     }
 
     @Test

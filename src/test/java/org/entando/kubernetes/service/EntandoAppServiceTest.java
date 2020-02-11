@@ -9,6 +9,7 @@ import static org.junit.Assert.assertTrue;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Optional;
 import org.entando.kubernetes.model.app.EntandoApp;
 import org.entando.kubernetes.util.EntandoAppTestHelper;
@@ -28,25 +29,25 @@ public class EntandoAppServiceTest {
     @Before
     public void setUp() {
         client = server.getClient();
-        entandoAppService = new EntandoAppService(client);
+        entandoAppService = new EntandoAppService(client, Collections.singletonList(TEST_APP_NAMESPACE));
         EntandoAppTestHelper.createEntandoAppCrd(client);
     }
 
     @Test
     public void shouldReturnAnEmptyListIfNoAppAvailable() {
-        assertTrue(entandoAppService.listEntandoApps().isEmpty());
+        assertTrue(entandoAppService.getApps().isEmpty());
     }
 
     @Test
     public void shouldReturnOneApp() throws IOException {
         EntandoAppTestHelper.createTestEntandoApp(client);
-        assertEquals(1, entandoAppService.listEntandoApps().size());
+        assertEquals(1, entandoAppService.getApps().size());
     }
 
     @Test
     public void shouldReturnAppInClientNamespace() throws IOException {
         EntandoAppTestHelper.createTestEntandoApp(client);
-        assertEquals(1, entandoAppService.listEntandoAppsInNamespace(TEST_APP_NAMESPACE).size());
+        assertEquals(1, entandoAppService.getAppsInNamespace(TEST_APP_NAMESPACE).size());
     }
 
     @Test

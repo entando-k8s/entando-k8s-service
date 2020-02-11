@@ -6,7 +6,7 @@
 
     <groupId>org.entando</groupId>
     <artifactId>entando-k8s-service</artifactId>
-    <version>6.0.2</version>
+    <version>6.0.3</version>
 
     <packaging>jar</packaging>
 
@@ -124,7 +124,7 @@
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
         <dependency>
@@ -135,12 +135,7 @@
         <dependency>
             <groupId>org.springframework.security.oauth.boot</groupId>
             <artifactId>spring-security-oauth2-autoconfigure</artifactId>
-            <version>2.2.2.RELEASE</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-actuator</artifactId>
+            <version>2.0.0.RELEASE</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-oauth2-client -->
@@ -210,7 +205,7 @@
         <dependency>
             <groupId>org.entando.kubernetes</groupId>
             <artifactId>entando-k8s-custom-model</artifactId>
-            <version>6.0.51</version>
+            <version>6.0.53</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
@@ -232,6 +227,12 @@
             <groupId>org.zalando</groupId>
             <artifactId>problem-spring-web-starter</artifactId>
             <version>0.25.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
+            <version>5.2.1.RELEASE</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

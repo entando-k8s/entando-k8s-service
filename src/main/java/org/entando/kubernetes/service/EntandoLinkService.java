@@ -4,14 +4,20 @@ import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.entando.kubernetes.model.app.EntandoApp;
+import org.entando.kubernetes.model.debundle.EntandoDeBundle;
 import org.entando.kubernetes.model.link.DoneableEntandoAppPluginLink;
 import org.entando.kubernetes.model.link.EntandoAppPluginLink;
 import org.entando.kubernetes.model.link.EntandoAppPluginLinkBuilder;
 import org.entando.kubernetes.model.link.EntandoAppPluginLinkList;
+import org.entando.kubernetes.model.link.EntandoAppPluginLinkOperationFactory;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,9 +27,11 @@ import org.springframework.stereotype.Service;
 public class EntandoLinkService {
 
     private final KubernetesClient client;
+    private final List<String> observedNamespaces;
 
-    public EntandoLinkService(@Autowired final KubernetesClient client) {
+    public EntandoLinkService(KubernetesClient client, List<String> observedNamespaces) {
         this.client = client;
+        this.observedNamespaces = observedNamespaces;
     }
 
     public List<EntandoAppPluginLink> listAppLinks(EntandoApp app) {
@@ -70,10 +78,7 @@ public class EntandoLinkService {
     //CHECKSTYLE:OFF
     private MixedOperation<EntandoAppPluginLink, EntandoAppPluginLinkList, DoneableEntandoAppPluginLink, Resource<EntandoAppPluginLink, DoneableEntandoAppPluginLink>> getLinksOperations() {
         //CHECKSTYLE:ON
-        CustomResourceDefinition linkCrd = client.customResourceDefinitions()
-                .withName(EntandoAppPluginLink.CRD_NAME).get();
-        return client.customResources(linkCrd, EntandoAppPluginLink.class, EntandoAppPluginLinkList.class,
-                DoneableEntandoAppPluginLink.class);
+        return EntandoAppPluginLinkOperationFactory.produceAllEntandoAppPluginLinks(client);
     }
 
 }

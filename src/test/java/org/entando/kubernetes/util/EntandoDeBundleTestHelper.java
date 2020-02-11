@@ -21,7 +21,7 @@ public class EntandoDeBundleTestHelper {
 
     public static final String BASE_BUNDLES_ENDPOINT = "/de-bundles";
     public static final String TEST_BUNDLE_NAME = "my-bundle";
-    public static final String TEST_BUNDLE_NAMESPACE = KubernetesUtils.ENTANDO_BUNDLES_NAMESPACE_FALLBACK;
+    public static final String TEST_BUNDLE_NAMESPACE = "my-bundle-namespace";
 
     public static EntandoDeBundle createTestEntandoDeBundle(KubernetesClient client) {
         EntandoDeBundle eb = getTestEntandoDeBundle();

@@ -5,21 +5,23 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 
 @Slf4j
 @SuppressWarnings({"sonar", "PMD"})
 public final class KubernetesUtils {
 
-    public static final String ENTANDO_BUNDLES_NAMESPACE_FALLBACK = "entando-de-bundles";
     public static final Path KUBERNETES_NAMESPACE_PATH =
             Paths.get("/var/run/secrets/kubernetes.io/serviceaccount/namespace");
 
     private static String namespace = null;
     private KubernetesUtils() {}
 
-    public static String getBundleDefaultNamespace() {
+    public static String getCurrentNamespace() {
         if (namespace == null) {
             if (KUBERNETES_NAMESPACE_PATH.toFile().exists()) {
                 try {
@@ -29,7 +31,7 @@ public final class KubernetesUtils {
                             KUBERNETES_NAMESPACE_PATH.toString(), e);
                 }
             }
-            namespace = Optional.ofNullable(namespace).orElse(ENTANDO_BUNDLES_NAMESPACE_FALLBACK);
+            namespace = Optional.ofNullable(namespace).orElseThrow(() -> new RuntimeException("Impossible to identify current k8s namespace"));
         }
         return namespace;
     }

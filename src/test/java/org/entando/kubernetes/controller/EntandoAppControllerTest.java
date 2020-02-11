@@ -25,6 +25,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URI;
 import java.util.Collections;
 import java.util.Optional;
+import org.entando.kubernetes.EntandoKubernetesJavaApplication;
+import org.entando.kubernetes.config.TestJwtDecoderConfig;
+import org.entando.kubernetes.config.TestKubernetesConfig;
+import org.entando.kubernetes.config.TestSecurityConfiguration;
 import org.entando.kubernetes.model.app.EntandoApp;
 import org.entando.kubernetes.model.link.EntandoAppPluginLink;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
@@ -40,15 +44,26 @@ import org.mockito.ArgumentCaptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest
+@SpringBootTest(
+        webEnvironment = WebEnvironment.RANDOM_PORT,
+        classes = {
+                EntandoKubernetesJavaApplication.class,
+                TestSecurityConfiguration.class,
+                TestKubernetesConfig.class,
+                TestJwtDecoderConfig.class
+        })
 @AutoConfigureMockMvc
+@ActiveProfiles("test")
 public class EntandoAppControllerTest {
 
     @Autowired
@@ -76,7 +91,7 @@ public class EntandoAppControllerTest {
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(content().json("{}"));
 
-        verify(entandoAppService, times(1)).listEntandoApps();
+        verify(entandoAppService, times(1)).getApps();
     }
 
     @Test
@@ -87,7 +102,7 @@ public class EntandoAppControllerTest {
                 .build().toUri();
 
         EntandoApp tempApp = EntandoAppTestHelper.getTestEntandoApp();
-        when(entandoAppService.listEntandoAppsInNamespace(any(String.class))).thenReturn(Collections.singletonList(tempApp));
+        when(entandoAppService.getAppsInNamespace(any(String.class))).thenReturn(Collections.singletonList(tempApp));
 
         mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is2xxSuccessful())
@@ -96,7 +111,7 @@ public class EntandoAppControllerTest {
                 .andExpect(jsonPath("$._embedded.entandoAppList[0].metadata.namespace").value(TEST_APP_NAMESPACE));
 
 
-        verify(entandoAppService, times(1)).listEntandoAppsInNamespace(TEST_APP_NAMESPACE);
+        verify(entandoAppService, times(1)).getAppsInNamespace(TEST_APP_NAMESPACE);
     }
 
     @Test

@@ -16,6 +16,7 @@ import org.entando.kubernetes.service.EntandoLinkService;
 import org.entando.kubernetes.service.EntandoPluginService;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -36,6 +37,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class EntandoAppController {
 
     private static final String JSON = MediaType.APPLICATION_JSON_VALUE;
+    private static final String HAL_JSON = MediaTypes.HAL_JSON_VALUE;
 
     private final EntandoAppService entandoAppService;
     private final EntandoLinkService entandoLinkService;
@@ -43,23 +45,23 @@ public class EntandoAppController {
     private final EntandoAppResourceAssembler appResourceAssembler;
     private final EntandoAppPluginLinkResourceAssembler linkResourceAssembler;
 
-    @GetMapping(path = "", produces = JSON)
+    @GetMapping(path = "", produces = {JSON,HAL_JSON})
     public ResponseEntity<CollectionModel<EntityModel<EntandoApp>>> list() {
         log.info("Listing all deployed plugins in any namespace");
-        List<EntandoApp> entandoApps = entandoAppService.listEntandoApps();
+        List<EntandoApp> entandoApps = entandoAppService.getApps();
         return ResponseEntity.ok(new CollectionModel<>(
                 entandoApps.stream().map(appResourceAssembler::toModel).collect(Collectors.toList())));
     }
 
-    @GetMapping(path = "/{namespace}", produces = JSON)
+    @GetMapping(path = "/{namespace}", produces = {JSON,HAL_JSON})
     public ResponseEntity<CollectionModel<EntityModel<EntandoApp>>> listInNamespace(@PathVariable final String namespace) {
         log.debug("Listing deployed apps in namespace {}", namespace);
-        List<EntandoApp> entandoApps = entandoAppService.listEntandoAppsInNamespace(namespace);
+        List<EntandoApp> entandoApps = entandoAppService.getAppsInNamespace(namespace);
         return ResponseEntity.ok(new CollectionModel<>(
                 entandoApps.stream().map(appResourceAssembler::toModel).collect(Collectors.toList())));
     }
 
-    @GetMapping(path = "/{namespace}/{name}", produces = JSON)
+    @GetMapping(path = "/{namespace}/{name}", produces = {JSON,HAL_JSON})
     public ResponseEntity<EntityModel<EntandoApp>> get(@PathVariable String namespace, @PathVariable String name) {
         log.debug("Requesting app with name {} in namespace {}", name, namespace);
         Optional<EntandoApp> entandoApp = entandoAppService.findAppByNameAndNamespace(name, namespace);
@@ -67,7 +69,7 @@ public class EntandoAppController {
                 .ok(appResourceAssembler.toModel(entandoApp.orElseThrow(NotFoundExceptionFactory::entandoApp)));
     }
 
-    @GetMapping(path = "/{namespace}/{name}/links", produces = JSON)
+    @GetMapping(path = "/{namespace}/{name}/links", produces = {JSON,HAL_JSON})
     public ResponseEntity<CollectionModel<EntityModel<EntandoAppPluginLink>>> listLinks(
             @PathVariable("namespace") String namespace, @PathVariable("name") String name) {
         EntandoApp entandoApp = entandoAppService
@@ -80,7 +82,7 @@ public class EntandoAppController {
         return ResponseEntity.ok(new CollectionModel<>(linkResources));
     }
 
-    @PostMapping(path = "/{namespace}/{name}/links", consumes = JSON, produces = JSON)
+    @PostMapping(path = "/{namespace}/{name}/links", consumes = JSON, produces = {JSON,HAL_JSON})
     public ResponseEntity<EntityModel<EntandoAppPluginLink>> linkToPlugin(
             @PathVariable("namespace") String namespace, @PathVariable("name") String name,
             @RequestBody EntandoPlugin entandoPlugin) {
@@ -92,7 +94,7 @@ public class EntandoAppController {
         return ResponseEntity.status(HttpStatus.CREATED).body(linkResourceAssembler.toModel(deployedLink));
     }
 
-    @DeleteMapping(path = "/{namespace}/{name}/links/{pluginId}", produces = JSON)
+    @DeleteMapping(path = "/{namespace}/{name}/links/{pluginId}", produces = {JSON,HAL_JSON})
     public ResponseEntity delete(@PathVariable("namespace") String namespace, @PathVariable("name") String name,
             @PathVariable("pluginId") String pluginId) {
         List<EntandoAppPluginLink> appLinks = entandoLinkService.listEntandoAppLinks(namespace, name);

@@ -9,6 +9,8 @@ import static org.junit.Assert.assertTrue;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import org.entando.kubernetes.model.app.EntandoApp;
 import org.entando.kubernetes.model.link.EntandoAppPluginLink;
@@ -32,7 +34,7 @@ public class EntandoLinkServiceTest {
     @Before
     public void setUp() {
         client = server.getClient();
-        linkService = new EntandoLinkService(client);
+        linkService = new EntandoLinkService(client, Collections.singletonList(TEST_APP_NAMESPACE));
         EntandoLinkTestHelper.createEntandoAppPluginLinkCrd(client);
         EntandoAppTestHelper.createEntandoAppCrd(client);
         EntandoPluginTestHelper.createEntandoPluginCrd(client);

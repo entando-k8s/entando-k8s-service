@@ -1,6 +1,7 @@
 package org.entando.kubernetes.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.entando.kubernetes.util.EntandoDeBundleTestHelper.TEST_BUNDLE_NAMESPACE;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
@@ -26,7 +27,7 @@ public class EntandoDeBundleServiceTest {
     @Before
     public void setup() {
         client = server.getClient();
-        entandoDeBundleService = new EntandoDeBundleService(client);
+        entandoDeBundleService = new EntandoDeBundleService(client, Collections.singletonList(TEST_BUNDLE_NAMESPACE));
         EntandoDeBundleTestHelper.createEntandoDeBundleCrd(client);
     }
 
@@ -37,20 +38,20 @@ public class EntandoDeBundleServiceTest {
 
     @Test
     public void shouldReturnEmptyListIfNoBundleIsAvailableInTheCluster() {
-        assertThat(entandoDeBundleService.getAllBundlesInDefaultNamespace().isEmpty()).isTrue();
+        assertThat(entandoDeBundleService.getBundles().isEmpty()).isTrue();
     }
 
     @Test
     public void shouldReturnBundlesAvailableInTheCluster() {
         EntandoDeBundleTestHelper.createTestEntandoDeBundle(client);
-        assertThat(entandoDeBundleService.getAllBundlesInDefaultNamespace().isEmpty()).isFalse();
+        assertThat(entandoDeBundleService.getBundles().isEmpty()).isFalse();
     }
 
     @Test
     public void shouldReturnBundlesAvailableInASpecificNamespace() {
         EntandoDeBundle bundleA = EntandoDeBundleTestHelper.createTestEntandoDeBundleInNamespace(client, "namespaceA");
         EntandoDeBundle bundleB = EntandoDeBundleTestHelper.createTestEntandoDeBundleInNamespace(client, "namespaceB");
-        List<EntandoDeBundle> bundlesInNamespaceB = entandoDeBundleService.getAllBundlesInNamespace("namespaceB");
+        List<EntandoDeBundle> bundlesInNamespaceB = entandoDeBundleService.getBundlesInNamespace("namespaceB");
         assertThat(bundlesInNamespaceB.size()).isEqualTo(1);
         assertThat(bundlesInNamespaceB.get(0).getMetadata().getNamespace()).isEqualTo("namespaceB");
     }

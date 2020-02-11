@@ -20,6 +20,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URI;
 import java.util.Collections;
 import java.util.Optional;
+import org.entando.kubernetes.EntandoKubernetesJavaApplication;
+import org.entando.kubernetes.config.TestJwtDecoderConfig;
+import org.entando.kubernetes.config.TestKubernetesConfig;
+import org.entando.kubernetes.config.TestSecurityConfiguration;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.entando.kubernetes.service.EntandoPluginService;
 import org.entando.kubernetes.util.EntandoPluginTestHelper;
@@ -28,15 +32,25 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest
+@SpringBootTest(
+        webEnvironment = WebEnvironment.RANDOM_PORT,
+        classes = {
+                EntandoKubernetesJavaApplication.class,
+                TestSecurityConfiguration.class,
+                TestKubernetesConfig.class,
+                TestJwtDecoderConfig.class
+        })
 @AutoConfigureMockMvc
+@ActiveProfiles("test")
 public class EntandoPluginControllerTest {
 
     @Autowired
@@ -58,7 +72,7 @@ public class EntandoPluginControllerTest {
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(content().json("{}"));
 
-        verify(entandoPluginService, times(1)).getAllPlugins();
+        verify(entandoPluginService, times(1)).getPlugins();
     }
 
     @Test
@@ -70,7 +84,7 @@ public class EntandoPluginControllerTest {
 
 
         EntandoPlugin tempPlugin = EntandoPluginTestHelper.getTestEntandoPlugin();
-        when(entandoPluginService.getAllPluginsInNamespace(any(String.class))).thenReturn(Collections.singletonList(tempPlugin));
+        when(entandoPluginService.getPluginsInNamespace(any(String.class))).thenReturn(Collections.singletonList(tempPlugin));
 
         mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is2xxSuccessful())
@@ -78,7 +92,7 @@ public class EntandoPluginControllerTest {
                 .andExpect(jsonPath("$._embedded.entandoPluginList[0].metadata.name" ).value(TEST_PLUGIN_NAME))
                 .andExpect(jsonPath("$._embedded.entandoPluginList[0].metadata.namespace").value(TEST_PLUGIN_NAMESPACE));
 
-        verify(entandoPluginService, times(1)).getAllPluginsInNamespace(TEST_PLUGIN_NAMESPACE);
+        verify(entandoPluginService, times(1)).getPluginsInNamespace(TEST_PLUGIN_NAMESPACE);
     }
 
     @Test

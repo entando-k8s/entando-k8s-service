@@ -16,6 +16,7 @@ import org.entando.kubernetes.service.EntandoPluginService;
 import org.entando.kubernetes.service.assembler.EntandoPluginResourceAssembler;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -34,6 +35,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class EntandoPluginController {
 
     private static final String JSON = MediaType.APPLICATION_JSON_VALUE;
+    private static final String HAL_JSON = MediaTypes.HAL_JSON_VALUE;
 
     private final EntandoPluginService entandoPluginService;
     private final EntandoPluginResourceAssembler resourceAssembler;
@@ -44,21 +46,21 @@ public class EntandoPluginController {
         this.resourceAssembler = resourceAssembler;
     }
 
-    @GetMapping(path = "", produces = JSON)
+    @GetMapping(path = "", produces = {JSON,HAL_JSON})
     public ResponseEntity<CollectionModel<EntityModel<EntandoPlugin>>> list(
             @RequestParam(value = "namespace", required = false, defaultValue = "") String namespace) {
         log.info("Listing all deployed plugins in any namespace");
         List<EntandoPlugin> plugins;
         if (Strings.isEmpty(namespace)) {
-            plugins = entandoPluginService.getAllPlugins();
+            plugins = entandoPluginService.getPlugins();
         } else {
-            plugins = entandoPluginService.getAllPluginsInNamespace(namespace);
+            plugins = entandoPluginService.getPluginsInNamespace(namespace);
         }
         return ResponseEntity
                 .ok(new CollectionModel<>(plugins.stream().map(resourceAssembler::toModel).collect(Collectors.toList())));
     }
 
-    @GetMapping(path = "/{pluginId}", produces = JSON)
+    @GetMapping(path = "/{pluginId}", produces = {JSON,HAL_JSON})
     public ResponseEntity<EntityModel<EntandoPlugin>> get(@PathVariable final String pluginId) {
         log.info("Requesting plugins with identifier {} in any namespace", pluginId);
         Optional<EntandoPlugin> plugin = entandoPluginService.findPluginById(pluginId);
@@ -66,14 +68,14 @@ public class EntandoPluginController {
                 .ok(resourceAssembler.toModel(plugin.orElseThrow(NotFoundExceptionFactory::entandoPlugin)));
     }
 
-    @DeleteMapping(path = "/{pluginId}", produces = JSON)
+    @DeleteMapping(path = "/{pluginId}", produces = {JSON,HAL_JSON})
     public ResponseEntity delete(@PathVariable String pluginId) {
         log.info("Deleting plugin with identifier {}", pluginId);
         entandoPluginService.deletePlugin(pluginId);
         return ResponseEntity.accepted().build();
     }
 
-    @PostMapping(consumes = JSON, produces = JSON)
+    @PostMapping(consumes = JSON, produces = {JSON,HAL_JSON})
     public ResponseEntity<EntityModel<EntandoPlugin>> create(@RequestBody EntandoPlugin entandoPlugin) {
         throwExceptionIfAlreadyDeployed(entandoPlugin);
         EntandoPlugin deployedPlugin = entandoPluginService.deploy(entandoPlugin);

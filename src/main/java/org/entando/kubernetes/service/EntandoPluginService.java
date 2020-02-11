@@ -7,13 +7,19 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.zjsonpatch.internal.guava.Strings;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
 import org.entando.kubernetes.model.plugin.DoneableEntandoPlugin;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.entando.kubernetes.model.plugin.EntandoPluginBuilder;
 import org.entando.kubernetes.model.plugin.EntandoPluginList;
+import org.entando.kubernetes.model.plugin.EntandoPluginOperationFactory;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -21,9 +27,11 @@ import org.springframework.stereotype.Service;
 public class EntandoPluginService {
 
     private final KubernetesClient client;
+    private final List<String> observedNamespaces;
 
-    public EntandoPluginService(KubernetesClient client) {
+    public EntandoPluginService(KubernetesClient client, List<String> observedNamespaces) {
         this.client = client;
+        this.observedNamespaces = observedNamespaces;
     }
 
     public void deletePlugin(String pluginId) {
@@ -40,12 +48,29 @@ public class EntandoPluginService {
         getPluginOperations().inAnyNamespace().delete(pluginToRemove);
     }
 
-    public List<EntandoPlugin> getAllPlugins() {
-        return getPluginOperations().inAnyNamespace().list().getItems();
+    public List<EntandoPlugin> getPlugins() {
+        return getPluginsInNamespaceList(observedNamespaces);
     }
 
-    public List<EntandoPlugin> getAllPluginsInNamespace(String namespace) {
+    public List<EntandoPlugin> getPluginsInNamespace(String namespace) {
         return getPluginOperations().inNamespace(namespace).list().getItems();
+    }
+
+    public List<EntandoPlugin> getPluginsInNamespaceList(List<String> namespaceList) {
+        CompletableFuture<List<EntandoPlugin>>[] allRequests = namespaceList.stream()
+                .map(ns -> CompletableFuture.supplyAsync(() -> getPluginsInNamespace(ns) ))
+                .toArray(CompletableFuture[]::new);
+
+        CompletableFuture<List<EntandoPlugin>> allPlugins = CompletableFuture.allOf(allRequests)
+                .thenApply(v -> Stream.of(allRequests).map(CompletableFuture::join)
+                        .flatMap(Collection::stream)
+                        .collect(Collectors.toList()))
+                .exceptionally(ex -> {
+                    log.error("An error occurred while retrieving bundles from multiple namespaces", ex);
+                    return Collections.emptyList();
+                });
+
+        return allPlugins.join();
     }
 
     public EntandoPlugin deploy(EntandoPlugin plugin) {
@@ -74,22 +99,17 @@ public class EntandoPluginService {
 
 
     public Optional<EntandoPlugin> findPluginById(String pluginId) {
-        return getPluginOperations().inAnyNamespace().list().getItems().stream()
-                .filter(pl -> pl.getMetadata().getName().equals(pluginId)).findFirst();
+        return getPlugins().stream().filter(pl -> pl.getMetadata().getName().equals(pluginId)).findFirst();
     }
 
     public Optional<EntandoPlugin> findPluginByIdAndNamespace(String pluginId, String namespace) {
-        return getPluginOperations().inNamespace(namespace).list().getItems().stream()
-                .filter(pl -> pl.getMetadata().getName().equals(pluginId)).findFirst();
+        return getPluginsInNamespace(namespace).stream().filter(pl -> pl.getMetadata().getName().equals(pluginId)).findFirst();
     }
 
     //CHECKSTYLE:OFF
     private MixedOperation<EntandoPlugin, EntandoPluginList, DoneableEntandoPlugin, Resource<EntandoPlugin, DoneableEntandoPlugin>> getPluginOperations() {
         //CHECKSTYLE:ON
-        CustomResourceDefinition entandoPluginCrd = client.customResourceDefinitions()
-                .withName(EntandoPlugin.CRD_NAME).get();
-        return client.customResources(entandoPluginCrd, EntandoPlugin.class, EntandoPluginList.class,
-                DoneableEntandoPlugin.class);
+        return EntandoPluginOperationFactory.produceAllEntandoPlugins(client);
     }
 
 }
