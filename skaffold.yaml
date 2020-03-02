@@ -12,6 +12,16 @@ build:
 deploy:
   kubectl: {}
 profiles:
+- name: jvm
+  build:
+    artifacts:
+    - image: entando/entando-k8s-service
+      context: .
+      docker: {}
+    tagPolicy:
+      envTemplate:
+        template: '{{.DOCKER_REGISTRY}}/{{.IMAGE_NAME}}:{{.VERSION}}'
+    local: {}
 - name: dev
   build:
     tagPolicy:
