@@ -465,6 +465,7 @@
                     <configuration>
                         <suppressionFile>${project.basedir}/config/owasp-dependency-check-suppression.xml
                         </suppressionFile>
+                        <retireJsAnalyzerEnabled>false</retireJsAnalyzerEnabled>
                         <failOnError>true</failOnError>
                         <failBuildOnAnyVulnerability>${verifyAllFailures}</failBuildOnAnyVulnerability>
                         <name>National Vulnerability Database Report</name>
