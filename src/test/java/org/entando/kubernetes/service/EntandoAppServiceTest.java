@@ -16,7 +16,9 @@ import org.entando.kubernetes.util.EntandoAppTestHelper;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.jupiter.api.Tag;
 
+@Tag("component")
 public class EntandoAppServiceTest {
 
     @Rule

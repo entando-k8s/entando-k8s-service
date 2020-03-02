@@ -28,6 +28,7 @@ import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.entando.kubernetes.service.EntandoPluginService;
 import org.entando.kubernetes.util.EntandoPluginTestHelper;
 import org.junit.Test;
+import org.junit.jupiter.api.Tag;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -51,6 +52,7 @@ import org.springframework.web.util.UriComponentsBuilder;
         })
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
+@Tag("component")
 public class EntandoPluginControllerTest {
 
     @Autowired

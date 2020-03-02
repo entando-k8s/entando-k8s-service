@@ -14,7 +14,9 @@ import org.entando.kubernetes.util.EntandoDeBundleTestHelper;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.jupiter.api.Tag;
 
+@Tag("component")
 public class EntandoDeBundleServiceTest {
 
     @Rule

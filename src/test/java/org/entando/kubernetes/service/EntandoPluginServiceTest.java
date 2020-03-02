@@ -12,11 +12,13 @@ import org.junit.Test;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+import org.junit.jupiter.api.Tag;
 
 import static org.entando.kubernetes.util.EntandoPluginTestHelper.TEST_PLUGIN_NAME;
 import static org.entando.kubernetes.util.EntandoPluginTestHelper.TEST_PLUGIN_NAMESPACE;
 import static org.junit.Assert.*;
 
+@Tag("component")
 public class EntandoPluginServiceTest {
 
     @Rule
