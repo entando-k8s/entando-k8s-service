@@ -14,7 +14,6 @@ import org.entando.kubernetes.model.debundle.EntandoDeBundleBuilder;
 import org.entando.kubernetes.model.debundle.EntandoDeBundleList;
 import org.entando.kubernetes.model.debundle.EntandoDeBundleSpec;
 import org.entando.kubernetes.model.debundle.EntandoDeBundleSpecBuilder;
-import org.entando.kubernetes.service.KubernetesUtils;
 import org.springframework.core.io.ClassPathResource;
 
 public class EntandoDeBundleTestHelper {

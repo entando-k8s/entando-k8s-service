@@ -13,12 +13,14 @@ import java.util.Collections;
 import java.util.Optional;
 import org.entando.kubernetes.model.app.EntandoApp;
 import org.entando.kubernetes.util.EntandoAppTestHelper;
-import org.junit.Before;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
 
 @Tag("component")
+@EnableRuleMigrationSupport
 public class EntandoAppServiceTest {
 
     @Rule
@@ -28,7 +30,7 @@ public class EntandoAppServiceTest {
 
     private KubernetesClient client;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         client = server.getClient();
         entandoAppService = new EntandoAppService(client, Collections.singletonList(TEST_APP_NAMESPACE));

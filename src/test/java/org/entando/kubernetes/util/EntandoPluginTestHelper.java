@@ -9,7 +9,7 @@ import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.internal.KubernetesDeserializer;
 import java.io.IOException;
 import java.util.List;
-import org.entando.kubernetes.model.DbmsImageVendor;
+import org.entando.kubernetes.model.DbmsVendor;
 import org.entando.kubernetes.model.plugin.DoneableEntandoPlugin;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.entando.kubernetes.model.plugin.EntandoPluginBuilder;
@@ -65,7 +65,7 @@ public class EntandoPluginTestHelper {
     public static EntandoPlugin getTestEntandoPlugin() {
         EntandoPlugin entandoPlugin = new EntandoPluginBuilder().withNewSpec()
                 .withImage("entando/entando-avatar-plugin")
-                .withDbms(DbmsImageVendor.POSTGRESQL)
+                .withDbms(DbmsVendor.POSTGRESQL)
                 .withReplicas(1)
                 .withHealthCheckPath("/management/health")
                 .withIngressPath("/dummyPlugin")

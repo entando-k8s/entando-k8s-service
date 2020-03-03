@@ -9,13 +9,12 @@ import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.internal.KubernetesDeserializer;
 import java.io.IOException;
 import java.util.List;
-import org.entando.kubernetes.model.DbmsImageVendor;
+import org.entando.kubernetes.model.DbmsVendor;
 import org.entando.kubernetes.model.JeeServer;
 import org.entando.kubernetes.model.app.DoneableEntandoApp;
 import org.entando.kubernetes.model.app.EntandoApp;
 import org.entando.kubernetes.model.app.EntandoAppBuilder;
 import org.entando.kubernetes.model.app.EntandoAppList;
-import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.springframework.core.io.ClassPathResource;
 
 public class EntandoAppTestHelper {
@@ -64,7 +63,7 @@ public class EntandoAppTestHelper {
 
     public static EntandoApp getTestEntandoApp() {
         EntandoApp entandoApp = new EntandoAppBuilder().withNewSpec()
-                .withDbms(DbmsImageVendor.POSTGRESQL)
+                .withDbms(DbmsVendor.POSTGRESQL)
                 .withReplicas(1)
                 .withEntandoImageVersion("6.0.0-SNAPSHOT")
                 .withStandardServerImage(JeeServer.WILDFLY)
