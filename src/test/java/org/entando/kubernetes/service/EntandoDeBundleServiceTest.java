@@ -11,12 +11,14 @@ import java.util.List;
 import java.util.Optional;
 import org.entando.kubernetes.model.debundle.EntandoDeBundle;
 import org.entando.kubernetes.util.EntandoDeBundleTestHelper;
-import org.junit.Before;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
 
 @Tag("component")
+@EnableRuleMigrationSupport
 public class EntandoDeBundleServiceTest {
 
     @Rule
@@ -26,7 +28,7 @@ public class EntandoDeBundleServiceTest {
 
     private KubernetesClient client;
 
-    @Before
+    @BeforeEach
     public void setup() {
         client = server.getClient();
         entandoDeBundleService = new EntandoDeBundleService(client, Collections.singletonList(TEST_BUNDLE_NAMESPACE));

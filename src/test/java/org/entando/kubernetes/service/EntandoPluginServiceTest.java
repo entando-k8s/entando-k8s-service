@@ -7,18 +7,21 @@ import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.entando.kubernetes.util.EntandoPluginTestHelper;
 import org.junit.Before;
 import org.junit.Rule;
-import org.junit.Test;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
 
 import static org.entando.kubernetes.util.EntandoPluginTestHelper.TEST_PLUGIN_NAME;
 import static org.entando.kubernetes.util.EntandoPluginTestHelper.TEST_PLUGIN_NAMESPACE;
 import static org.junit.Assert.*;
 
 @Tag("component")
+@EnableRuleMigrationSupport
 public class EntandoPluginServiceTest {
 
     @Rule
@@ -28,7 +31,7 @@ public class EntandoPluginServiceTest {
 
     private KubernetesClient client;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         client = server.getClient();
         entandoPluginService = new EntandoPluginService(client, Collections.singletonList(TEST_PLUGIN_NAMESPACE));

@@ -9,7 +9,6 @@ import static org.junit.Assert.assertTrue;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import org.entando.kubernetes.model.app.EntandoApp;
@@ -18,12 +17,14 @@ import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.entando.kubernetes.util.EntandoAppTestHelper;
 import org.entando.kubernetes.util.EntandoLinkTestHelper;
 import org.entando.kubernetes.util.EntandoPluginTestHelper;
-import org.junit.Before;
 import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
 
 @Tag("component")
+@EnableRuleMigrationSupport
 public class EntandoLinkServiceTest {
 
     @Rule
@@ -33,7 +34,7 @@ public class EntandoLinkServiceTest {
 
     private KubernetesClient client;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         client = server.getClient();
         linkService = new EntandoLinkService(client, Collections.singletonList(TEST_APP_NAMESPACE));

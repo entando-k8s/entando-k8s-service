@@ -2,7 +2,8 @@ package org.entando.kubernetes.util;
 
 import static org.entando.kubernetes.util.EntandoAppTestHelper.TEST_APP_NAME;
 import static org.entando.kubernetes.util.EntandoAppTestHelper.TEST_APP_NAMESPACE;
-import static org.entando.kubernetes.util.EntandoPluginTestHelper.*;
+import static org.entando.kubernetes.util.EntandoPluginTestHelper.TEST_PLUGIN_NAME;
+import static org.entando.kubernetes.util.EntandoPluginTestHelper.TEST_PLUGIN_NAMESPACE;
 
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
