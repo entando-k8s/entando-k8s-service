@@ -27,9 +27,15 @@ public class EntandoAppPluginLinkResourceAssembler implements
 
     private void applyRel(EntityModel<EntandoAppPluginLink> response) {
         EntandoAppPluginLink link = response.getContent();
+        assert link != null;
+        String pluginName = link.getSpec().getEntandoPluginName();
+        String pluginNamespace = link.getSpec().getEntandoPluginNamespace();
+        String appName = link.getSpec().getEntandoAppName();
+        String appNamespace = link.getSpec().getEntandoAppNamespace();
+
         response.add(linkTo(methodOn(EntandoAppController.class)
-                .get(link.getSpec().getEntandoAppNamespace(), link.getSpec().getEntandoAppName())).withRel("app"));
+                .get(appNamespace, appName)).withRel("app"));
         response.add(linkTo(methodOn(EntandoPluginController.class)
-                .get(response.getContent().getSpec().getEntandoPluginName())).withRel("plugin"));
+                .get(pluginNamespace, pluginName)).withRel("plugin"));
     }
 }

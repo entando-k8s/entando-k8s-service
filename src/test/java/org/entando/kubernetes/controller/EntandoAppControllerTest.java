@@ -7,6 +7,7 @@ import static org.entando.kubernetes.util.EntandoPluginTestHelper.TEST_PLUGIN_NA
 import static org.hamcrest.CoreMatchers.endsWith;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.hasEntry;
+import static org.hamcrest.Matchers.hasKey;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -162,9 +163,28 @@ public class EntandoAppControllerTest {
                         hasEntry("entandoAppName", TEST_APP_NAME)
                 )))
                 .andExpect(jsonPath(linkHateoasLinksJsonPath).exists())
-                .andExpect(jsonPath(linkHateoasLinksJsonPath + ".app.href").value(endsWith("my-app-namespace/my-app")))
-                .andExpect(jsonPath(linkHateoasLinksJsonPath + ".plugin.href").value(endsWith("plugins/my-plugin")));
+                .andExpect(jsonPath(linkHateoasLinksJsonPath + ".app.href").value(endsWith("apps/test-namespace/my-app")))
+                .andExpect(jsonPath(linkHateoasLinksJsonPath + ".plugin.href").value(endsWith("plugins/test-namespace/my-plugin")));
 
+    }
+
+    @Test
+    private void shouldReturnLinksInEntandoStructure() throws Exception {
+        URI uri;
+        uri = UriComponentsBuilder
+                .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
+                .pathSegment(TEST_APP_NAMESPACE, TEST_APP_NAME)
+                .build().toUri();
+        EntandoApp ea = EntandoAppTestHelper.getTestEntandoApp();
+
+        when(entandoAppService.getApps()).thenReturn(Collections.singletonList(ea));
+
+        String appLinksJsonPath = "$._links";
+
+        mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath(appLinksJsonPath).value(hasKey("links")))
+                .andExpect(jsonPath(appLinksJsonPath + ".links.href").value(endsWith("apps/test-namespace/my-app/links")));
     }
 
     @Test
@@ -197,8 +217,8 @@ public class EntandoAppControllerTest {
                         hasEntry("entandoAppName", TEST_APP_NAME)
                 )))
                 .andExpect(jsonPath("$._links").exists())
-                .andExpect(jsonPath( "$._links.app.href").value(endsWith("my-app-namespace/my-app")))
-                .andExpect(jsonPath( "$._links.plugin.href").value(endsWith("plugins/my-plugin")));
+                .andExpect(jsonPath( "$._links.app.href").value(endsWith("apps/test-namespace/my-app")))
+                .andExpect(jsonPath( "$._links.plugin.href").value(endsWith("plugins/test-namespace/my-plugin")));
 
     }
 

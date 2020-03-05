@@ -18,7 +18,7 @@ import org.springframework.context.annotation.Profile;
 public class KubernetesConfig {
 
     @Value("${entando.namespaces.to.observe:}")
-    public List<String> namespacesToObserve = new ArrayList<>();
+    public List<String> entandoNamespacesToObserve = new ArrayList<>();
 
     @Bean
     public KubernetesClient client() {
@@ -28,8 +28,8 @@ public class KubernetesConfig {
 
     @Bean
     public List<String> observedNamespaces() {
-       if (namespacesToObserve != null && !namespacesToObserve.isEmpty()) {
-           return namespacesToObserve;
+       if (entandoNamespacesToObserve != null && !entandoNamespacesToObserve.isEmpty()) {
+           return entandoNamespacesToObserve;
        }
        return Collections.singletonList(KubernetesUtils.getCurrentNamespace());
     }

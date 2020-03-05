@@ -1,5 +1,6 @@
 package org.entando.kubernetes.controller;
 
+import static org.entando.kubernetes.util.EntandoPluginTestHelper.BASE_PLUGIN_ENDPOINT;
 import static org.entando.kubernetes.util.EntandoPluginTestHelper.TEST_PLUGIN_NAME;
 import static org.entando.kubernetes.util.EntandoPluginTestHelper.TEST_PLUGIN_NAMESPACE;
 import static org.hamcrest.core.StringEndsWith.endsWith;
@@ -18,6 +19,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URI;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Optional;
 import org.entando.kubernetes.EntandoKubernetesJavaApplication;
@@ -64,7 +66,7 @@ public class EntandoPluginControllerTest {
     @Test
     public void shouldReturnEmptyListIfNotPluginIsDeployed() throws Exception {
         URI uri = UriComponentsBuilder
-                .fromUriString(EntandoPluginTestHelper.BASE_PLUGIN_ENDPOINT)
+                .fromUriString(BASE_PLUGIN_ENDPOINT)
                 .build().toUri();
 
         mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
@@ -77,8 +79,8 @@ public class EntandoPluginControllerTest {
     @Test
     public void shouldReturnAListWithOnePlugin() throws Exception {
         URI uri = UriComponentsBuilder
-                .fromUriString(EntandoPluginTestHelper.BASE_PLUGIN_ENDPOINT)
-                .queryParam("namespace", TEST_PLUGIN_NAMESPACE)
+                .fromUriString(BASE_PLUGIN_ENDPOINT)
+                .pathSegment(TEST_PLUGIN_NAMESPACE)
                 .build().toUri();
 
 
@@ -97,8 +99,8 @@ public class EntandoPluginControllerTest {
     @Test
     public void shouldReturn404IfPluginNotFound() throws Exception {
         URI uri = UriComponentsBuilder
-                .fromUriString(EntandoPluginTestHelper.BASE_PLUGIN_ENDPOINT)
-                .pathSegment(TEST_PLUGIN_NAME)
+                .fromUriString(BASE_PLUGIN_ENDPOINT)
+                .pathSegment(TEST_PLUGIN_NAMESPACE, TEST_PLUGIN_NAME)
                 .build().toUri();
         mvc.perform(get(uri)
                 .accept(MediaType.APPLICATION_JSON))
@@ -109,7 +111,7 @@ public class EntandoPluginControllerTest {
     @Test
     public void shouldThrowBadRequestExceptionForAlreadyDeployedPlugin() throws Exception {
         URI uri = UriComponentsBuilder
-                .fromUriString(EntandoPluginTestHelper.BASE_PLUGIN_ENDPOINT)
+                .fromUriString(BASE_PLUGIN_ENDPOINT)
                 .build().toUri();
         EntandoPlugin tempPlugin = EntandoPluginTestHelper.getTestEntandoPlugin();
 
@@ -128,11 +130,10 @@ public class EntandoPluginControllerTest {
     @Test
     public void shouldReturnCreatedForNewlyDeployedPlugin() throws Exception {
         URI uri = UriComponentsBuilder
-                .fromUriString(EntandoPluginTestHelper.BASE_PLUGIN_ENDPOINT)
+                .fromUriString(BASE_PLUGIN_ENDPOINT)
                 .build().toUri();
 
         EntandoPlugin tempPlugin = EntandoPluginTestHelper.getTestEntandoPlugin();
-        tempPlugin.getMetadata().setNamespace("my-namespace");
 
         when(entandoPluginService.deploy(any(EntandoPlugin.class))).thenReturn(tempPlugin);
 
@@ -142,7 +143,7 @@ public class EntandoPluginControllerTest {
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$._links.self").exists())
-                .andExpect(jsonPath("$._links.self.href").value(endsWith("plugins/"+TEST_PLUGIN_NAME)))
+                .andExpect(jsonPath("$._links.self.href").value(endsWith(Paths.get("plugins", TEST_PLUGIN_NAMESPACE, TEST_PLUGIN_NAME).toString())))
                 .andExpect(jsonPath("$._links.plugins").exists());
 
     }
@@ -150,8 +151,8 @@ public class EntandoPluginControllerTest {
     @Test
     public void shouldReturnAcceptedWhenDeletingAPlugin() throws Exception {
         URI uri = UriComponentsBuilder
-                .fromUriString(EntandoPluginTestHelper.BASE_PLUGIN_ENDPOINT)
-                .pathSegment(TEST_PLUGIN_NAME)
+                .fromUriString(BASE_PLUGIN_ENDPOINT)
+                .pathSegment(TEST_PLUGIN_NAMESPACE, TEST_PLUGIN_NAME)
                 .build().toUri();
 
         mvc.perform(delete(uri)

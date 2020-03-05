@@ -17,5 +17,14 @@ public final class BadRequestExceptionFactory {
                         plugin.getMetadata().getNamespace()));
     }
 
+    public static ThrowableProblem pluginNamespaceNotObserved(EntandoPlugin plugin) {
+        return Problem.valueOf(Status.BAD_REQUEST,
+                String.format("Provided plugin %s namespace %s is not observed by the service and therefore not usable",
+                        plugin.getMetadata().getName(),
+                        plugin.getMetadata().getNamespace()
+                ));
+
+    }
+
 
 }

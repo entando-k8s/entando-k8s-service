@@ -1,24 +1,28 @@
 package org.entando.kubernetes.service;
 
+import static org.entando.kubernetes.util.EntandoPluginTestHelper.TEST_PLUGIN_NAME;
+import static org.entando.kubernetes.util.EntandoPluginTestHelper.TEST_PLUGIN_NAMESPACE;
+import static org.hamcrest.Matchers.containsString;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
-import java.util.Collections;
-import org.entando.kubernetes.model.plugin.EntandoPlugin;
-import org.entando.kubernetes.util.EntandoPluginTestHelper;
-import org.junit.Before;
-import org.junit.Rule;
-
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import org.entando.kubernetes.model.plugin.EntandoPlugin;
+import org.entando.kubernetes.util.EntandoPluginTestHelper;
+import org.junit.Rule;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
-
-import static org.entando.kubernetes.util.EntandoPluginTestHelper.TEST_PLUGIN_NAME;
-import static org.entando.kubernetes.util.EntandoPluginTestHelper.TEST_PLUGIN_NAMESPACE;
-import static org.junit.Assert.*;
+import org.zalando.problem.ThrowableProblem;
 
 @Tag("component")
 @EnableRuleMigrationSupport
@@ -34,7 +38,8 @@ public class EntandoPluginServiceTest {
     @BeforeEach
     public void setUp() {
         client = server.getClient();
-        entandoPluginService = new EntandoPluginService(client, Collections.singletonList(TEST_PLUGIN_NAMESPACE));
+        List<String> observedNamespaces = Arrays.asList(TEST_PLUGIN_NAMESPACE, "my-namespace");
+        entandoPluginService = new EntandoPluginService(client, observedNamespaces);
         EntandoPluginTestHelper.createEntandoPluginCrd(client);
     }
 
@@ -114,6 +119,28 @@ public class EntandoPluginServiceTest {
         assertEquals(testPlugin.getSpec().getIngressHostName(), ep.getSpec().getIngressHostName());
         assertEquals(testPlugin.getSpec().getReplicas(), ep.getSpec().getReplicas());
         assertEquals(testPlugin.getSpec().getTlsSecretName(), ep.getSpec().getTlsSecretName());
+    }
+
+    @Test
+    public void shouldDeployAPluginInAnotherObservedNamespace() {
+        EntandoPlugin testPlugin = EntandoPluginTestHelper.getTestEntandoPlugin();
+        testPlugin.getMetadata().setNamespace("my-namespace");
+        entandoPluginService.deploy(testPlugin);
+        List<EntandoPlugin> availablePlugins = EntandoPluginTestHelper.getEntandoPluginOperations(client)
+                .inNamespace("my-namespace").list().getItems();
+        assertEquals(1, availablePlugins.size());
+    }
+
+    @Test
+    public void shouldThrowAnExceptionWhenDeployingFromNotObservedNamespace() {
+        EntandoPlugin testPlugin = EntandoPluginTestHelper.getTestEntandoPlugin();
+        testPlugin.getMetadata().setNamespace("not-observed-namespace");
+        ThrowableProblem tp = Assertions.assertThrows(ThrowableProblem.class, () -> {
+           entandoPluginService.deploy(testPlugin);
+       });
+       assertThat(tp.getMessage(), containsString(
+               "Bad Request: Provided plugin " + testPlugin.getMetadata().getName() + " namespace " +
+               testPlugin.getMetadata().getNamespace() + " is not observed by the service and therefore not usable"));
     }
 
     @Test
