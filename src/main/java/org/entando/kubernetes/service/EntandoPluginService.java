@@ -15,6 +15,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.extern.slf4j.Slf4j;
+import org.entando.kubernetes.exception.BadRequestExceptionFactory;
 import org.entando.kubernetes.model.plugin.DoneableEntandoPlugin;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.entando.kubernetes.model.plugin.EntandoPluginBuilder;
@@ -77,6 +78,9 @@ public class EntandoPluginService {
         log.info("Deploying plugin {} in namespace {}", plugin.getMetadata().getName(),
                 plugin.getMetadata().getNamespace());
         EntandoPlugin cleanPlugin = pluginCleanUp(plugin);
+        if (!this.observedNamespaces.contains(cleanPlugin.getMetadata().getNamespace())) {
+            throw BadRequestExceptionFactory.pluginNamespaceNotObserved(cleanPlugin);
+        }
         return getPluginOperations().inNamespace(cleanPlugin.getMetadata().getNamespace()).create(cleanPlugin);
     }
 
@@ -84,7 +88,7 @@ public class EntandoPluginService {
         //TODO verify the plugin has a name
         //assert !Strings.isNullOrEmpty(plugin.getMetadata().getName());
         if (Strings.isNullOrEmpty(plugin.getMetadata().getNamespace())) {
-            plugin.getMetadata().setNamespace(client.getNamespace());
+            plugin.getMetadata().setNamespace(KubernetesUtils.getCurrentNamespace());
         }
         EntandoPlugin newPlugin = new EntandoPluginBuilder()
                 .withNewMetadata()

@@ -22,7 +22,7 @@ public class EntandoPluginTestHelper {
 
     public static final String BASE_PLUGIN_ENDPOINT = "/plugins";
     public static final String TEST_PLUGIN_NAME = "my-plugin";
-    public static final String TEST_PLUGIN_NAMESPACE = "my-plugin-namespace";
+    public static final String TEST_PLUGIN_NAMESPACE = "test-namespace";
 
     public static EntandoPlugin createTestEntandoPlugin(KubernetesClient client) {
         EntandoPlugin ep = getTestEntandoPlugin();

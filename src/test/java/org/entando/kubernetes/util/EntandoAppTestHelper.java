@@ -21,7 +21,7 @@ public class EntandoAppTestHelper {
 
     public static final String BASE_APP_ENDPOINT = "/apps";
     public static final String TEST_APP_NAME = "my-app";
-    public static final String TEST_APP_NAMESPACE = "my-app-namespace";
+    public static final String TEST_APP_NAMESPACE = "test-namespace";
 
     public static EntandoApp createTestEntandoApp(KubernetesClient client) {
         EntandoApp ea = getTestEntandoApp();
