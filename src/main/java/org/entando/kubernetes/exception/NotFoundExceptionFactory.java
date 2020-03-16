@@ -22,4 +22,9 @@ public final class NotFoundExceptionFactory {
                 String.format("Bundle with name %s not found in namespace %s", name, namespace));
     }
 
+    public static ThrowableProblem observedNamespace(String name) {
+        return Problem.valueOf(Status.NOT_FOUND,
+                String.format("Namespace %s is not part of the observed namespace", name));
+    }
+
 }
