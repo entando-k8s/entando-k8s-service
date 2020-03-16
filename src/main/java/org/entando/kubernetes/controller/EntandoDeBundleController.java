@@ -46,7 +46,7 @@ public class EntandoDeBundleController {
     }
 
     @GetMapping(path = "/namespaces/{namespace}", produces = {JSON, HAL_JSON})
-    public ResponseEntity<CollectionModel<EntityModel<EntandoDeBundle>>> getAllBundlesInNamespace(
+    public ResponseEntity<CollectionModel<EntityModel<EntandoDeBundle>>> listInNamespace(
             @PathVariable("namespace") String namespace) {
         log.info("Listing available entando-de-bundles in namespace {}", namespace);
         List<EntandoDeBundle> deBundles = entandoBundleService.getBundlesInNamespace(namespace);

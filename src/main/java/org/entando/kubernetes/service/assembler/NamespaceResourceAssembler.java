@@ -25,8 +25,7 @@ public class NamespaceResourceAssembler implements
         em.add(linkTo(methodOn(NamespaceController.class).getByName(nsName)).withSelfRel());
         em.add(linkTo(methodOn(EntandoPluginController.class).listInNamespace(nsName)).withRel("plugins"));
         em.add(linkTo(methodOn(EntandoAppController.class).listInNamespace(nsName)).withRel("apps"));
-        em.add(linkTo(methodOn(EntandoDeBundleController.class).getAllBundlesInNamespace(nsName)).withRel("bundles"));
-
+        em.add(linkTo(methodOn(EntandoDeBundleController.class).listInNamespace(nsName)).withRel("bundles"));
         return em;
     }
 

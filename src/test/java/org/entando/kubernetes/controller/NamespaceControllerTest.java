@@ -48,9 +48,13 @@ public class NamespaceControllerTest {
     }
 
     @Test
-    public void shouldReturnOkResponse() {
+    public void shouldReturnOkResponseAndLinks() {
         when(nsService.getObservedNamespaceList()).thenReturn(Collections.emptyList());
         assertThat(nsController.list().getStatusCode()).isEqualByComparingTo(HttpStatus.OK);
+        assertThat(nsController.list().getBody()).isNotNull();
+        assertThat(nsController.list().getBody().getLink("all-plugins").isPresent()).isTrue();
+        assertThat(nsController.list().getBody().getLink("all-apps").isPresent()).isTrue();
+        assertThat(nsController.list().getBody().getLink("all-bundles").isPresent()).isTrue();
     }
 
     @Test

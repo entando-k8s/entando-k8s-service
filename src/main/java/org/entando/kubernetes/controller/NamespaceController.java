@@ -1,10 +1,16 @@
 package org.entando.kubernetes.controller;
 
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+
 import io.fabric8.kubernetes.api.model.Namespace;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import javax.servlet.http.HttpServletResponse;
 import org.entando.kubernetes.exception.NotFoundExceptionFactory;
+import org.entando.kubernetes.model.app.EntandoApp;
+import org.entando.kubernetes.model.debundle.EntandoDeBundle;
 import org.entando.kubernetes.service.NamespaceService;
 import org.entando.kubernetes.service.assembler.NamespaceResourceAssembler;
 import org.springframework.hateoas.CollectionModel;
@@ -33,6 +39,9 @@ public class NamespaceController {
                 observedNamespaces.stream()
                         .map(nsResourceAssembler::toModel)
                         .collect(Collectors.toList()));
+        nsCollection.add(linkTo(methodOn(EntandoAppController.class).list()).withRel("all-apps"));
+        nsCollection.add(linkTo(methodOn(EntandoPluginController.class).list()).withRel("all-plugins"));
+        nsCollection.add(linkTo(methodOn(EntandoDeBundleController.class).list()).withRel("all-bundles"));
         return ResponseEntity.ok(nsCollection);
     }
 
@@ -44,5 +53,23 @@ public class NamespaceController {
         }
         EntityModel<Namespace> ns = nsResourceAssembler.toModel(observedNs.get());
         return ResponseEntity.ok(ns);
+    }
+
+    @GetMapping("/{name}/plugins")
+    public void listPluginsInNamespace(@PathVariable("name") String name, HttpServletResponse resp) {
+        resp.setHeader("Location", "/plugins?namespace="+name);
+        resp.setStatus(302);
+    }
+
+    @GetMapping("/{name}/apps")
+    public void listAppsInNamespace(@PathVariable("name") String name, HttpServletResponse resp) {
+        resp.setHeader("Location", "/apps?namespace="+name);
+        resp.setStatus(302);
+    }
+
+    @GetMapping("/{name}/plugins")
+    public void listBundlesInNamespace(@PathVariable("name") String name, HttpServletResponse resp) {
+        resp.setHeader("Location", "/bundles?namespace="+name);
+        resp.setStatus(302);
     }
 }
