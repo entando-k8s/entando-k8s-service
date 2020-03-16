@@ -1,17 +1,15 @@
 package org.entando.kubernetes.controller;
 
-import static org.entando.kubernetes.service.KubernetesUtils.getCurrentNamespace;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.entando.kubernetes.exception.NotFoundExceptionFactory;
 import org.entando.kubernetes.model.debundle.EntandoDeBundle;
-import org.entando.kubernetes.service.assembler.EntandoDeBundleResourceAssembler;
 import org.entando.kubernetes.service.EntandoDeBundleService;
-import org.springframework.hateoas.EntityModel;
+import org.entando.kubernetes.service.assembler.EntandoDeBundleResourceAssembler;
 import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -62,7 +60,7 @@ public class EntandoDeBundleController {
             @PathVariable("name") String name) {
         log.info("Getting entando-de-bundle with name {} in namespace {}", name, namespace);
         Optional<EntandoDeBundle> ob = entandoBundleService.findBundleByNameAndNamespace(name, namespace);
-        EntandoDeBundle bundle = ob.orElseThrow(() -> NotFoundExceptionFactory.entandoDeBundle(name, namespace));
+        EntandoDeBundle bundle = ob.orElseThrow(() -> NotFoundExceptionFactory.entandoDeBundle(name));
         return ResponseEntity.ok(resourceAssembler.toModel(bundle));
     }
 

@@ -2,6 +2,8 @@ package org.entando.kubernetes.service;
 
 import io.fabric8.kubernetes.api.model.Namespace;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -12,6 +14,8 @@ public class NamespaceService {
 
     private final KubernetesClient client;
     private final List<String> observedNamespaces;
+    public static final Path KUBERNETES_NAMESPACE_PATH =
+            Paths.get("/var/run/secrets/kubernetes.io/serviceaccount/namespace");
 
     public NamespaceService(KubernetesClient client, List<String> observedNamespaces) {
         this.client = client;

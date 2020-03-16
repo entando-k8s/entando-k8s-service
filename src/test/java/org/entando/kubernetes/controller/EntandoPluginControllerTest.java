@@ -3,6 +3,7 @@ package org.entando.kubernetes.controller;
 import static org.entando.kubernetes.util.EntandoPluginTestHelper.BASE_PLUGIN_ENDPOINT;
 import static org.entando.kubernetes.util.EntandoPluginTestHelper.TEST_PLUGIN_NAME;
 import static org.entando.kubernetes.util.EntandoPluginTestHelper.TEST_PLUGIN_NAMESPACE;
+import static org.entando.kubernetes.util.EntandoPluginTestHelper.getTestEntandoPlugin;
 import static org.hamcrest.core.StringEndsWith.endsWith;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.any;
@@ -80,7 +81,7 @@ public class EntandoPluginControllerTest {
     public void shouldReturnAListWithOnePlugin() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(BASE_PLUGIN_ENDPOINT)
-                .pathSegment(TEST_PLUGIN_NAMESPACE)
+                .queryParam("namespace", TEST_PLUGIN_NAMESPACE)
                 .build().toUri();
 
 
@@ -115,15 +116,14 @@ public class EntandoPluginControllerTest {
                 .build().toUri();
         EntandoPlugin tempPlugin = EntandoPluginTestHelper.getTestEntandoPlugin();
 
-        when(entandoPluginService.findPluginByIdAndNamespace(eq(TEST_PLUGIN_NAME), any()))
+        when(entandoPluginService.findPluginByName(eq(TEST_PLUGIN_NAME)))
                 .thenReturn(Optional.of(tempPlugin));
 
         mvc.perform(post(uri)
                 .content(mapper.writeValueAsString(tempPlugin))
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest())
-                .andDo(print());
+                .andExpect(status().isBadRequest());
 
     }
 
@@ -143,7 +143,7 @@ public class EntandoPluginControllerTest {
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$._links.self").exists())
-                .andExpect(jsonPath("$._links.self.href").value(endsWith(Paths.get("plugins", TEST_PLUGIN_NAMESPACE, TEST_PLUGIN_NAME).toString())))
+                .andExpect(jsonPath("$._links.self.href").value(endsWith(Paths.get("plugins", TEST_PLUGIN_NAME).toString())))
                 .andExpect(jsonPath("$._links.plugins").exists());
 
     }
@@ -152,8 +152,10 @@ public class EntandoPluginControllerTest {
     public void shouldReturnAcceptedWhenDeletingAPlugin() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(BASE_PLUGIN_ENDPOINT)
-                .pathSegment(TEST_PLUGIN_NAMESPACE, TEST_PLUGIN_NAME)
+                .pathSegment(TEST_PLUGIN_NAME)
                 .build().toUri();
+        when(entandoPluginService.findPluginByName(eq(TEST_PLUGIN_NAME)))
+                .thenReturn(Optional.of(getTestEntandoPlugin()));
 
         mvc.perform(delete(uri)
                 .contentType(MediaType.APPLICATION_JSON)

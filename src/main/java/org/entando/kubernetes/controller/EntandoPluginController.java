@@ -24,7 +24,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.zalando.problem.ThrowableProblem;
 
 
 @Slf4j
@@ -44,7 +46,7 @@ public class EntandoPluginController {
         this.resourceAssembler = resourceAssembler;
     }
 
-    @GetMapping(path = "", produces = {JSON,HAL_JSON})
+    @GetMapping(produces = {JSON,HAL_JSON})
     public ResponseEntity<CollectionModel<EntityModel<EntandoPlugin>>> list() {
         log.info("Listing all deployed plugins in observed namespaces");
         List<EntandoPlugin> plugins = entandoPluginService.getPlugins();
@@ -52,28 +54,28 @@ public class EntandoPluginController {
                 .ok(new CollectionModel<>(plugins.stream().map(resourceAssembler::toModel).collect(Collectors.toList())));
     }
 
-    @GetMapping(path = "/{namespace}", produces = {JSON,HAL_JSON})
-    public ResponseEntity<CollectionModel<EntityModel<EntandoPlugin>>> listInNamespace(@PathVariable final String namespace) {
-        log.info("Listing all deployed plugins in {} namespace", namespace);
+    @GetMapping(produces = {JSON,HAL_JSON}, params = "namespace")
+    public ResponseEntity<CollectionModel<EntityModel<EntandoPlugin>>> listInNamespace(@RequestParam String namespace) {
+        log.info("Listing all deployed plugins in {} observed namespace", namespace);
+        //TODO: Throw an error when querying a non observed namespace
         List<EntandoPlugin> plugins = entandoPluginService.getPluginsInNamespace(namespace);
         return ResponseEntity
                 .ok(new CollectionModel<>(plugins.stream().map(resourceAssembler::toModel).collect(Collectors.toList())));
     }
 
-    @GetMapping(path = "/{namespace}/{pluginId}", produces = {JSON,HAL_JSON})
-    public ResponseEntity<EntityModel<EntandoPlugin>> get(@PathVariable("namespace") final String namespace,
-            @PathVariable("pluginId") final String pluginId) {
-        log.info("Requesting plugin with identifier {} in namespace {}", pluginId, namespace);
-        Optional<EntandoPlugin> plugin = entandoPluginService.findPluginByIdAndNamespace(pluginId, namespace);
-        return ResponseEntity
-                .ok(resourceAssembler.toModel(plugin.orElseThrow(NotFoundExceptionFactory::entandoPlugin)));
+    @GetMapping(path = "/{name}", produces = {JSON,HAL_JSON})
+    public ResponseEntity<EntityModel<EntandoPlugin>> get(@PathVariable("name") final String pluginName) {
+        log.info("Searching plugin with name {} in observed namespaces", pluginName);
+        EntandoPlugin plugin = getEntandoPluginOrFail(pluginName);
+        return ResponseEntity.ok(resourceAssembler.toModel(plugin));
     }
 
-    @DeleteMapping(path = "/{namespace}/{pluginId}", produces = {JSON,HAL_JSON})
-    public ResponseEntity delete(@PathVariable("namespace") String namespace,
-            @PathVariable("pluginId") String pluginId) {
-        log.info("Deleting plugin with identifier {} from namespace {}", pluginId, namespace);
-        entandoPluginService.deletePluginInNamespace(pluginId, namespace);
+
+    @DeleteMapping(path = "/{name}", produces = {JSON,HAL_JSON})
+    public ResponseEntity<Void> delete(@PathVariable("name") String pluginName) {
+        log.info("Deleting plugin with identifier {} from observed namespaces", pluginName);
+        EntandoPlugin plugin = getEntandoPluginOrFail(pluginName);
+        entandoPluginService.deletePlugin(plugin);
         return ResponseEntity.accepted().build();
     }
 
@@ -81,14 +83,23 @@ public class EntandoPluginController {
     public ResponseEntity<EntityModel<EntandoPlugin>> create(
             @RequestBody EntandoPlugin entandoPlugin) {
         throwExceptionIfAlreadyDeployed(entandoPlugin);
+        //TODO: throw exception if working with non observed namespace
         EntandoPlugin deployedPlugin = entandoPluginService.deploy(entandoPlugin);
-        URI resourceLink = linkTo(methodOn(getClass()).get(deployedPlugin.getMetadata().getNamespace(), deployedPlugin.getMetadata().getName())).toUri();
+        URI resourceLink = linkTo(methodOn(getClass()).get(deployedPlugin.getMetadata().getName())).toUri();
         return ResponseEntity.created(resourceLink).body(resourceAssembler.toModel(deployedPlugin));
     }
 
+    private EntandoPlugin getEntandoPluginOrFail(String pluginName) {
+        return entandoPluginService
+                .findPluginByName(pluginName)
+                .<ThrowableProblem>orElseThrow(() -> {
+                    throw NotFoundExceptionFactory.entandoPlugin(pluginName);
+                });
+    }
+
     private void throwExceptionIfAlreadyDeployed(EntandoPlugin entandoPlugin) {
-        Optional<EntandoPlugin> alreadyDeployedPlugin = entandoPluginService.findPluginByIdAndNamespace(
-                entandoPlugin.getMetadata().getName(), entandoPlugin.getMetadata().getNamespace());
+        Optional<EntandoPlugin> alreadyDeployedPlugin = entandoPluginService
+                .findPluginByName(entandoPlugin.getMetadata().getName());
         if (alreadyDeployedPlugin.isPresent()) {
             throw BadRequestExceptionFactory.pluginAlreadyDeployed(alreadyDeployedPlugin.get());
         }

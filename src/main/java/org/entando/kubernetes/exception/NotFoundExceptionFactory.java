@@ -9,22 +9,29 @@ public final class NotFoundExceptionFactory {
     private NotFoundExceptionFactory() {
     }
 
-    public static ThrowableProblem entandoApp() {
-        return Problem.valueOf(Status.NOT_FOUND);
-    }
-
-    public static ThrowableProblem entandoPlugin() {
-        return Problem.valueOf(Status.NOT_FOUND);
-    }
-
-    public static ThrowableProblem entandoDeBundle(String name, String namespace) {
+    public static ThrowableProblem entandoApp(String name) {
         return Problem.valueOf(Status.NOT_FOUND,
-                String.format("Bundle with name %s not found in namespace %s", name, namespace));
+                String.format("EntandoApp with name %s not found in observed namespaces", name));
     }
 
+    public static ThrowableProblem entandoPlugin(String name) {
+        return Problem.valueOf(Status.NOT_FOUND,
+                String.format("EntandoPlugin with name %s not found in observed namespaces", name));
+    }
+
+    public static ThrowableProblem entandoDeBundle(String name) {
+        return Problem.valueOf(Status.NOT_FOUND,
+                String.format("Bundle with name %s not found in observed namespace", name));
+    }
+
+    public static ThrowableProblem entandoLink(String appName, String pluginName) {
+        return Problem.valueOf(Status.NOT_FOUND,
+                String.format("Link between EntandoApp %s and EntandoPlugin %s "
+                        + "not found in observed namespace", appName, pluginName));
+    }
     public static ThrowableProblem observedNamespace(String name) {
         return Problem.valueOf(Status.NOT_FOUND,
-                String.format("Namespace %s is not part of the observed namespace", name));
+                String.format("Namespace %s is not part of the observed namespaces", name));
     }
 
 }

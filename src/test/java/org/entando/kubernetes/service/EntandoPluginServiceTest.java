@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import org.entando.kubernetes.config.TestKubernetesConfig;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.entando.kubernetes.util.EntandoPluginTestHelper;
 import org.junit.Rule;
@@ -38,8 +39,9 @@ public class EntandoPluginServiceTest {
     @BeforeEach
     public void setUp() {
         client = server.getClient();
+        KubernetesUtils k8sUtils = new TestKubernetesConfig().k8sUtils();
         List<String> observedNamespaces = Arrays.asList(TEST_PLUGIN_NAMESPACE, "my-namespace");
-        entandoPluginService = new EntandoPluginService(client, observedNamespaces);
+        entandoPluginService = new EntandoPluginService(client, observedNamespaces, k8sUtils);
         EntandoPluginTestHelper.createEntandoPluginCrd(client);
     }
 
@@ -63,7 +65,7 @@ public class EntandoPluginServiceTest {
     @Test
     public void shouldFindAPluginInAnyNamespace() {
         EntandoPluginTestHelper.createTestEntandoPlugin(client);
-        Optional<EntandoPlugin> opl = entandoPluginService.findPluginById(TEST_PLUGIN_NAME);
+        Optional<EntandoPlugin> opl = entandoPluginService.findPluginByName(TEST_PLUGIN_NAME);
         assertTrue(opl.isPresent());
         EntandoPlugin plg = opl.get();
 
@@ -93,7 +95,7 @@ public class EntandoPluginServiceTest {
 
     @Test
     public void shouldReturnEmptyOptionalForNotFoundPlugin() {
-        assertFalse(entandoPluginService.findPluginById("some-plugin").isPresent());
+        assertFalse(entandoPluginService.findPluginByName("some-plugin").isPresent());
     }
 
     @Test

@@ -27,7 +27,7 @@ public class EntandoPluginResourceAssembler implements
     private void applyRel(EntityModel<EntandoPlugin> response) {
         String pluginName = response.getContent().getMetadata().getName();
         String pluginNamespace = response.getContent().getMetadata().getNamespace();
-        response.add(linkTo(methodOn(EntandoPluginController.class).get( pluginNamespace, pluginName)) .withSelfRel());
+        response.add(linkTo(methodOn(EntandoPluginController.class).get(pluginName)) .withSelfRel());
         response.add(linkTo(methodOn(EntandoPluginController.class).listInNamespace(pluginNamespace)).withRel("namespace_plugin"));
         response.add(linkTo(methodOn(EntandoPluginController.class).list()).withRel("plugins"));
     }

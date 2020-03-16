@@ -26,9 +26,9 @@ public class EntandoAppResourceAssembler implements RepresentationModelAssembler
     private void applyRel(EntityModel<EntandoApp> response) {
         String appName = response.getContent().getMetadata().getName();
         String appNamespace = response.getContent().getMetadata().getNamespace();
-        response.add(linkTo(methodOn(EntandoAppController.class).get(appNamespace, appName))
+        response.add(linkTo(methodOn(EntandoAppController.class).get(appName))
                 .withSelfRel());
-        response.add(linkTo(methodOn(EntandoAppController.class).listLinks(appNamespace, appName))
+        response.add(linkTo(methodOn(EntandoAppController.class).listLinks(appName))
                 .withRel("links"));
     }
 }

@@ -34,8 +34,8 @@ public class EntandoAppPluginLinkResourceAssembler implements
         String appNamespace = link.getSpec().getEntandoAppNamespace();
 
         response.add(linkTo(methodOn(EntandoAppController.class)
-                .get(appNamespace, appName)).withRel("app"));
+                .get(appName)).withRel("app"));
         response.add(linkTo(methodOn(EntandoPluginController.class)
-                .get(pluginNamespace, pluginName)).withRel("plugin"));
+                .get(pluginName)).withRel("plugin"));
     }
 }

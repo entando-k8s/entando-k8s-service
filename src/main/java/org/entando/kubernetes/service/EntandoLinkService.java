@@ -7,6 +7,7 @@ import io.fabric8.kubernetes.client.dsl.Resource;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -32,6 +33,13 @@ public class EntandoLinkService {
     public EntandoLinkService(KubernetesClient client, List<String> observedNamespaces) {
         this.client = client;
         this.observedNamespaces = observedNamespaces;
+    }
+
+    public Optional<EntandoAppPluginLink> getLink(EntandoApp app, String pluginName) {
+        return getLinksOperations().inNamespace(app.getMetadata().getNamespace())
+                .list().getItems().stream()
+                .filter(l -> l.getSpec().getEntandoPluginName().equals(pluginName))
+                .findFirst();
     }
 
     public List<EntandoAppPluginLink> listAppLinks(EntandoApp app) {

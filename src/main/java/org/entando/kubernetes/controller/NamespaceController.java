@@ -39,9 +39,9 @@ public class NamespaceController {
                 observedNamespaces.stream()
                         .map(nsResourceAssembler::toModel)
                         .collect(Collectors.toList()));
-        nsCollection.add(linkTo(methodOn(EntandoAppController.class).list()).withRel("all-apps"));
-        nsCollection.add(linkTo(methodOn(EntandoPluginController.class).list()).withRel("all-plugins"));
-        nsCollection.add(linkTo(methodOn(EntandoDeBundleController.class).list()).withRel("all-bundles"));
+        nsCollection.add(linkTo(methodOn(EntandoAppController.class).list()).withRel("apps"));
+        nsCollection.add(linkTo(methodOn(EntandoPluginController.class).list()).withRel("plugins"));
+        nsCollection.add(linkTo(methodOn(EntandoDeBundleController.class).list()).withRel("bundles"));
         return ResponseEntity.ok(nsCollection);
     }
 
@@ -67,7 +67,7 @@ public class NamespaceController {
         resp.setStatus(302);
     }
 
-    @GetMapping("/{name}/plugins")
+    @GetMapping("/{name}/bundles")
     public void listBundlesInNamespace(@PathVariable("name") String name, HttpServletResponse resp) {
         resp.setHeader("Location", "/bundles?namespace="+name);
         resp.setStatus(302);

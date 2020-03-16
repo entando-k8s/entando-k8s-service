@@ -38,7 +38,6 @@ public class NamespaceControllerTest {
     private NamespaceService nsService;
 
 
-
     @BeforeEach
     public void setup() {
         nsService = mock(NamespaceService.class);
@@ -52,9 +51,9 @@ public class NamespaceControllerTest {
         when(nsService.getObservedNamespaceList()).thenReturn(Collections.emptyList());
         assertThat(nsController.list().getStatusCode()).isEqualByComparingTo(HttpStatus.OK);
         assertThat(nsController.list().getBody()).isNotNull();
-        assertThat(nsController.list().getBody().getLink("all-plugins").isPresent()).isTrue();
-        assertThat(nsController.list().getBody().getLink("all-apps").isPresent()).isTrue();
-        assertThat(nsController.list().getBody().getLink("all-bundles").isPresent()).isTrue();
+        assertThat(nsController.list().getBody().getLink("plugins").isPresent()).isTrue();
+        assertThat(nsController.list().getBody().getLink("apps").isPresent()).isTrue();
+        assertThat(nsController.list().getBody().getLink("bundles").isPresent()).isTrue();
     }
 
     @Test

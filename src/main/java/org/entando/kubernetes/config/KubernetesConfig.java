@@ -21,6 +21,11 @@ public class KubernetesConfig {
     public List<String> entandoNamespacesToObserve = new ArrayList<>();
 
     @Bean
+    public KubernetesUtils k8sUtils() {
+        return new KubernetesUtils();
+    }
+
+    @Bean
     public KubernetesClient client() {
         final Config config = new ConfigBuilder().build();
         return new DefaultKubernetesClient(config);
@@ -28,10 +33,14 @@ public class KubernetesConfig {
 
     @Bean
     public List<String> observedNamespaces() {
-       if (entandoNamespacesToObserve != null && !entandoNamespacesToObserve.isEmpty()) {
-           return entandoNamespacesToObserve;
-       }
-       return Collections.singletonList(KubernetesUtils.getCurrentNamespace());
+
+        if (entandoNamespacesToObserve != null && !entandoNamespacesToObserve.isEmpty()) {
+            if (!entandoNamespacesToObserve.contains(k8sUtils().getCurrentNamespace())) {
+                entandoNamespacesToObserve.add(k8sUtils().getCurrentNamespace());
+            }
+            return entandoNamespacesToObserve;
+        }
+        return Collections.singletonList(k8sUtils().getCurrentNamespace());
     }
 
 }

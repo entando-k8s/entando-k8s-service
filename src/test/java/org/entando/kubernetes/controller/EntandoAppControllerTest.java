@@ -97,7 +97,7 @@ public class EntandoAppControllerTest {
     public void shouldReturnAListWithOneApp() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
-                .pathSegment(TEST_APP_NAMESPACE)
+                .queryParam("namespace", TEST_APP_NAMESPACE)
                 .build().toUri();
 
         EntandoApp tempApp = EntandoAppTestHelper.getTestEntandoApp();
@@ -117,7 +117,7 @@ public class EntandoAppControllerTest {
     public void shouldReturn404IfAppNotFound() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
-                .pathSegment(TEST_APP_NAMESPACE, TEST_APP_NAME)
+                .pathSegment(TEST_APP_NAME)
                 .build().toUri();
         mvc.perform(get(uri)
                 .accept(MediaType.APPLICATION_JSON))
@@ -142,12 +142,12 @@ public class EntandoAppControllerTest {
     public void shouldReturnAppLinks() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
-                .pathSegment(TEST_APP_NAMESPACE, TEST_APP_NAME, "links")
+                .pathSegment(TEST_APP_NAME, "links")
                 .build().toUri();
         EntandoApp ea = EntandoAppTestHelper.getTestEntandoApp();
         EntandoAppPluginLink el = EntandoLinkTestHelper.getTestLink();
 
-        when(entandoAppService.findAppByNameAndNamespace(anyString(), anyString())).thenReturn(Optional.of(ea));
+        when(entandoAppService.findAppByName(anyString())).thenReturn(Optional.of(ea));
         when(entandoLinkService.listAppLinks(any(EntandoApp.class))).thenReturn(Collections.singletonList(el));
 
         final String linkEntryJsonPath = "$._embedded.entandoAppPluginLinkList[0]";
@@ -163,8 +163,8 @@ public class EntandoAppControllerTest {
                         hasEntry("entandoAppName", TEST_APP_NAME)
                 )))
                 .andExpect(jsonPath(linkHateoasLinksJsonPath).exists())
-                .andExpect(jsonPath(linkHateoasLinksJsonPath + ".app.href").value(endsWith("apps/test-namespace/my-app")))
-                .andExpect(jsonPath(linkHateoasLinksJsonPath + ".plugin.href").value(endsWith("plugins/test-namespace/my-plugin")));
+                .andExpect(jsonPath(linkHateoasLinksJsonPath + ".app.href").value(endsWith("apps/my-app")))
+                .andExpect(jsonPath(linkHateoasLinksJsonPath + ".plugin.href").value(endsWith("plugins/my-plugin")));
 
     }
 
@@ -173,7 +173,7 @@ public class EntandoAppControllerTest {
         URI uri;
         uri = UriComponentsBuilder
                 .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
-                .pathSegment(TEST_APP_NAMESPACE, TEST_APP_NAME)
+                .pathSegment(TEST_APP_NAME)
                 .build().toUri();
         EntandoApp ea = EntandoAppTestHelper.getTestEntandoApp();
 
@@ -193,14 +193,14 @@ public class EntandoAppControllerTest {
 
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
-                .pathSegment(TEST_APP_NAMESPACE, TEST_APP_NAME, "links")
+                .pathSegment(TEST_APP_NAME, "links")
                 .build().toUri();
         EntandoApp ea = EntandoAppTestHelper.getTestEntandoApp();
         EntandoPlugin ep = EntandoPluginTestHelper.getTestEntandoPlugin();
         EntandoAppPluginLink el = entandoLinkService.generateForAppAndPlugin(ea, ep);
 
-        when(entandoAppService.findAppByNameAndNamespace(anyString(), anyString())).thenReturn(Optional.of(ea));
-        when(entandoPluginService.findPluginById(eq(ep.getMetadata().getName()))).thenReturn(Optional.of(ep));
+        when(entandoAppService.findAppByName(anyString())).thenReturn(Optional.of(ea));
+        when(entandoPluginService.findPluginByName(eq(ep.getMetadata().getName()))).thenReturn(Optional.of(ep));
         when(entandoLinkService.deploy(any(EntandoAppPluginLink.class))).thenReturn(el);
 
 
@@ -217,8 +217,8 @@ public class EntandoAppControllerTest {
                         hasEntry("entandoAppName", TEST_APP_NAME)
                 )))
                 .andExpect(jsonPath("$._links").exists())
-                .andExpect(jsonPath( "$._links.app.href").value(endsWith("apps/test-namespace/my-app")))
-                .andExpect(jsonPath( "$._links.plugin.href").value(endsWith("plugins/test-namespace/my-plugin")));
+                .andExpect(jsonPath( "$._links.app.href").value(endsWith("apps/my-app")))
+                .andExpect(jsonPath( "$._links.plugin.href").value(endsWith("plugins/my-plugin")));
 
     }
 
@@ -229,7 +229,7 @@ public class EntandoAppControllerTest {
 
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
-                .pathSegment(TEST_APP_NAMESPACE, TEST_APP_NAME, "links")
+                .pathSegment(TEST_APP_NAME, "links")
                 .build().toUri();
         EntandoApp ea = EntandoAppTestHelper.getTestEntandoApp();
         EntandoPlugin ep = EntandoPluginTestHelper.getTestEntandoPlugin();
@@ -237,7 +237,7 @@ public class EntandoAppControllerTest {
         EntandoAppPluginLink el = entandoLinkService.generateForAppAndPlugin(ea, ep);
 
         ArgumentCaptor<EntandoPlugin> argumentCaptor = ArgumentCaptor.forClass(EntandoPlugin.class);
-        when(entandoAppService.findAppByNameAndNamespace(anyString(), anyString())).thenReturn(Optional.of(ea));
+        when(entandoAppService.findAppByName(anyString())).thenReturn(Optional.of(ea));
         when(entandoLinkService.deploy(any(EntandoAppPluginLink.class))).thenReturn(el);
         when(entandoPluginService.deploy(any(EntandoPlugin.class))).thenReturn(ep);
 
@@ -259,7 +259,7 @@ public class EntandoAppControllerTest {
 
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
-                .pathSegment(TEST_APP_NAMESPACE, TEST_APP_NAME, "links")
+                .pathSegment(TEST_APP_NAME, "links")
                 .build().toUri();
         EntandoApp ea = EntandoAppTestHelper.getTestEntandoApp();
         EntandoPlugin ep = EntandoPluginTestHelper.getTestEntandoPlugin();
@@ -268,7 +268,7 @@ public class EntandoAppControllerTest {
         EntandoAppPluginLink el = entandoLinkService.generateForAppAndPlugin(ea, ep);
 
         ArgumentCaptor<EntandoPlugin> argumentCaptor = ArgumentCaptor.forClass(EntandoPlugin.class);
-        when(entandoAppService.findAppByNameAndNamespace(anyString(), anyString())).thenReturn(Optional.of(ea));
+        when(entandoAppService.findAppByName(anyString())).thenReturn(Optional.of(ea));
         when(entandoLinkService.deploy(any(EntandoAppPluginLink.class))).thenReturn(el);
         when(entandoPluginService.deploy(any(EntandoPlugin.class))).thenReturn(ep);
 
@@ -288,13 +288,14 @@ public class EntandoAppControllerTest {
     public void shouldDeleteExistingLinkBetweenAppAndPlugin() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
-                .pathSegment(TEST_APP_NAMESPACE, TEST_APP_NAME, "links", TEST_PLUGIN_NAME)
+                .pathSegment(TEST_APP_NAME, "links", TEST_PLUGIN_NAME)
                 .build().toUri();
 
         EntandoAppPluginLink el = EntandoLinkTestHelper.getTestLink();
+        EntandoApp ea = EntandoAppTestHelper.getTestEntandoApp();
 
-        when(entandoLinkService.listEntandoAppLinks(TEST_APP_NAMESPACE, TEST_APP_NAME))
-                .thenReturn(Collections.singletonList(el));
+        when(entandoAppService.findAppByName(anyString())).thenReturn(Optional.of(ea));
+        when(entandoLinkService.getLink(any(EntandoApp.class), eq(TEST_PLUGIN_NAME))).thenReturn(Optional.of(el));
 
         mvc.perform(delete(uri)
                 .accept(MediaType.APPLICATION_JSON))
@@ -307,7 +308,7 @@ public class EntandoAppControllerTest {
     public void shouldThrowAnErrorWhenCreatingLinkButAppDoesntExist() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
-                .pathSegment(TEST_APP_NAMESPACE, TEST_APP_NAME, "links")
+                .pathSegment(TEST_APP_NAME, "links")
                 .build().toUri();
         EntandoPlugin ep = EntandoPluginTestHelper.getTestEntandoPlugin();
         mvc.perform(post(uri)
@@ -316,7 +317,8 @@ public class EntandoAppControllerTest {
                     .content(mapper.writeValueAsString(ep)))
                 .andExpect(status().isNotFound());
 
-        verify(entandoAppService, times(1)).findAppByNameAndNamespace(TEST_APP_NAME, TEST_APP_NAMESPACE);
+        verify(entandoAppService, times(1)).findAppByName(TEST_APP_NAME);
+        verify(entandoPluginService, times(0)).deletePlugin(any(EntandoPlugin.class));
 
     }
 

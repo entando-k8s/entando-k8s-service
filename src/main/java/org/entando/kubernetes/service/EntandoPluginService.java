@@ -2,7 +2,6 @@ package org.entando.kubernetes.service;
 
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
-import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
@@ -14,6 +13,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.entando.kubernetes.exception.BadRequestExceptionFactory;
 import org.entando.kubernetes.model.plugin.DoneableEntandoPlugin;
@@ -25,20 +25,22 @@ import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class EntandoPluginService {
 
     private final KubernetesClient client;
     private final List<String> observedNamespaces;
-
-    public EntandoPluginService(KubernetesClient client, List<String> observedNamespaces) {
-        this.client = client;
-        this.observedNamespaces = observedNamespaces;
-    }
+    private final KubernetesUtils k8sUtils;
 
     public void deletePlugin(String pluginId) {
-        log.info("Delete plugin {} from any namespace", pluginId);
-        Optional<EntandoPlugin> entandoPlugin = findPluginById(pluginId);
-        entandoPlugin.ifPresent(pl -> deletePluginInNamespace(pluginId, pl.getMetadata().getNamespace()));
+        log.info("Delete plugin {} from observed namespaces", pluginId);
+        Optional<EntandoPlugin> entandoPlugin = findPluginByName(pluginId);
+        entandoPlugin.ifPresent(this::deletePlugin);
+    }
+
+    public void deletePlugin(EntandoPlugin plugin) {
+        log.info("Delete plugin {} from observed namespaces", plugin.getMetadata().getName());
+        getPluginOperations().delete(plugin);
     }
 
     public void deletePluginInNamespace(String pluginId, String namespace) {
@@ -88,7 +90,7 @@ public class EntandoPluginService {
         //TODO verify the plugin has a name
         //assert !Strings.isNullOrEmpty(plugin.getMetadata().getName());
         if (Strings.isNullOrEmpty(plugin.getMetadata().getNamespace())) {
-            plugin.getMetadata().setNamespace(KubernetesUtils.getCurrentNamespace());
+            plugin.getMetadata().setNamespace(k8sUtils.getCurrentNamespace());
         }
         EntandoPlugin newPlugin = new EntandoPluginBuilder()
                 .withNewMetadata()
@@ -102,7 +104,7 @@ public class EntandoPluginService {
     }
 
 
-    public Optional<EntandoPlugin> findPluginById(String pluginId) {
+    public Optional<EntandoPlugin> findPluginByName(String pluginId) {
         return getPlugins().stream().filter(pl -> pl.getMetadata().getName().equals(pluginId)).findFirst();
     }
 

@@ -12,9 +12,8 @@ public final class BadRequestExceptionFactory {
 
     public static ThrowableProblem pluginAlreadyDeployed(EntandoPlugin plugin) {
         return Problem.valueOf(Status.BAD_REQUEST,
-                String.format("Plugin with name %s is already deployed in namespace %s",
-                        plugin.getMetadata().getName(),
-                        plugin.getMetadata().getNamespace()));
+                String.format("Plugin with name %s is already deployed in observed namespaces",
+                        plugin.getMetadata().getName()));
     }
 
     public static ThrowableProblem pluginNamespaceNotObserved(EntandoPlugin plugin) {
