@@ -64,7 +64,7 @@ public class EntandoDeBundleServiceTest {
     public void shouldFindBundleByName() {
         EntandoDeBundle bundle = EntandoDeBundleTestHelper.createTestEntandoDeBundle(client);
         String bundleName = bundle.getSpec().getDetails().getName();
-        List<EntandoDeBundle> foundBundles = entandoDeBundleService.findBundlesByName(bundleName);
+        List<EntandoDeBundle> foundBundles = entandoDeBundleService.findBundleByName(bundleName);
         assertThat(foundBundles).hasSize(1);
         assertThat(foundBundles.get(0).getSpec().getDetails().getName()).isEqualTo(bundleName);
     }

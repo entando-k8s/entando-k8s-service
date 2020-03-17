@@ -15,10 +15,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
+import org.entando.kubernetes.controller.namespace.KubernetesNamespaceController;
+import org.entando.kubernetes.controller.plugin.EntandoPluginController;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
-import org.entando.kubernetes.service.NamespaceService;
+import org.entando.kubernetes.service.KubernetesNamespaceService;
 import org.entando.kubernetes.service.assembler.EntandoPluginResourceAssembler;
-import org.entando.kubernetes.service.assembler.NamespaceResourceAssembler;
+import org.entando.kubernetes.service.assembler.KubernetesNamespaceResourceAssembler;
 import org.entando.kubernetes.util.EntandoPluginTestHelper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,22 +33,22 @@ import org.springframework.http.ResponseEntity;
 import org.zalando.problem.ThrowableProblem;
 
 @Tag("component")
-public class NamespaceControllerTest {
+public class KubernetesNamespaceControllerTest {
 
     private EntandoPluginController pluginController;
     private EntandoPluginResourceAssembler pluginResourceAssembler = new EntandoPluginResourceAssembler();
 
-    private NamespaceController nsController;
-    private NamespaceResourceAssembler nsRa;
-    private NamespaceService nsService;
+    private KubernetesNamespaceController nsController;
+    private KubernetesNamespaceResourceAssembler nsRa;
+    private KubernetesNamespaceService nsService;
 
 
     @BeforeEach
     public void setup() {
-        nsService = mock(NamespaceService.class);
+        nsService = mock(KubernetesNamespaceService.class);
         pluginController = mock(EntandoPluginController.class);
-        nsRa = new NamespaceResourceAssembler();
-        nsController = new NamespaceController(nsRa, nsService);
+        nsRa = new KubernetesNamespaceResourceAssembler();
+        nsController = new KubernetesNamespaceController(nsRa, nsService);
     }
 
     @Test

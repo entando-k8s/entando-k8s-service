@@ -3,7 +3,7 @@ package org.entando.kubernetes.service.assembler;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
-import org.entando.kubernetes.controller.EntandoAppController;
+import org.entando.kubernetes.controller.app.EntandoAppController;
 import org.entando.kubernetes.model.app.EntandoApp;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.server.RepresentationModelAssembler;

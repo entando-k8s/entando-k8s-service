@@ -57,7 +57,7 @@ public class EntandoAppServiceTest {
     @Test
     public void shouldFindAnAppInAnyNamespace() {
         EntandoAppTestHelper.createTestEntandoApp(client);
-        Optional<EntandoApp> opApp = entandoAppService.findAppByName(TEST_APP_NAME);
+        Optional<EntandoApp> opApp = entandoAppService.findByName(TEST_APP_NAME);
         assertTrue(opApp.isPresent());
         EntandoApp app = opApp.get();
 
@@ -69,7 +69,7 @@ public class EntandoAppServiceTest {
     public void shouldFindAnAppInNamespace() {
         EntandoAppTestHelper.createTestEntandoApp(client);
         Optional<EntandoApp> opl =
-                entandoAppService.findAppByNameAndNamespace(TEST_APP_NAME, TEST_APP_NAMESPACE);
+                entandoAppService.findByNameAndNamespace(TEST_APP_NAME, TEST_APP_NAMESPACE);
         assertTrue(opl.isPresent());
         EntandoApp plg = opl.get();
 
@@ -81,13 +81,13 @@ public class EntandoAppServiceTest {
     public void shouldNotFindAppInNamespace() {
         EntandoAppTestHelper.createTestEntandoApp(client);
         Optional<EntandoApp> opl =
-                entandoAppService.findAppByNameAndNamespace(TEST_APP_NAME, client.getNamespace());
+                entandoAppService.findByNameAndNamespace(TEST_APP_NAME, client.getNamespace());
         assertFalse(opl.isPresent());
     }
 
     @Test
     public void shouldReturnEmptyOptionalForNotFoundApp() {
-        assertFalse(entandoAppService.findAppByName("some-App").isPresent());
+        assertFalse(entandoAppService.findByName("some-App").isPresent());
     }
 
 }

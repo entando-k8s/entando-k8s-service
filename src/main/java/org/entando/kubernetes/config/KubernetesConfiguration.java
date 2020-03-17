@@ -7,6 +7,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import org.entando.kubernetes.model.ObservedNamespaces;
 import org.entando.kubernetes.service.KubernetesUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -15,7 +16,7 @@ import org.springframework.context.annotation.Profile;
 
 @Configuration
 @Profile("!test")
-public class KubernetesConfig {
+public class KubernetesConfiguration {
 
     @Value("${entando.namespaces.to.observe:}")
     public List<String> entandoNamespacesToObserve = new ArrayList<>();
@@ -32,15 +33,8 @@ public class KubernetesConfig {
     }
 
     @Bean
-    public List<String> observedNamespaces() {
-
-        if (entandoNamespacesToObserve != null && !entandoNamespacesToObserve.isEmpty()) {
-            if (!entandoNamespacesToObserve.contains(k8sUtils().getCurrentNamespace())) {
-                entandoNamespacesToObserve.add(k8sUtils().getCurrentNamespace());
-            }
-            return entandoNamespacesToObserve;
-        }
-        return Collections.singletonList(k8sUtils().getCurrentNamespace());
+    public ObservedNamespaces observedNamespaces() {
+        return new ObservedNamespaces(k8sUtils(), entandoNamespacesToObserve);
     }
 
 }

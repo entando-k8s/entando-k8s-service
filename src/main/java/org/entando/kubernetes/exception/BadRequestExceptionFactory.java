@@ -29,5 +29,14 @@ public final class BadRequestExceptionFactory {
                 String.format("Provided namespace %s isn't valid for regex '[a-z0-9]([-a-z0-9]*[a-z0-9])?'", namespace));
     }
 
+    public static ThrowableProblem notObservedNamespace(String namespace) {
+        return Problem.valueOf(Status.BAD_REQUEST,
+                String.format("Provided namespace %s is not part of namespaces observed by this instance", namespace));
+    }
+
+    public static ThrowableProblem notObservedNamespace(NotObservedNamespaceException ex) {
+        return Problem.valueOf(Status.BAD_REQUEST,
+                String.format("Provided namespace %s is not part of namespaces observed by this instance", ex.getNamespace()));
+    }
 
 }

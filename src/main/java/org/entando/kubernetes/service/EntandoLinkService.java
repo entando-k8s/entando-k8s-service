@@ -1,6 +1,5 @@
 package org.entando.kubernetes.service;
 
-import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
@@ -11,53 +10,29 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.entando.kubernetes.model.ObservedNamespaces;
 import org.entando.kubernetes.model.app.EntandoApp;
-import org.entando.kubernetes.model.debundle.EntandoDeBundle;
 import org.entando.kubernetes.model.link.DoneableEntandoAppPluginLink;
 import org.entando.kubernetes.model.link.EntandoAppPluginLink;
 import org.entando.kubernetes.model.link.EntandoAppPluginLinkBuilder;
 import org.entando.kubernetes.model.link.EntandoAppPluginLinkList;
 import org.entando.kubernetes.model.link.EntandoAppPluginLinkOperationFactory;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
-public class EntandoLinkService {
+public class EntandoLinkService extends EntandoKubernetesResourceCollector<EntandoAppPluginLink> {
 
-    private final KubernetesClient client;
-    private final List<String> observedNamespaces;
-
-    public EntandoLinkService(KubernetesClient client, List<String> observedNamespaces) {
-        this.client = client;
-        this.observedNamespaces = observedNamespaces;
+    public EntandoLinkService(KubernetesClient client,
+            ObservedNamespaces observedNamespaces) {
+        super(client, observedNamespaces);
     }
 
-
-    public List<EntandoAppPluginLink> getLinks() {
-        return getLinksInNamespaceList(this.observedNamespaces);
-    }
-
-    public List<EntandoAppPluginLink> getLinksInNamespaceList(List<String> namespaceList) {
-        CompletableFuture<List<EntandoAppPluginLink>>[] allRequests = namespaceList.stream()
-                .map(ns -> CompletableFuture.supplyAsync(() -> getLinksInNamespace(ns) ))
-                .toArray(CompletableFuture[]::new);
-
-        CompletableFuture<List<EntandoAppPluginLink>> allPlugins = CompletableFuture.allOf(allRequests)
-                .thenApply(v -> Stream.of(allRequests).map(CompletableFuture::join)
-                        .flatMap(Collection::stream)
-                        .collect(Collectors.toList()))
-                .exceptionally(ex -> {
-                    log.error("An error occurred while retrieving links from multiple namespaces", ex);
-                    return Collections.emptyList();
-                });
-
-        return allPlugins.join();
-    }
-
-    public List<EntandoAppPluginLink> getLinksInNamespace(String namespace) {
+    @Override
+    List<EntandoAppPluginLink> getInNamespaceWithoutChecking(String namespace) {
         return getLinksOperations().inNamespace(namespace).list().getItems();
     }
 
@@ -69,17 +44,19 @@ public class EntandoLinkService {
     }
 
     public List<EntandoAppPluginLink> getAppLinks(EntandoApp app) {
+        observedNamespaces.failIfNotObserved(app.getMetadata().getNamespace());
         return getLinksOperations().inNamespace(app.getMetadata().getNamespace()).list().getItems();
     }
 
     public List<EntandoAppPluginLink> getPluginLinks(EntandoPlugin plugin) {
-       return getLinks()
+       return getAll()
                .stream()
                .filter(l -> l.getSpec().getEntandoPluginName().equals(plugin.getMetadata().getName()))
                .collect(Collectors.toList());
     }
 
     public EntandoAppPluginLink deploy(EntandoAppPluginLink newLink) {
+        observedNamespaces.failIfNotObserved(newLink.getMetadata().getNamespace());
         log.info("Link creation between EntandoApp {} on namespace {} and EntandoPlugin {} on namespace {}",
                 newLink.getSpec().getEntandoAppName(), newLink.getSpec().getEntandoAppNamespace(),
                 newLink.getSpec().getEntandoPluginName(), newLink.getSpec().getEntandoPluginNamespace());
@@ -87,6 +64,7 @@ public class EntandoLinkService {
     }
 
     public void delete(EntandoAppPluginLink l) {
+        observedNamespaces.failIfNotObserved(l.getMetadata().getNamespace());
         log.info("Deleting link between EntandoApp {} on namespace {} and EntandoPlugin {} on namespace {}",
                 l.getSpec().getEntandoAppName(), l.getSpec().getEntandoAppNamespace(),
                 l.getSpec().getEntandoPluginName(), l.getSpec().getEntandoPluginNamespace());
@@ -94,6 +72,7 @@ public class EntandoLinkService {
     }
 
     public EntandoAppPluginLink buildBetweenAppAndPlugin(EntandoApp app, EntandoPlugin plugin) {
+        observedNamespaces.failIfNotObserved(app.getMetadata().getNamespace());
         String appNamespace = app.getMetadata().getNamespace();
         String appName = app.getMetadata().getName();
         String pluginName = plugin.getMetadata().getName();

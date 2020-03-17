@@ -2,30 +2,23 @@ package org.entando.kubernetes.service;
 
 import io.fabric8.kubernetes.api.model.Namespace;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.entando.kubernetes.model.ObservedNamespaces;
 import org.springframework.stereotype.Service;
 
 @Service
-public class NamespaceService {
+@RequiredArgsConstructor
+public class KubernetesNamespaceService {
 
     private final KubernetesClient client;
-    private final List<String> observedNamespaces;
-    public static final Path KUBERNETES_NAMESPACE_PATH =
-            Paths.get("/var/run/secrets/kubernetes.io/serviceaccount/namespace");
-
-    public NamespaceService(KubernetesClient client, List<String> observedNamespaces) {
-        this.client = client;
-        this.observedNamespaces = observedNamespaces;
-
-    }
+    private final ObservedNamespaces observedNamespaces;
 
     public List<Namespace> getObservedNamespaceList() {
         return this.client.namespaces().list().getItems().stream()
-                .filter(ns -> observedNamespaces.contains(ns.getMetadata().getName()))
+                .filter(ns -> observedNamespaces.isObservedNamespace(ns.getMetadata().getName()))
                 .collect(Collectors.toList());
     }
 

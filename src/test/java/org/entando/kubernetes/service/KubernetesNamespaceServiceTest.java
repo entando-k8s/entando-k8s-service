@@ -17,11 +17,11 @@ import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
 
 @Tag("unit")
 @EnableRuleMigrationSupport
-public class NamespaceServiceTest {
+public class KubernetesNamespaceServiceTest {
     @Rule
     public KubernetesServer server = new KubernetesServer(false, true);
 
-    private NamespaceService nsService;
+    private KubernetesNamespaceService nsService;
 
     private KubernetesClient client;
     private final String APP_NAMESPACE = "app-namespace";
@@ -33,7 +33,7 @@ public class NamespaceServiceTest {
     public void setUp() {
         client = server.getClient();
         List<String> observedNamespaces = Arrays.asList(APP_NAMESPACE, PLUGIN_NAMESPACE, BUNDLE_NAMESPACE);
-        nsService = new NamespaceService(client, observedNamespaces);
+        nsService = new KubernetesNamespaceService(client, observedNamespaces);
         client.namespaces().createNew()
                 .withNewMetadata()
                 .withName(APP_NAMESPACE)

@@ -147,7 +147,7 @@ public class EntandoAppControllerTest {
         EntandoApp ea = EntandoAppTestHelper.getTestEntandoApp();
         EntandoAppPluginLink el = EntandoLinkTestHelper.getTestLink();
 
-        when(entandoAppService.findAppByName(anyString())).thenReturn(Optional.of(ea));
+        when(entandoAppService.findByName(anyString())).thenReturn(Optional.of(ea));
         when(entandoLinkService.getAppLinks(any(EntandoApp.class))).thenReturn(Collections.singletonList(el));
 
         final String linkEntryJsonPath = "$._embedded.entandoAppPluginLinkList[0]";
@@ -199,7 +199,7 @@ public class EntandoAppControllerTest {
         EntandoPlugin ep = EntandoPluginTestHelper.getTestEntandoPlugin();
         EntandoAppPluginLink el = entandoLinkService.buildBetweenAppAndPlugin(ea, ep);
 
-        when(entandoAppService.findAppByName(anyString())).thenReturn(Optional.of(ea));
+        when(entandoAppService.findByName(anyString())).thenReturn(Optional.of(ea));
         when(entandoPluginService.findPluginByName(eq(ep.getMetadata().getName()))).thenReturn(Optional.of(ep));
         when(entandoLinkService.deploy(any(EntandoAppPluginLink.class))).thenReturn(el);
 
@@ -237,7 +237,7 @@ public class EntandoAppControllerTest {
         EntandoAppPluginLink el = entandoLinkService.buildBetweenAppAndPlugin(ea, ep);
 
         ArgumentCaptor<EntandoPlugin> argumentCaptor = ArgumentCaptor.forClass(EntandoPlugin.class);
-        when(entandoAppService.findAppByName(anyString())).thenReturn(Optional.of(ea));
+        when(entandoAppService.findByName(anyString())).thenReturn(Optional.of(ea));
         when(entandoLinkService.deploy(any(EntandoAppPluginLink.class))).thenReturn(el);
         when(entandoPluginService.deploy(any(EntandoPlugin.class))).thenReturn(ep);
 
@@ -268,7 +268,7 @@ public class EntandoAppControllerTest {
         EntandoAppPluginLink el = entandoLinkService.buildBetweenAppAndPlugin(ea, ep);
 
         ArgumentCaptor<EntandoPlugin> argumentCaptor = ArgumentCaptor.forClass(EntandoPlugin.class);
-        when(entandoAppService.findAppByName(anyString())).thenReturn(Optional.of(ea));
+        when(entandoAppService.findByName(anyString())).thenReturn(Optional.of(ea));
         when(entandoLinkService.deploy(any(EntandoAppPluginLink.class))).thenReturn(el);
         when(entandoPluginService.deploy(any(EntandoPlugin.class))).thenReturn(ep);
 
@@ -294,7 +294,7 @@ public class EntandoAppControllerTest {
         EntandoAppPluginLink el = EntandoLinkTestHelper.getTestLink();
         EntandoApp ea = EntandoAppTestHelper.getTestEntandoApp();
 
-        when(entandoAppService.findAppByName(anyString())).thenReturn(Optional.of(ea));
+        when(entandoAppService.findByName(anyString())).thenReturn(Optional.of(ea));
         when(entandoLinkService.getLink(any(EntandoApp.class), eq(TEST_PLUGIN_NAME))).thenReturn(Optional.of(el));
 
         mvc.perform(delete(uri)
@@ -317,7 +317,7 @@ public class EntandoAppControllerTest {
                     .content(mapper.writeValueAsString(ep)))
                 .andExpect(status().isNotFound());
 
-        verify(entandoAppService, times(1)).findAppByName(TEST_APP_NAME);
+        verify(entandoAppService, times(1)).findByName(TEST_APP_NAME);
         verify(entandoPluginService, times(0)).deletePlugin(any(EntandoPlugin.class));
 
     }
