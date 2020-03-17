@@ -13,7 +13,6 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -27,8 +26,11 @@ import org.entando.kubernetes.EntandoKubernetesJavaApplication;
 import org.entando.kubernetes.config.TestJwtDecoderConfig;
 import org.entando.kubernetes.config.TestKubernetesConfig;
 import org.entando.kubernetes.config.TestSecurityConfiguration;
+import org.entando.kubernetes.model.link.EntandoAppPluginLink;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
+import org.entando.kubernetes.service.EntandoLinkService;
 import org.entando.kubernetes.service.EntandoPluginService;
+import org.entando.kubernetes.util.EntandoLinkTestHelper;
 import org.entando.kubernetes.util.EntandoPluginTestHelper;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -64,6 +66,9 @@ public class EntandoPluginControllerTest {
     @MockBean
     private EntandoPluginService entandoPluginService;
 
+    @MockBean
+    private EntandoLinkService entandoLinkService;
+
     @Test
     public void shouldReturnEmptyListIfNotPluginIsDeployed() throws Exception {
         URI uri = UriComponentsBuilder
@@ -95,6 +100,50 @@ public class EntandoPluginControllerTest {
                 .andExpect(jsonPath("$._embedded.entandoPluginList[0].metadata.namespace").value(TEST_PLUGIN_NAMESPACE));
 
         verify(entandoPluginService, times(1)).getPluginsInNamespace(TEST_PLUGIN_NAMESPACE);
+    }
+
+    @Test
+    public void shouldReturnPluginByName() throws Exception {
+        EntandoPlugin tempPlugin = EntandoPluginTestHelper.getTestEntandoPlugin();
+        String pluginName = tempPlugin.getMetadata().getName();
+        URI uri = UriComponentsBuilder
+                .fromUriString(BASE_PLUGIN_ENDPOINT)
+                .pathSegment(pluginName)
+                .build().toUri();
+
+        when(entandoPluginService.findPluginByName(eq(pluginName))).thenReturn(Optional.of(tempPlugin));
+
+        mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().is2xxSuccessful())
+                .andExpect(jsonPath("$.metadata.name").value(pluginName));
+
+    }
+
+    @Test
+    public void shouldReturnListOfLinksToThePlugin() throws Exception {
+        EntandoPlugin tempPlugin = EntandoPluginTestHelper.getTestEntandoPlugin();
+        EntandoAppPluginLink tempLink = EntandoLinkTestHelper.getTestLink();
+
+        String pluginName = tempPlugin.getMetadata().getName();
+        URI uri = UriComponentsBuilder
+                .fromUriString(BASE_PLUGIN_ENDPOINT)
+                .pathSegment(pluginName, "links")
+                .build().toUri();
+
+        when(entandoPluginService.findPluginByName(eq(pluginName))).thenReturn(Optional.of(tempPlugin));
+        when(entandoLinkService.getPluginLinks(eq(tempPlugin))).thenReturn(Collections.singletonList(tempLink));
+
+        String jsonPathToCheck = "$._embedded.entandoAppPluginLinkList";
+
+        mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().is2xxSuccessful())
+                .andExpect(jsonPath(jsonPathToCheck).isNotEmpty())
+                .andExpect(jsonPath(jsonPathToCheck + "[0].spec.entandoPluginName" ).value(TEST_PLUGIN_NAME))
+                .andExpect(jsonPath(jsonPathToCheck + "[0].spec.entandoPluginNamespace").value(TEST_PLUGIN_NAMESPACE));
+
+        verify(entandoPluginService, times(1)).findPluginByName(pluginName);
+        verify(entandoLinkService, times(1)).getPluginLinks(any());
+
     }
 
     @Test

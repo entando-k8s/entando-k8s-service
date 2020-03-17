@@ -93,8 +93,8 @@ public class EntandoPluginController {
     @GetMapping(path = "/{name}/links", produces = {JSON,HAL_JSON})
     public ResponseEntity<CollectionModel<EntityModel<EntandoAppPluginLink>>> listLinks(
             @PathVariable("name") String pluginName) {
-        EntandoPlugin entandoApp = getEntandoPluginOrFail(pluginName);
-        List<EntandoAppPluginLink> appLinks = entandoLinkService.getPluginLinks(entandoApp);
+        EntandoPlugin entandoPlugin = getEntandoPluginOrFail(pluginName);
+        List<EntandoAppPluginLink> appLinks = entandoLinkService.getPluginLinks(entandoPlugin);
         List<EntityModel<EntandoAppPluginLink>> linkResources = appLinks.stream()
                 .map(linkResourceAssembler::toModel)
                 .collect(Collectors.toList());

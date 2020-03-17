@@ -1,5 +1,6 @@
 package org.entando.kubernetes.service;
 
+import static io.sundr.shaded.com.github.javaparser.ast.expr.BinaryExpr.Operator.times;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.entando.kubernetes.util.EntandoPluginTestHelper.TEST_PLUGIN_NAME;
 import static org.entando.kubernetes.util.EntandoPluginTestHelper.TEST_PLUGIN_NAMESPACE;
@@ -9,6 +10,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
@@ -37,13 +40,13 @@ public class EntandoPluginServiceTest {
     public KubernetesServer server = new KubernetesServer(false, true);
 
     private EntandoPluginService entandoPluginService;
-
     private KubernetesClient client;
+    private KubernetesUtils k8sUtils;
 
     @BeforeEach
     public void setUp() {
         client = server.getClient();
-        KubernetesUtils k8sUtils = new TestKubernetesConfig().k8sUtils();
+        k8sUtils = new TestKubernetesConfig().k8sUtils();
         List<String> observedNamespaces = Arrays.asList(TEST_PLUGIN_NAMESPACE, "my-namespace");
         entandoPluginService = new EntandoPluginService(client, observedNamespaces, k8sUtils);
         EntandoPluginTestHelper.createEntandoPluginCrd(client);
@@ -147,6 +150,17 @@ public class EntandoPluginServiceTest {
         entandoPluginService.deploy(testPlugin);
         List<EntandoPlugin> availablePlugins = EntandoPluginTestHelper.getEntandoPluginOperations(client)
                 .inNamespace("my-namespace").list().getItems();
+        assertEquals(1, availablePlugins.size());
+    }
+
+    @Test
+    public void shouldUseCurrentNamespaceIfPluginNamespaceIsAbsent() {
+        EntandoPlugin testPlugin = EntandoPluginTestHelper.getTestEntandoPlugin();
+        testPlugin.getMetadata().setNamespace(null);
+        entandoPluginService.deploy(testPlugin);
+        verify(k8sUtils, times(1)).getCurrentNamespace();
+        List<EntandoPlugin> availablePlugins = EntandoPluginTestHelper.getEntandoPluginOperations(client)
+                .inNamespace(k8sUtils.getCurrentNamespace()).list().getItems();
         assertEquals(1, availablePlugins.size());
     }
 

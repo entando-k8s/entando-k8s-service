@@ -62,8 +62,8 @@ public class EntandoLinkService {
     }
 
     public Optional<EntandoAppPluginLink> getLink(EntandoApp app, String pluginName) {
-        return getLinksOperations().inNamespace(app.getMetadata().getNamespace())
-                .list().getItems().stream()
+        return getAppLinks(app)
+                .stream()
                 .filter(l -> l.getSpec().getEntandoPluginName().equals(pluginName))
                 .findFirst();
     }
@@ -73,7 +73,8 @@ public class EntandoLinkService {
     }
 
     public List<EntandoAppPluginLink> getPluginLinks(EntandoPlugin plugin) {
-       return getLinks().stream()
+       return getLinks()
+               .stream()
                .filter(l -> l.getSpec().getEntandoPluginName().equals(plugin.getMetadata().getName()))
                .collect(Collectors.toList());
     }
