@@ -7,11 +7,15 @@ import java.net.URI;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.entando.kubernetes.exception.BadRequestExceptionFactory;
 import org.entando.kubernetes.exception.NotFoundExceptionFactory;
+import org.entando.kubernetes.model.link.EntandoAppPluginLink;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
+import org.entando.kubernetes.service.EntandoLinkService;
 import org.entando.kubernetes.service.EntandoPluginService;
+import org.entando.kubernetes.service.assembler.EntandoAppPluginLinkResourceAssembler;
 import org.entando.kubernetes.service.assembler.EntandoPluginResourceAssembler;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
@@ -32,19 +36,16 @@ import org.zalando.problem.ThrowableProblem;
 @Slf4j
 @RestController
 @RequestMapping("/plugins")
+@RequiredArgsConstructor
 public class EntandoPluginController {
 
     private static final String JSON = MediaType.APPLICATION_JSON_VALUE;
     private static final String HAL_JSON = MediaTypes.HAL_JSON_VALUE;
 
+    private final EntandoLinkService entandoLinkService;
     private final EntandoPluginService entandoPluginService;
     private final EntandoPluginResourceAssembler resourceAssembler;
-
-    public EntandoPluginController(EntandoPluginService entandoPluginService,
-            EntandoPluginResourceAssembler resourceAssembler) {
-        this.entandoPluginService = entandoPluginService;
-        this.resourceAssembler = resourceAssembler;
-    }
+    private final EntandoAppPluginLinkResourceAssembler linkResourceAssembler;
 
     @GetMapping(produces = {JSON,HAL_JSON})
     public ResponseEntity<CollectionModel<EntityModel<EntandoPlugin>>> list() {
@@ -87,6 +88,17 @@ public class EntandoPluginController {
         EntandoPlugin deployedPlugin = entandoPluginService.deploy(entandoPlugin);
         URI resourceLink = linkTo(methodOn(getClass()).get(deployedPlugin.getMetadata().getName())).toUri();
         return ResponseEntity.created(resourceLink).body(resourceAssembler.toModel(deployedPlugin));
+    }
+
+    @GetMapping(path = "/{name}/links", produces = {JSON,HAL_JSON})
+    public ResponseEntity<CollectionModel<EntityModel<EntandoAppPluginLink>>> listLinks(
+            @PathVariable("name") String pluginName) {
+        EntandoPlugin entandoApp = getEntandoPluginOrFail(pluginName);
+        List<EntandoAppPluginLink> appLinks = entandoLinkService.getPluginLinks(entandoApp);
+        List<EntityModel<EntandoAppPluginLink>> linkResources = appLinks.stream()
+                .map(linkResourceAssembler::toModel)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(new CollectionModel<>(linkResources));
     }
 
     private EntandoPlugin getEntandoPluginOrFail(String pluginName) {

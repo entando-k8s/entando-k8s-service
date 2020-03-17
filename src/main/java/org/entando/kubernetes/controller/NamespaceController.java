@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
+import org.entando.kubernetes.exception.BadRequestExceptionFactory;
 import org.entando.kubernetes.exception.NotFoundExceptionFactory;
 import org.entando.kubernetes.model.app.EntandoApp;
 import org.entando.kubernetes.model.debundle.EntandoDeBundle;
@@ -57,19 +58,29 @@ public class NamespaceController {
 
     @GetMapping("/{name}/plugins")
     public void listPluginsInNamespace(@PathVariable("name") String name, HttpServletResponse resp) {
-        resp.setHeader("Location", "/plugins?namespace="+name);
+        String validNamespace = validateNamespace(name);
+        resp.setHeader("Location", "/plugins?namespace="+validNamespace);
         resp.setStatus(302);
     }
 
     @GetMapping("/{name}/apps")
     public void listAppsInNamespace(@PathVariable("name") String name, HttpServletResponse resp) {
-        resp.setHeader("Location", "/apps?namespace="+name);
+        String validNamespace = validateNamespace(name);
+        resp.setHeader("Location", "/apps?namespace=" + validNamespace);
         resp.setStatus(302);
     }
 
     @GetMapping("/{name}/bundles")
     public void listBundlesInNamespace(@PathVariable("name") String name, HttpServletResponse resp) {
-        resp.setHeader("Location", "/bundles?namespace="+name);
+        String validNamespace = validateNamespace(name);
+        resp.setHeader("Location", "/bundles?namespace=" + validNamespace);
         resp.setStatus(302);
+    }
+
+    public String validateNamespace(String namespace) {
+        if (!namespace.matches("[a-z0-9]([-a-z0-9]*[a-z0-9])?")) {
+            throw BadRequestExceptionFactory.invalidNamespace(namespace);
+        }
+        return namespace;
     }
 }

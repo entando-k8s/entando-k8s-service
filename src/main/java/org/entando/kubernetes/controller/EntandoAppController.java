@@ -77,7 +77,7 @@ public class EntandoAppController {
     public ResponseEntity<CollectionModel<EntityModel<EntandoAppPluginLink>>> listLinks(
             @PathVariable("name") String appName) {
         EntandoApp entandoApp = getEntandoAppOrFail(appName);
-        List<EntandoAppPluginLink> appLinks = entandoLinkService.listAppLinks(entandoApp);
+        List<EntandoAppPluginLink> appLinks = entandoLinkService.getAppLinks(entandoApp);
         List<EntityModel<EntandoAppPluginLink>> linkResources = appLinks.stream()
                 .map(linkResourceAssembler::toModel)
                 .collect(Collectors.toList());
@@ -90,7 +90,7 @@ public class EntandoAppController {
             @RequestBody EntandoPlugin entandoPlugin) {
         EntandoApp entandoApp = getEntandoAppOrFail(appName);
         EntandoPlugin plugin = getOrCreatePlugin(entandoPlugin);
-        EntandoAppPluginLink newLink = entandoLinkService.generateForAppAndPlugin(entandoApp, plugin);
+        EntandoAppPluginLink newLink = entandoLinkService.buildBetweenAppAndPlugin(entandoApp, plugin);
         EntandoAppPluginLink deployedLink = entandoLinkService.deploy(newLink);
         return ResponseEntity.status(HttpStatus.CREATED).body(linkResourceAssembler.toModel(deployedLink));
     }

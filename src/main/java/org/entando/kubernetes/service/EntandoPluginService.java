@@ -69,7 +69,7 @@ public class EntandoPluginService {
                         .flatMap(Collection::stream)
                         .collect(Collectors.toList()))
                 .exceptionally(ex -> {
-                    log.error("An error occurred while retrieving bundles from multiple namespaces", ex);
+                    log.error("An error occurred while retrieving plugins from multiple namespaces", ex);
                     return Collections.emptyList();
                 });
 

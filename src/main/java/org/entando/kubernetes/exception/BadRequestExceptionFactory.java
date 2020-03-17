@@ -22,7 +22,11 @@ public final class BadRequestExceptionFactory {
                         plugin.getMetadata().getName(),
                         plugin.getMetadata().getNamespace()
                 ));
+    }
 
+    public static ThrowableProblem invalidNamespace(String namespace) {
+        return Problem.valueOf(Status.BAD_REQUEST,
+                String.format("Provided namespace %s isn't valid for regex '[a-z0-9]([-a-z0-9]*[a-z0-9])?'", namespace));
     }
 
 

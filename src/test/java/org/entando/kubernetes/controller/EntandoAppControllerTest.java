@@ -148,7 +148,7 @@ public class EntandoAppControllerTest {
         EntandoAppPluginLink el = EntandoLinkTestHelper.getTestLink();
 
         when(entandoAppService.findAppByName(anyString())).thenReturn(Optional.of(ea));
-        when(entandoLinkService.listAppLinks(any(EntandoApp.class))).thenReturn(Collections.singletonList(el));
+        when(entandoLinkService.getAppLinks(any(EntandoApp.class))).thenReturn(Collections.singletonList(el));
 
         final String linkEntryJsonPath = "$._embedded.entandoAppPluginLinkList[0]";
         final String linkHateoasLinksJsonPath = linkEntryJsonPath + "._links";
@@ -189,7 +189,7 @@ public class EntandoAppControllerTest {
 
     @Test
     public void shouldCreateLinkBetweenExistingAppAndPlugin() throws Exception {
-        when(entandoLinkService.generateForAppAndPlugin(any(EntandoApp.class), any(EntandoPlugin.class))).thenCallRealMethod();
+        when(entandoLinkService.buildBetweenAppAndPlugin(any(EntandoApp.class), any(EntandoPlugin.class))).thenCallRealMethod();
 
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
@@ -197,7 +197,7 @@ public class EntandoAppControllerTest {
                 .build().toUri();
         EntandoApp ea = EntandoAppTestHelper.getTestEntandoApp();
         EntandoPlugin ep = EntandoPluginTestHelper.getTestEntandoPlugin();
-        EntandoAppPluginLink el = entandoLinkService.generateForAppAndPlugin(ea, ep);
+        EntandoAppPluginLink el = entandoLinkService.buildBetweenAppAndPlugin(ea, ep);
 
         when(entandoAppService.findAppByName(anyString())).thenReturn(Optional.of(ea));
         when(entandoPluginService.findPluginByName(eq(ep.getMetadata().getName()))).thenReturn(Optional.of(ep));
@@ -225,7 +225,7 @@ public class EntandoAppControllerTest {
 
     @Test
     public void shouldDeployPluginIfNoneIsFoundWhileCreatingLink() throws Exception {
-        when(entandoLinkService.generateForAppAndPlugin(any(EntandoApp.class), any(EntandoPlugin.class))).thenCallRealMethod();
+        when(entandoLinkService.buildBetweenAppAndPlugin(any(EntandoApp.class), any(EntandoPlugin.class))).thenCallRealMethod();
 
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
@@ -234,7 +234,7 @@ public class EntandoAppControllerTest {
         EntandoApp ea = EntandoAppTestHelper.getTestEntandoApp();
         EntandoPlugin ep = EntandoPluginTestHelper.getTestEntandoPlugin();
 
-        EntandoAppPluginLink el = entandoLinkService.generateForAppAndPlugin(ea, ep);
+        EntandoAppPluginLink el = entandoLinkService.buildBetweenAppAndPlugin(ea, ep);
 
         ArgumentCaptor<EntandoPlugin> argumentCaptor = ArgumentCaptor.forClass(EntandoPlugin.class);
         when(entandoAppService.findAppByName(anyString())).thenReturn(Optional.of(ea));
@@ -255,7 +255,7 @@ public class EntandoAppControllerTest {
 
     @Test
     public void shouldDeployPluginOnFallbackNamespaceIfNoneIsFoundWhileCreatingLink() throws Exception {
-        when(entandoLinkService.generateForAppAndPlugin(any(EntandoApp.class), any(EntandoPlugin.class))).thenCallRealMethod();
+        when(entandoLinkService.buildBetweenAppAndPlugin(any(EntandoApp.class), any(EntandoPlugin.class))).thenCallRealMethod();
 
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
@@ -265,7 +265,7 @@ public class EntandoAppControllerTest {
         EntandoPlugin ep = EntandoPluginTestHelper.getTestEntandoPlugin();
         ep.getMetadata().setNamespace(null);
 
-        EntandoAppPluginLink el = entandoLinkService.generateForAppAndPlugin(ea, ep);
+        EntandoAppPluginLink el = entandoLinkService.buildBetweenAppAndPlugin(ea, ep);
 
         ArgumentCaptor<EntandoPlugin> argumentCaptor = ArgumentCaptor.forClass(EntandoPlugin.class);
         when(entandoAppService.findAppByName(anyString())).thenReturn(Optional.of(ea));

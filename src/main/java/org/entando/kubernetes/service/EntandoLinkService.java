@@ -35,6 +35,32 @@ public class EntandoLinkService {
         this.observedNamespaces = observedNamespaces;
     }
 
+
+    public List<EntandoAppPluginLink> getLinks() {
+        return getLinksInNamespaceList(this.observedNamespaces);
+    }
+
+    public List<EntandoAppPluginLink> getLinksInNamespaceList(List<String> namespaceList) {
+        CompletableFuture<List<EntandoAppPluginLink>>[] allRequests = namespaceList.stream()
+                .map(ns -> CompletableFuture.supplyAsync(() -> getLinksInNamespace(ns) ))
+                .toArray(CompletableFuture[]::new);
+
+        CompletableFuture<List<EntandoAppPluginLink>> allPlugins = CompletableFuture.allOf(allRequests)
+                .thenApply(v -> Stream.of(allRequests).map(CompletableFuture::join)
+                        .flatMap(Collection::stream)
+                        .collect(Collectors.toList()))
+                .exceptionally(ex -> {
+                    log.error("An error occurred while retrieving links from multiple namespaces", ex);
+                    return Collections.emptyList();
+                });
+
+        return allPlugins.join();
+    }
+
+    public List<EntandoAppPluginLink> getLinksInNamespace(String namespace) {
+        return getLinksOperations().inNamespace(namespace).list().getItems();
+    }
+
     public Optional<EntandoAppPluginLink> getLink(EntandoApp app, String pluginName) {
         return getLinksOperations().inNamespace(app.getMetadata().getNamespace())
                 .list().getItems().stream()
@@ -42,14 +68,14 @@ public class EntandoLinkService {
                 .findFirst();
     }
 
-    public List<EntandoAppPluginLink> listAppLinks(EntandoApp app) {
+    public List<EntandoAppPluginLink> getAppLinks(EntandoApp app) {
         return getLinksOperations().inNamespace(app.getMetadata().getNamespace()).list().getItems();
     }
 
-    public List<EntandoAppPluginLink> listEntandoAppLinks(String namespace, String name) {
-        return getLinksOperations().inNamespace(namespace).list().getItems()
-                .stream().filter(el -> el.getSpec().getEntandoAppName().equals(name))
-                .collect(Collectors.toList());
+    public List<EntandoAppPluginLink> getPluginLinks(EntandoPlugin plugin) {
+       return getLinks().stream()
+               .filter(l -> l.getSpec().getEntandoPluginName().equals(plugin.getMetadata().getName()))
+               .collect(Collectors.toList());
     }
 
     public EntandoAppPluginLink deploy(EntandoAppPluginLink newLink) {
@@ -66,7 +92,7 @@ public class EntandoLinkService {
         getLinksOperations().inNamespace(l.getMetadata().getNamespace()).delete(l);
     }
 
-    public EntandoAppPluginLink generateForAppAndPlugin(EntandoApp app, EntandoPlugin plugin) {
+    public EntandoAppPluginLink buildBetweenAppAndPlugin(EntandoApp app, EntandoPlugin plugin) {
         String appNamespace = app.getMetadata().getNamespace();
         String appName = app.getMetadata().getName();
         String pluginName = plugin.getMetadata().getName();

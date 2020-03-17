@@ -1,17 +1,21 @@
 package org.entando.kubernetes.service;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.entando.kubernetes.util.EntandoPluginTestHelper.TEST_PLUGIN_NAME;
 import static org.entando.kubernetes.util.EntandoPluginTestHelper.TEST_PLUGIN_NAMESPACE;
+import static org.entando.kubernetes.util.EntandoPluginTestHelper.getTestEntandoPlugin;
 import static org.hamcrest.Matchers.containsString;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import org.entando.kubernetes.config.TestKubernetesConfig;
@@ -57,9 +61,22 @@ public class EntandoPluginServiceTest {
     }
 
     @Test
-    public void shoudReturnPluginInClientNamespace() throws IOException {
+    public void shouldReturnPluginInClientNamespace() {
         EntandoPluginTestHelper.createTestEntandoPlugin(client);
         assertEquals(1, entandoPluginService.getPluginsInNamespace(TEST_PLUGIN_NAMESPACE).size());
+    }
+
+    @Test
+    public void shouldReturnAnEmptyListIfErrorHappensWhenRetrievingPluginFromNamespaceList() {
+        List<String> namespaces = Arrays.asList(TEST_PLUGIN_NAMESPACE, "invalid-namespace");
+        EntandoPluginService epsMock = mock(EntandoPluginService.class);
+        when(epsMock.getPluginsInNamespaceList(anyList()))
+                .thenCallRealMethod();
+        when(epsMock.getPluginsInNamespace(eq(TEST_PLUGIN_NAMESPACE)))
+                .thenReturn(Collections.singletonList(getTestEntandoPlugin()));
+        when(epsMock.getPluginsInNamespace(eq("invalid-namespace"))).thenThrow(new RuntimeException());
+        List<EntandoPlugin> plugins = entandoPluginService.getPluginsInNamespaceList(namespaces);
+        assertThat(plugins).isEmpty();
     }
 
     @Test
@@ -140,9 +157,9 @@ public class EntandoPluginServiceTest {
         ThrowableProblem tp = Assertions.assertThrows(ThrowableProblem.class, () -> {
            entandoPluginService.deploy(testPlugin);
        });
-       assertThat(tp.getMessage(), containsString(
+       assertThat(tp.getMessage()).contains(
                "Bad Request: Provided plugin " + testPlugin.getMetadata().getName() + " namespace " +
-               testPlugin.getMetadata().getNamespace() + " is not observed by the service and therefore not usable"));
+               testPlugin.getMetadata().getNamespace() + " is not observed by the service and therefore not usable");
     }
 
     @Test
