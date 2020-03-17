@@ -10,8 +10,11 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.entando.kubernetes.exception.NotObservedNamespaceException;
 import org.entando.kubernetes.model.ObservedNamespaces;
 
+@Slf4j
 @RequiredArgsConstructor
 public abstract class EntandoKubernetesResourceCollector<T extends HasMetadata> {
 
@@ -19,7 +22,7 @@ public abstract class EntandoKubernetesResourceCollector<T extends HasMetadata> 
     protected final ObservedNamespaces observedNamespaces;
 
     public List<T> getAll() {
-        return collectFromNamespaces(observedNamespaces.getList());
+        return collectFromNamespaces(observedNamespaces.getNsList());
     };
 
     public List<T> getAllInNamespace(String namespace) {

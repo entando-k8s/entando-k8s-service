@@ -1,4 +1,7 @@
-package org.entando.kubernetes.controller.app;
+package org.entando.kubernetes.controller;
+
+import static org.springframework.hateoas.MediaTypes.HAL_JSON_VALUE;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,8 +22,12 @@ import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.zalando.problem.ThrowableProblem;
@@ -30,7 +37,8 @@ import org.zalando.problem.ThrowableProblem;
 @RestController
 @RequiredArgsConstructor
 @SuppressWarnings("PMD.ExcessiveImports")
-public class EntandoAppController implements EntandoAppResource {
+@RequestMapping("/apps")
+public class EntandoAppController {
 
     private final EntandoAppService entandoAppService;
     private final EntandoLinkService entandoLinkService;
@@ -39,7 +47,7 @@ public class EntandoAppController implements EntandoAppResource {
     private final EntandoAppPluginLinkResourceAssembler linkResourceAssembler;
     private final KubernetesUtils k8sUtils;
 
-    @Override
+    @GetMapping(produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
     public ResponseEntity<CollectionModel<EntityModel<EntandoApp>>> list() {
         log.info("Listing apps from all observed namespaces");
         List<EntandoApp> entandoApps = entandoAppService.getAll();
@@ -48,7 +56,8 @@ public class EntandoAppController implements EntandoAppResource {
     }
 
 
-    @Override
+    @GetMapping(produces = {APPLICATION_JSON_VALUE,
+            HAL_JSON_VALUE}, params = "namespace")
     public ResponseEntity<CollectionModel<EntityModel<EntandoApp>>> listInNamespace(@RequestParam String namespace) {
         log.info("Listing apps");
         List<EntandoApp> entandoApps = entandoAppService.getAllInNamespace(namespace);
@@ -56,14 +65,16 @@ public class EntandoAppController implements EntandoAppResource {
                 entandoApps.stream().map(appResourceAssembler::toModel).collect(Collectors.toList())));
     }
 
-    @Override
+    @GetMapping(path = "/{name}", produces = {APPLICATION_JSON_VALUE,
+            HAL_JSON_VALUE})
     public ResponseEntity<EntityModel<EntandoApp>> get(@PathVariable("name") String appName) {
         log.debug("Requesting app with name {}", appName);
         EntandoApp entandoApp = getEntandoAppOrFail(appName);
         return ResponseEntity.ok(appResourceAssembler.toModel(entandoApp));
     }
 
-    @Override
+    @GetMapping(path = "/{name}/links", produces = {APPLICATION_JSON_VALUE,
+            HAL_JSON_VALUE})
     public ResponseEntity<CollectionModel<EntityModel<EntandoAppPluginLink>>> listLinks(
             @PathVariable("name") String appName) {
         EntandoApp entandoApp = getEntandoAppOrFail(appName);
@@ -74,7 +85,8 @@ public class EntandoAppController implements EntandoAppResource {
         return ResponseEntity.ok(new CollectionModel<>(linkResources));
     }
 
-    @Override
+    @PostMapping(path = "/{name}/links", consumes = APPLICATION_JSON_VALUE, produces = {
+            APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
     public ResponseEntity<EntityModel<EntandoAppPluginLink>> linkToPlugin(
             @PathVariable("name") String appName,
             @RequestBody EntandoPlugin entandoPlugin) {
@@ -85,7 +97,8 @@ public class EntandoAppController implements EntandoAppResource {
         return ResponseEntity.status(HttpStatus.CREATED).body(linkResourceAssembler.toModel(deployedLink));
     }
 
-    @Override
+    @DeleteMapping(path = "/{name}/links/{pluginName}", produces = {
+            APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
     public ResponseEntity<Void> delete(
             @PathVariable("name") String appName,
             @PathVariable("pluginName") String pluginName) {

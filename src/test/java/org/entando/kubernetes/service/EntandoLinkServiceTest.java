@@ -12,6 +12,8 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import java.util.Collections;
 import java.util.List;
+import org.entando.kubernetes.config.TestKubernetesConfig;
+import org.entando.kubernetes.model.ObservedNamespaces;
 import org.entando.kubernetes.model.app.EntandoApp;
 import org.entando.kubernetes.model.app.EntandoAppBuilder;
 import org.entando.kubernetes.model.link.EntandoAppPluginLink;
@@ -20,6 +22,7 @@ import org.entando.kubernetes.model.plugin.EntandoPluginBuilder;
 import org.entando.kubernetes.util.EntandoAppTestHelper;
 import org.entando.kubernetes.util.EntandoLinkTestHelper;
 import org.entando.kubernetes.util.EntandoPluginTestHelper;
+import org.entando.kubernetes.util.MockObservedNamespaces;
 import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -40,7 +43,8 @@ public class EntandoLinkServiceTest {
     @BeforeEach
     public void setUp() {
         client = server.getClient();
-        linkService = new EntandoLinkService(client, Collections.singletonList(TEST_APP_NAMESPACE));
+        ObservedNamespaces ons = new MockObservedNamespaces(Collections.singletonList(TEST_APP_NAMESPACE));
+        linkService = new EntandoLinkService(client, ons);
         EntandoLinkTestHelper.createEntandoAppPluginLinkCrd(client);
         EntandoAppTestHelper.createEntandoAppCrd(client);
         EntandoPluginTestHelper.createEntandoPluginCrd(client);
@@ -49,14 +53,14 @@ public class EntandoLinkServiceTest {
     @Test
     public void shouldFindAllLinks() {
        EntandoLinkTestHelper.createTestEntandoAppPluginLink(client);
-       List<EntandoAppPluginLink> links = linkService.getLinks();
+       List<EntandoAppPluginLink> links = linkService.getAll();
        assertThat(links).hasSize(1);
     }
 
     @Test
     public void shouldFindAllLinksInNamespace() {
         EntandoLinkTestHelper.createTestEntandoAppPluginLink(client);
-        List<EntandoAppPluginLink> links = linkService.getLinksInNamespace(TEST_APP_NAMESPACE);
+        List<EntandoAppPluginLink> links = linkService.getAllInNamespace(TEST_APP_NAMESPACE);
         assertThat(links).hasSize(1);
     }
 

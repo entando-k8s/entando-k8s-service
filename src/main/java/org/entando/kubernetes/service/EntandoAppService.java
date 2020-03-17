@@ -29,7 +29,7 @@ public class EntandoAppService extends EntandoKubernetesResourceCollector<Entand
     }
 
     @Override
-    public List<EntandoApp> getInNamespaceWithoutChecking(String namespace) {
+    protected List<EntandoApp> getInNamespaceWithoutChecking(String namespace) {
         return getEntandoAppsOperations().inNamespace(namespace).list().getItems();
     }
 

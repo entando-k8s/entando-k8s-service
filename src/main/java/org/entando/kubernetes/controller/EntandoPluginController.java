@@ -1,4 +1,4 @@
-package org.entando.kubernetes.controller.plugin;
+package org.entando.kubernetes.controller;
 
 import static org.springframework.hateoas.MediaTypes.HAL_JSON_VALUE;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;

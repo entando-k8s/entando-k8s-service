@@ -1,4 +1,4 @@
-package org.entando.kubernetes.controller.namespace;
+package org.entando.kubernetes.controller;
 
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -8,9 +8,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
-import org.entando.kubernetes.controller.app.EntandoAppController;
-import org.entando.kubernetes.controller.bundle.EntandoDeBundleController;
-import org.entando.kubernetes.controller.plugin.EntandoPluginController;
 import org.entando.kubernetes.exception.BadRequestExceptionFactory;
 import org.entando.kubernetes.exception.NotFoundExceptionFactory;
 import org.entando.kubernetes.service.KubernetesNamespaceService;
@@ -24,7 +21,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class KubernetesNamespaceController implements KubernetesNamespaceResource {
+@RequestMapping("/namespaces")
+public class KubernetesNamespaceController {
 
     private final KubernetesNamespaceResourceAssembler nsResourceAssembler;
     private final KubernetesNamespaceService nsService;
@@ -34,7 +32,6 @@ public class KubernetesNamespaceController implements KubernetesNamespaceResourc
        this.nsService = nsService;
     }
 
-    @Override
     public ResponseEntity<CollectionModel<EntityModel<Namespace>>> list() {
         List<Namespace> observedNamespaces = nsService.getObservedNamespaceList();
         CollectionModel<EntityModel<Namespace>> nsCollection = new CollectionModel<>(
@@ -47,7 +44,6 @@ public class KubernetesNamespaceController implements KubernetesNamespaceResourc
         return ResponseEntity.ok(nsCollection);
     }
 
-    @Override
     @GetMapping("/{name}")
     public ResponseEntity<EntityModel<Namespace>> getByName(@PathVariable("name") String name) {
         Optional<Namespace> observedNs = nsService.getObservedNamespace(name);
@@ -58,7 +54,6 @@ public class KubernetesNamespaceController implements KubernetesNamespaceResourc
         return ResponseEntity.ok(ns);
     }
 
-    @Override
     @GetMapping("/{name}/plugins")
     public void listPluginsInNamespace(@PathVariable("name") String name, HttpServletResponse resp) {
         String validNamespace = validateNamespace(name);
@@ -66,7 +61,6 @@ public class KubernetesNamespaceController implements KubernetesNamespaceResourc
         resp.setStatus(302);
     }
 
-    @Override
     @GetMapping("/{name}/apps")
     public void listAppsInNamespace(@PathVariable("name") String name, HttpServletResponse resp) {
         String validNamespace = validateNamespace(name);
@@ -74,7 +68,6 @@ public class KubernetesNamespaceController implements KubernetesNamespaceResourc
         resp.setStatus(302);
     }
 
-    @Override
     @GetMapping("/{name}/bundles")
     public void listBundlesInNamespace(@PathVariable("name") String name, HttpServletResponse resp) {
         String validNamespace = validateNamespace(name);

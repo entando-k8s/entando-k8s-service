@@ -3,6 +3,8 @@ package org.entando.kubernetes.controller;
 import static org.entando.kubernetes.util.EntandoDeBundleTestHelper.TEST_BUNDLE_NAME;
 import static org.entando.kubernetes.util.EntandoDeBundleTestHelper.TEST_BUNDLE_NAMESPACE;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -62,13 +64,13 @@ public class EntandoDeBundleControllerTest {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoDeBundleTestHelper.BASE_BUNDLES_ENDPOINT)
                 .build().toUri();
-        when(entandoDeBundleService.getBundles()).thenReturn(Collections.emptyList());
+        when(entandoDeBundleService.getAll()).thenReturn(Collections.emptyList());
 
         mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(content().json("{}"));
 
-        verify(entandoDeBundleService, times(1)).getBundles();
+        verify(entandoDeBundleService, times(1)).getAll();
     }
 
     @Test
@@ -78,7 +80,7 @@ public class EntandoDeBundleControllerTest {
                 .build().toUri();
 
         EntandoDeBundle tempBundle = EntandoDeBundleTestHelper.getTestEntandoDeBundle();
-        when(entandoDeBundleService.getBundles()).thenReturn(Collections.singletonList(tempBundle));
+        when(entandoDeBundleService.getAll()).thenReturn(Collections.singletonList(tempBundle));
 
         mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is2xxSuccessful())
@@ -87,18 +89,18 @@ public class EntandoDeBundleControllerTest {
                 .andExpect(jsonPath("$._embedded.entandoDeBundleList[0].metadata.namespace").value(TEST_BUNDLE_NAMESPACE));
 
 
-        verify(entandoDeBundleService, times(1)).getBundles();
+        verify(entandoDeBundleService, times(1)).getAll();
     }
 
     @Test
     public void shouldReturnAListWithOneBundleWhenSearchingInANamespace() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoDeBundleTestHelper.BASE_BUNDLES_ENDPOINT)
-                .pathSegment("namespaces", TEST_BUNDLE_NAMESPACE)
+                .queryParam("namespace", TEST_BUNDLE_NAMESPACE)
                 .build().toUri();
 
         EntandoDeBundle tempBundle = EntandoDeBundleTestHelper.getTestEntandoDeBundle();
-        when(entandoDeBundleService.getBundlesInNamespace(anyString())).thenReturn(Collections.singletonList(tempBundle));
+        when(entandoDeBundleService.getAllInNamespace(anyString())).thenReturn(Collections.singletonList(tempBundle));
 
         mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is2xxSuccessful())
@@ -107,7 +109,7 @@ public class EntandoDeBundleControllerTest {
                 .andExpect(jsonPath("$._embedded.entandoDeBundleList[0].metadata.namespace").value(TEST_BUNDLE_NAMESPACE));
 
 
-        verify(entandoDeBundleService, times(1)).getBundlesInNamespace(TEST_BUNDLE_NAMESPACE);
+        verify(entandoDeBundleService, times(1)).getAllInNamespace(TEST_BUNDLE_NAMESPACE);
     }
 
 //    public void shouldReturnAListWithOneBundleWhenFilteringByName() throws Exception {
@@ -133,12 +135,11 @@ public class EntandoDeBundleControllerTest {
     public void shouldReturnAListWithOneBundleWhenFilteringByNameAndNamespace() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoDeBundleTestHelper.BASE_BUNDLES_ENDPOINT)
-                .pathSegment("namespaces", TEST_BUNDLE_NAMESPACE, TEST_BUNDLE_NAME)
+                .pathSegment(TEST_BUNDLE_NAME)
                 .build().toUri();
 
         EntandoDeBundle tempBundle = EntandoDeBundleTestHelper.getTestEntandoDeBundle();
-        when(entandoDeBundleService.findBundleByNameAndNamespace(anyString(), anyString()))
-                .thenReturn(Optional.of(tempBundle));
+        when(entandoDeBundleService.findByName(anyString())).thenReturn(Optional.of(tempBundle));
 
         mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is2xxSuccessful())
@@ -147,21 +148,12 @@ public class EntandoDeBundleControllerTest {
 
 
         verify(entandoDeBundleService, times(1))
-                .findBundleByNameAndNamespace(TEST_BUNDLE_NAME, TEST_BUNDLE_NAMESPACE);
-    }
-    @Test
-    public void shouldReturnAnEmptyListWhenGettingBundlesInEmptyNamespace() throws Exception {
-        URI uri = UriComponentsBuilder
-                .fromUriString(EntandoDeBundleTestHelper.BASE_BUNDLES_ENDPOINT)
-                .pathSegment("namespaces", "namespaceA")
-                .build().toUri();
+                .findByName(TEST_BUNDLE_NAME);
 
         mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(content().json("{}"));
 
-
-        verify(entandoDeBundleService, times(1)).getBundlesInNamespace("namespaceA");
     }
 
 }

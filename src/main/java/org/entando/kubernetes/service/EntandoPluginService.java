@@ -28,7 +28,7 @@ public class EntandoPluginService extends EntandoKubernetesResourceCollector<Ent
     }
 
     @Override
-    List<EntandoPlugin> getInNamespaceWithoutChecking(String namespace) {
+    protected List<EntandoPlugin> getInNamespaceWithoutChecking(String namespace) {
         return getPluginOperations().inNamespace(namespace).list().getItems();
     }
 

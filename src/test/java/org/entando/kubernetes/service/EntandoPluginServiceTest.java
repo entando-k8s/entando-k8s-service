@@ -1,15 +1,18 @@
 package org.entando.kubernetes.service;
 
-import static io.sundr.shaded.com.github.javaparser.ast.expr.BinaryExpr.Operator.times;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.entando.kubernetes.util.EntandoPluginTestHelper.TEST_PLUGIN_NAME;
 import static org.entando.kubernetes.util.EntandoPluginTestHelper.TEST_PLUGIN_NAMESPACE;
 import static org.entando.kubernetes.util.EntandoPluginTestHelper.getTestEntandoPlugin;
-import static org.hamcrest.Matchers.containsString;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockingDetails;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -21,16 +24,19 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import org.entando.kubernetes.config.TestKubernetesConfig;
+import java.util.stream.Collectors;
+import org.entando.kubernetes.exception.NotObservedNamespaceException;
+import org.entando.kubernetes.model.ObservedNamespaces;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.entando.kubernetes.util.EntandoPluginTestHelper;
+import org.entando.kubernetes.util.MockObservedNamespaces;
 import org.junit.Rule;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
-import org.zalando.problem.ThrowableProblem;
+import org.mockito.invocation.Invocation;
 
 @Tag("component")
 @EnableRuleMigrationSupport
@@ -41,51 +47,49 @@ public class EntandoPluginServiceTest {
 
     private EntandoPluginService entandoPluginService;
     private KubernetesClient client;
-    private KubernetesUtils k8sUtils;
 
     @BeforeEach
     public void setUp() {
         client = server.getClient();
-        k8sUtils = new TestKubernetesConfig().k8sUtils();
-        List<String> observedNamespaces = Arrays.asList(TEST_PLUGIN_NAMESPACE, "my-namespace");
-        entandoPluginService = new EntandoPluginService(client, observedNamespaces, k8sUtils);
+        ObservedNamespaces ons = new MockObservedNamespaces(Arrays.asList(TEST_PLUGIN_NAMESPACE, "my-namespace"));
+        entandoPluginService = new EntandoPluginService(client, ons);
         EntandoPluginTestHelper.createEntandoPluginCrd(client);
     }
 
     @Test
     public void shouldReturnAnEmptyListIfNoPluginAvailable() {
-        assertTrue(entandoPluginService.getPlugins().isEmpty());
+        assertTrue(entandoPluginService.getAll().isEmpty());
     }
 
     @Test
     public void shouldReturnOnePlugin() throws IOException {
         EntandoPluginTestHelper.createTestEntandoPlugin(client);
-        assertEquals(1, entandoPluginService.getPlugins().size());
+        assertEquals(1, entandoPluginService.getAll().size());
     }
 
     @Test
     public void shouldReturnPluginInClientNamespace() {
         EntandoPluginTestHelper.createTestEntandoPlugin(client);
-        assertEquals(1, entandoPluginService.getPluginsInNamespace(TEST_PLUGIN_NAMESPACE).size());
+        assertEquals(1, entandoPluginService.getAllInNamespace(TEST_PLUGIN_NAMESPACE).size());
     }
 
     @Test
-    public void shouldReturnAnEmptyListIfErrorHappensWhenRetrievingPluginFromNamespaceList() {
+    public void shouldReturnOnlyPluginsFromObservedNamespaces() {
         List<String> namespaces = Arrays.asList(TEST_PLUGIN_NAMESPACE, "invalid-namespace");
         EntandoPluginService epsMock = mock(EntandoPluginService.class);
-        when(epsMock.getPluginsInNamespaceList(anyList()))
+        when(epsMock.collectFromNamespaces(anyList()))
                 .thenCallRealMethod();
-        when(epsMock.getPluginsInNamespace(eq(TEST_PLUGIN_NAMESPACE)))
+        when(epsMock.getAllInNamespace(eq(TEST_PLUGIN_NAMESPACE)))
                 .thenReturn(Collections.singletonList(getTestEntandoPlugin()));
-        when(epsMock.getPluginsInNamespace(eq("invalid-namespace"))).thenThrow(new RuntimeException());
-        List<EntandoPlugin> plugins = entandoPluginService.getPluginsInNamespaceList(namespaces);
-        assertThat(plugins).isEmpty();
+        List<EntandoPlugin> plugins = epsMock.collectFromNamespaces(namespaces);
+        verify(epsMock, times(2)).getAllInNamespace(anyString());
+        assertThat(plugins).hasSize(1);
     }
 
     @Test
     public void shouldFindAPluginInAnyNamespace() {
         EntandoPluginTestHelper.createTestEntandoPlugin(client);
-        Optional<EntandoPlugin> opl = entandoPluginService.findPluginByName(TEST_PLUGIN_NAME);
+        Optional<EntandoPlugin> opl = entandoPluginService.findByName(TEST_PLUGIN_NAME);
         assertTrue(opl.isPresent());
         EntandoPlugin plg = opl.get();
 
@@ -97,7 +101,7 @@ public class EntandoPluginServiceTest {
     public void shouldFindAPluginInNamespace() {
         EntandoPluginTestHelper.createTestEntandoPlugin(client);
         Optional<EntandoPlugin> opl =
-                entandoPluginService.findPluginByIdAndNamespace(TEST_PLUGIN_NAME, TEST_PLUGIN_NAMESPACE);
+                entandoPluginService.findByNameAndNamespace(TEST_PLUGIN_NAME, TEST_PLUGIN_NAMESPACE);
         assertTrue(opl.isPresent());
         EntandoPlugin plg = opl.get();
 
@@ -106,16 +110,16 @@ public class EntandoPluginServiceTest {
     }
 
     @Test
-    public void shouldNotFindPluginInNamespace() {
+    public void shouldThrowExceptionWhenSearchingPluginInNotObservedNamespace() {
         EntandoPluginTestHelper.createTestEntandoPlugin(client);
-        Optional<EntandoPlugin> opl =
-                entandoPluginService.findPluginByIdAndNamespace(TEST_PLUGIN_NAME, client.getNamespace());
-        assertFalse(opl.isPresent());
+        Assertions.assertThrows(NotObservedNamespaceException.class, () -> {
+            entandoPluginService.findByNameAndNamespace(TEST_PLUGIN_NAME, client.getNamespace());
+        });
     }
 
     @Test
     public void shouldReturnEmptyOptionalForNotFoundPlugin() {
-        assertFalse(entandoPluginService.findPluginByName("some-plugin").isPresent());
+        assertFalse(entandoPluginService.findByName("some-plugin").isPresent());
     }
 
     @Test
@@ -155,25 +159,23 @@ public class EntandoPluginServiceTest {
 
     @Test
     public void shouldUseCurrentNamespaceIfPluginNamespaceIsAbsent() {
+        KubernetesUtils k8sUtils = entandoPluginService.observedNamespaces.getKubernetesUtils();
         EntandoPlugin testPlugin = EntandoPluginTestHelper.getTestEntandoPlugin();
         testPlugin.getMetadata().setNamespace(null);
         entandoPluginService.deploy(testPlugin);
-        verify(k8sUtils, times(1)).getCurrentNamespace();
+        verify(k8sUtils, times(2)).getCurrentNamespace();
         List<EntandoPlugin> availablePlugins = EntandoPluginTestHelper.getEntandoPluginOperations(client)
                 .inNamespace(k8sUtils.getCurrentNamespace()).list().getItems();
         assertEquals(1, availablePlugins.size());
     }
 
     @Test
-    public void shouldThrowAnExceptionWhenDeployingFromNotObservedNamespace() {
+    public void shouldThrowAnExceptionWhenDeployingInNotObservedNamespace() {
         EntandoPlugin testPlugin = EntandoPluginTestHelper.getTestEntandoPlugin();
         testPlugin.getMetadata().setNamespace("not-observed-namespace");
-        ThrowableProblem tp = Assertions.assertThrows(ThrowableProblem.class, () -> {
+        Assertions.assertThrows(NotObservedNamespaceException.class, () -> {
            entandoPluginService.deploy(testPlugin);
        });
-       assertThat(tp.getMessage()).contains(
-               "Bad Request: Provided plugin " + testPlugin.getMetadata().getName() + " namespace " +
-               testPlugin.getMetadata().getNamespace() + " is not observed by the service and therefore not usable");
     }
 
     @Test

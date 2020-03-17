@@ -79,7 +79,7 @@ public class EntandoPluginControllerTest {
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(content().json("{}"));
 
-        verify(entandoPluginService, times(1)).getPlugins();
+        verify(entandoPluginService, times(1)).getAll();
     }
 
     @Test
@@ -91,7 +91,7 @@ public class EntandoPluginControllerTest {
 
 
         EntandoPlugin tempPlugin = EntandoPluginTestHelper.getTestEntandoPlugin();
-        when(entandoPluginService.getPluginsInNamespace(any(String.class))).thenReturn(Collections.singletonList(tempPlugin));
+        when(entandoPluginService.getAllInNamespace(any(String.class))).thenReturn(Collections.singletonList(tempPlugin));
 
         mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is2xxSuccessful())
@@ -99,7 +99,7 @@ public class EntandoPluginControllerTest {
                 .andExpect(jsonPath("$._embedded.entandoPluginList[0].metadata.name" ).value(TEST_PLUGIN_NAME))
                 .andExpect(jsonPath("$._embedded.entandoPluginList[0].metadata.namespace").value(TEST_PLUGIN_NAMESPACE));
 
-        verify(entandoPluginService, times(1)).getPluginsInNamespace(TEST_PLUGIN_NAMESPACE);
+        verify(entandoPluginService, times(1)).getAllInNamespace(TEST_PLUGIN_NAMESPACE);
     }
 
     @Test
@@ -111,7 +111,7 @@ public class EntandoPluginControllerTest {
                 .pathSegment(pluginName)
                 .build().toUri();
 
-        when(entandoPluginService.findPluginByName(eq(pluginName))).thenReturn(Optional.of(tempPlugin));
+        when(entandoPluginService.findByName(eq(pluginName))).thenReturn(Optional.of(tempPlugin));
 
         mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is2xxSuccessful())
@@ -130,7 +130,7 @@ public class EntandoPluginControllerTest {
                 .pathSegment(pluginName, "links")
                 .build().toUri();
 
-        when(entandoPluginService.findPluginByName(eq(pluginName))).thenReturn(Optional.of(tempPlugin));
+        when(entandoPluginService.findByName(eq(pluginName))).thenReturn(Optional.of(tempPlugin));
         when(entandoLinkService.getPluginLinks(eq(tempPlugin))).thenReturn(Collections.singletonList(tempLink));
 
         String jsonPathToCheck = "$._embedded.entandoAppPluginLinkList";
@@ -141,7 +141,7 @@ public class EntandoPluginControllerTest {
                 .andExpect(jsonPath(jsonPathToCheck + "[0].spec.entandoPluginName" ).value(TEST_PLUGIN_NAME))
                 .andExpect(jsonPath(jsonPathToCheck + "[0].spec.entandoPluginNamespace").value(TEST_PLUGIN_NAMESPACE));
 
-        verify(entandoPluginService, times(1)).findPluginByName(pluginName);
+        verify(entandoPluginService, times(1)).findByName(pluginName);
         verify(entandoLinkService, times(1)).getPluginLinks(any());
 
     }
@@ -165,7 +165,7 @@ public class EntandoPluginControllerTest {
                 .build().toUri();
         EntandoPlugin tempPlugin = EntandoPluginTestHelper.getTestEntandoPlugin();
 
-        when(entandoPluginService.findPluginByName(eq(TEST_PLUGIN_NAME)))
+        when(entandoPluginService.findByName(eq(TEST_PLUGIN_NAME)))
                 .thenReturn(Optional.of(tempPlugin));
 
         mvc.perform(post(uri)
@@ -203,7 +203,7 @@ public class EntandoPluginControllerTest {
                 .fromUriString(BASE_PLUGIN_ENDPOINT)
                 .pathSegment(TEST_PLUGIN_NAME)
                 .build().toUri();
-        when(entandoPluginService.findPluginByName(eq(TEST_PLUGIN_NAME)))
+        when(entandoPluginService.findByName(eq(TEST_PLUGIN_NAME)))
                 .thenReturn(Optional.of(getTestEntandoPlugin()));
 
         mvc.perform(delete(uri)

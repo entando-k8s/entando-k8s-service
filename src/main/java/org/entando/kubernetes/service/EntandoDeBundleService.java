@@ -29,7 +29,7 @@ public class EntandoDeBundleService extends EntandoKubernetesResourceCollector<E
     }
 
     @Override
-    List<EntandoDeBundle> getInNamespaceWithoutChecking(String namespace) {
+    protected List<EntandoDeBundle> getInNamespaceWithoutChecking(String namespace) {
         return getBundleOperations().inNamespace(namespace).list().getItems();
     }
 

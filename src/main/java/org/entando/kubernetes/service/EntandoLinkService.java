@@ -32,7 +32,7 @@ public class EntandoLinkService extends EntandoKubernetesResourceCollector<Entan
     }
 
     @Override
-    List<EntandoAppPluginLink> getInNamespaceWithoutChecking(String namespace) {
+    protected List<EntandoAppPluginLink> getInNamespaceWithoutChecking(String namespace) {
         return getLinksOperations().inNamespace(namespace).list().getItems();
     }
 
@@ -72,7 +72,6 @@ public class EntandoLinkService extends EntandoKubernetesResourceCollector<Entan
     }
 
     public EntandoAppPluginLink buildBetweenAppAndPlugin(EntandoApp app, EntandoPlugin plugin) {
-        observedNamespaces.failIfNotObserved(app.getMetadata().getNamespace());
         String appNamespace = app.getMetadata().getNamespace();
         String appName = app.getMetadata().getName();
         String pluginName = plugin.getMetadata().getName();

@@ -15,8 +15,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
-import org.entando.kubernetes.controller.namespace.KubernetesNamespaceController;
-import org.entando.kubernetes.controller.plugin.EntandoPluginController;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.entando.kubernetes.service.KubernetesNamespaceService;
 import org.entando.kubernetes.service.assembler.EntandoPluginResourceAssembler;

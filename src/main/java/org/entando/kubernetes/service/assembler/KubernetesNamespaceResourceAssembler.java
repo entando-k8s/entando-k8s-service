@@ -4,10 +4,10 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import io.fabric8.kubernetes.api.model.Namespace;
-import org.entando.kubernetes.controller.app.EntandoAppController;
-import org.entando.kubernetes.controller.bundle.EntandoDeBundleController;
-import org.entando.kubernetes.controller.plugin.EntandoPluginController;
-import org.entando.kubernetes.controller.namespace.KubernetesNamespaceController;
+import org.entando.kubernetes.controller.EntandoAppController;
+import org.entando.kubernetes.controller.EntandoDeBundleController;
+import org.entando.kubernetes.controller.EntandoPluginController;
+import org.entando.kubernetes.controller.KubernetesNamespaceController;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.server.RepresentationModelAssembler;
 import org.springframework.stereotype.Component;

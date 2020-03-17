@@ -9,11 +9,15 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.entando.kubernetes.config.TestKubernetesConfig;
+import org.entando.kubernetes.model.ObservedNamespaces;
+import org.entando.kubernetes.util.MockObservedNamespaces;
 import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
+import org.springframework.boot.test.context.TestConfiguration;
 
 @Tag("unit")
 @EnableRuleMigrationSupport
@@ -32,7 +36,7 @@ public class KubernetesNamespaceServiceTest {
     @BeforeEach
     public void setUp() {
         client = server.getClient();
-        List<String> observedNamespaces = Arrays.asList(APP_NAMESPACE, PLUGIN_NAMESPACE, BUNDLE_NAMESPACE);
+        ObservedNamespaces observedNamespaces = new MockObservedNamespaces(Arrays.asList(APP_NAMESPACE, PLUGIN_NAMESPACE, BUNDLE_NAMESPACE));
         nsService = new KubernetesNamespaceService(client, observedNamespaces);
         client.namespaces().createNew()
                 .withNewMetadata()

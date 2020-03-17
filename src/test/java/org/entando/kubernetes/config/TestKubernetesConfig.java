@@ -5,7 +5,9 @@ import static org.mockito.Mockito.when;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.List;
+import org.entando.kubernetes.model.ObservedNamespaces;
 import org.entando.kubernetes.service.KubernetesUtils;
+import org.entando.kubernetes.util.MockObservedNamespaces;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.TestConfiguration;
@@ -31,11 +33,10 @@ public class TestKubernetesConfig {
         return Mockito.mock(KubernetesClient.class);
     }
 
-    public List<String> observedNamespaces() {
-        if (!namespacesToObserve.contains(TEST_CURRENT_NAMESPACE)) {
-            namespacesToObserve.add(TEST_CURRENT_NAMESPACE);
-        }
-        return namespacesToObserve;
+    @Bean
+    public ObservedNamespaces observedNamespaces() {
+        return new MockObservedNamespaces(namespacesToObserve);
     }
+
 
 }

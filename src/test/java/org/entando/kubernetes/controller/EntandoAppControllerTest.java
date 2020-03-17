@@ -90,7 +90,7 @@ public class EntandoAppControllerTest {
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(content().json("{}"));
 
-        verify(entandoAppService, times(1)).getApps();
+        verify(entandoAppService, times(1)).getAll();
     }
 
     @Test
@@ -101,7 +101,7 @@ public class EntandoAppControllerTest {
                 .build().toUri();
 
         EntandoApp tempApp = EntandoAppTestHelper.getTestEntandoApp();
-        when(entandoAppService.getAppsInNamespace(any(String.class))).thenReturn(Collections.singletonList(tempApp));
+        when(entandoAppService.getAllInNamespace(any(String.class))).thenReturn(Collections.singletonList(tempApp));
 
         mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is2xxSuccessful())
@@ -110,7 +110,7 @@ public class EntandoAppControllerTest {
                 .andExpect(jsonPath("$._embedded.entandoAppList[0].metadata.namespace").value(TEST_APP_NAMESPACE));
 
 
-        verify(entandoAppService, times(1)).getAppsInNamespace(TEST_APP_NAMESPACE);
+        verify(entandoAppService, times(1)).getAllInNamespace(TEST_APP_NAMESPACE);
     }
 
     @Test
@@ -177,7 +177,7 @@ public class EntandoAppControllerTest {
                 .build().toUri();
         EntandoApp ea = EntandoAppTestHelper.getTestEntandoApp();
 
-        when(entandoAppService.getApps()).thenReturn(Collections.singletonList(ea));
+        when(entandoAppService.getAll()).thenReturn(Collections.singletonList(ea));
 
         String appLinksJsonPath = "$._links";
 
@@ -200,7 +200,7 @@ public class EntandoAppControllerTest {
         EntandoAppPluginLink el = entandoLinkService.buildBetweenAppAndPlugin(ea, ep);
 
         when(entandoAppService.findByName(anyString())).thenReturn(Optional.of(ea));
-        when(entandoPluginService.findPluginByName(eq(ep.getMetadata().getName()))).thenReturn(Optional.of(ep));
+        when(entandoPluginService.findByName(eq(ep.getMetadata().getName()))).thenReturn(Optional.of(ep));
         when(entandoLinkService.deploy(any(EntandoAppPluginLink.class))).thenReturn(el);
 
 
