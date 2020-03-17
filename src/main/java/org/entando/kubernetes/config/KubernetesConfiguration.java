@@ -5,7 +5,6 @@ import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import org.entando.kubernetes.model.ObservedNamespaces;
 import org.entando.kubernetes.service.KubernetesUtils;

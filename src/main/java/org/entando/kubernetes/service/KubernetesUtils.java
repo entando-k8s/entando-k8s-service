@@ -18,7 +18,6 @@ public class KubernetesUtils {
             Paths.get("/var/run/secrets/kubernetes.io/serviceaccount/namespace");
 
     private String namespace = null;
-    public KubernetesUtils() {}
 
     public String getCurrentNamespace() {
         if (namespace == null) {
