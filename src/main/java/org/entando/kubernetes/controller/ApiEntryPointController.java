@@ -20,6 +20,7 @@ public class ApiEntryPointController {
        cm.add(linkTo(methodOn(EntandoAppController.class).list()).withRel("apps"));
        cm.add(linkTo(methodOn(EntandoPluginController.class).list()).withRel("plugins"));
        cm.add(linkTo(methodOn(EntandoDeBundleController.class).list()).withRel("bundles"));
+       cm.add(linkTo(methodOn(EntandoLinksController.class).list()).withRel("app-plugin-links"));
        cm.add(linkTo(methodOn(KubernetesNamespaceController.class).list()).withRel("observed-namespaces"));
        return  ResponseEntity.ok(cm);
    }
