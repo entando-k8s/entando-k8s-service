@@ -43,6 +43,7 @@ public class EntandoDeBundleController {
     public ResponseEntity<CollectionModel<EntityModel<EntandoDeBundle>>> listInNamespace(
             @RequestParam("namespace") String namespace) {
         log.info("Listing available entando-de-bundles in namespace {}", namespace);
+        //TODO: Add links to collection
         List<EntandoDeBundle> deBundles = entandoBundleService.getAllInNamespace(namespace);
         return ResponseEntity.ok(new CollectionModel<>(
                 deBundles.stream()

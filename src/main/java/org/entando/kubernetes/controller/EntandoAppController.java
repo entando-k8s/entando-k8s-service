@@ -88,11 +88,23 @@ public class EntandoAppController {
         return ResponseEntity.ok(linksCollection);
     }
 
+    @GetMapping(path = "/{name}/links/{linkName}", produces = {APPLICATION_JSON_VALUE,
+            HAL_JSON_VALUE})
+    public ResponseEntity<EntityModel<EntandoAppPluginLink>> getAppLink(
+            @PathVariable("name") String appName, @PathVariable("linkName") String linkName) {
+        EntandoApp entandoApp = getEntandoAppOrFail(appName);
+        List<EntandoAppPluginLink> appLinks = entandoLinkService.getAppLinks(entandoApp);
+        EntandoAppPluginLink link = appLinks.stream()
+                .filter(l -> l.getMetadata().getName().equals(linkName)).findFirst()
+                .<ThrowableProblem>orElseThrow(() -> NotFoundExceptionFactory.entandoLinkWithName(linkName));
+        return ResponseEntity.ok(linkResourceAssembler.toModel(link));
+    }
+
     @GetMapping(path = "/{name}/links", produces = {APPLICATION_JSON_VALUE,
             HAL_JSON_VALUE}, params = "plugin")
     public ResponseEntity<EntityModel<EntandoAppPluginLink>> listLinks(
             @PathVariable("name") String appName, @RequestParam("plugin") String pluginName) {
-        EntandoAppPluginLink appPluginLink = getLinkOrFail(appName, pluginName);
+        EntandoAppPluginLink appPluginLink = getAppPluginLinkOrFail(appName, pluginName);
         return ResponseEntity.ok(linkResourceAssembler.toModel(appPluginLink));
     }
 
@@ -114,7 +126,7 @@ public class EntandoAppController {
     public ResponseEntity<Void> unlink(
             @PathVariable("name") String appName,
             @RequestParam("plugin") String pluginName) {
-        EntandoAppPluginLink linkToRemove = getLinkOrFail(appName, pluginName);
+        EntandoAppPluginLink linkToRemove = getAppPluginLinkOrFail(appName, pluginName);
         entandoLinkService.delete(linkToRemove);
         return ResponseEntity.accepted().build();
     }
@@ -128,10 +140,17 @@ public class EntandoAppController {
                 });
     }
 
-    private EntandoAppPluginLink getLinkOrFail(String appName, String pluginName) {
+    private EntandoAppPluginLink getAppPluginLinkOrFail(String appName, String pluginName) {
         return entandoLinkService.findByAppNameAndPluginName(appName, pluginName)
                 .<ThrowableProblem>orElseThrow(() -> {
                     throw NotFoundExceptionFactory.entandoLink(appName, pluginName);
+                });
+    }
+
+    private EntandoAppPluginLink getLink(String linkName) {
+        return entandoLinkService.findByName(linkName)
+                .<ThrowableProblem>orElseThrow(() -> {
+                    throw NotFoundExceptionFactory.entandoLinkWithName(linkName);
                 });
     }
 

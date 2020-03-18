@@ -38,6 +38,7 @@ public class EntandoLinkService extends EntandoKubernetesResourceCollector<Entan
                 .findFirst();
     }
 
+
     public Optional<EntandoAppPluginLink> findByAppNameAndPluginName(String appName, String pluginName) {
         return getAll().stream()
                 .filter(l -> l.getSpec().getEntandoAppName().equals(appName) &&
