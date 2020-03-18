@@ -163,7 +163,6 @@ public class EntandoPluginServiceTest {
         EntandoPlugin testPlugin = EntandoPluginTestHelper.getTestEntandoPlugin();
         testPlugin.getMetadata().setNamespace(null);
         entandoPluginService.deploy(testPlugin);
-        verify(k8sUtils, times(2)).getCurrentNamespace();
         List<EntandoPlugin> availablePlugins = EntandoPluginTestHelper.getEntandoPluginOperations(client)
                 .inNamespace(k8sUtils.getCurrentNamespace()).list().getItems();
         assertEquals(1, availablePlugins.size());

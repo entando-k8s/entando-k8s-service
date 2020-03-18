@@ -1,19 +1,26 @@
 package org.entando.kubernetes.model;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.entando.kubernetes.exception.NotObservedNamespaceException;
 import org.entando.kubernetes.service.KubernetesUtils;
 
+@Slf4j
 @Getter
 public class ObservedNamespaces {
 
-    private final List<String> nsList;
+    private final List<ObservedNamespace> list;
     private final KubernetesUtils kubernetesUtils;
+    private final List<String> names;
 
-    public ObservedNamespaces(List<String> nsList) {
-        this(new KubernetesUtils(), nsList);
+    public ObservedNamespaces(List<String> list) {
+        this(new KubernetesUtils(), list);
     }
 
     public ObservedNamespaces(KubernetesUtils kubernetesUtils) {
@@ -21,15 +28,17 @@ public class ObservedNamespaces {
     }
 
     public ObservedNamespaces(KubernetesUtils kubernetesUtils, List<String> list) {
-        this.nsList = new ArrayList<>();
-        if (list != null) {
-            this.nsList.addAll(list);
-        }
         this.kubernetesUtils = kubernetesUtils;
-        String currentNamespace = this.kubernetesUtils.getCurrentNamespace();
-        if (!nsList.contains(currentNamespace)) {
-            nsList.add(currentNamespace);
+        Set<String> finalList = new HashSet<>();
+        if (list != null) {
+            finalList.addAll(list);
         }
+        if (this.getCurrentNamespace() != null) {
+            finalList.add(this.getCurrentNamespace());
+        }
+        this.names = new ArrayList<>(finalList);
+        this.list = finalList.stream().map(ObservedNamespace::new).collect(Collectors.toList());
+        log.info("ObservedNamespaces are {}", String.join(", ", this.names));
     }
 
     public String getCurrentNamespace() {
@@ -37,7 +46,7 @@ public class ObservedNamespaces {
     }
 
     public boolean isObservedNamespace(String namespace) {
-        return nsList.contains(namespace);
+        return getList().stream().anyMatch(ns -> ns.getName().equals(namespace));
     }
 
     public void failIfNotObserved(String namespace) {
@@ -45,5 +54,5 @@ public class ObservedNamespaces {
             throw new NotObservedNamespaceException(namespace);
         }
     }
-
+    
 }

@@ -1,6 +1,8 @@
 package org.entando.kubernetes.exception;
 
-public class NotObservedNamespaceException extends RuntimeException {
+import org.zalando.problem.AbstractThrowableProblem;
+
+public class NotObservedNamespaceException extends AbstractThrowableProblem {
 
     private final String namespace;
 

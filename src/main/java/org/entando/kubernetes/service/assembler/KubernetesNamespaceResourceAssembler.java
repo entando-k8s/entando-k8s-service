@@ -8,24 +8,25 @@ import org.entando.kubernetes.controller.EntandoAppController;
 import org.entando.kubernetes.controller.EntandoDeBundleController;
 import org.entando.kubernetes.controller.EntandoPluginController;
 import org.entando.kubernetes.controller.KubernetesNamespaceController;
+import org.entando.kubernetes.model.ObservedNamespace;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.server.RepresentationModelAssembler;
 import org.springframework.stereotype.Component;
 
 @Component
 public class KubernetesNamespaceResourceAssembler implements
-        RepresentationModelAssembler<Namespace, EntityModel<Namespace>> {
+        RepresentationModelAssembler<ObservedNamespace, EntityModel<ObservedNamespace>> {
 
     @Override
-    public EntityModel<Namespace> toModel(Namespace ns) {
+    public EntityModel<ObservedNamespace> toModel(ObservedNamespace ons) {
 
-        EntityModel<Namespace> em = new EntityModel<>(ns);
+        EntityModel<ObservedNamespace> em = new EntityModel<>(ons);
 
-        String nsName = ns.getMetadata().getName();
-        em.add(linkTo(methodOn(KubernetesNamespaceController.class).getByName(nsName)).withSelfRel());
-        em.add(linkTo(methodOn(EntandoPluginController.class).listInNamespace(nsName)).withRel("plugins"));
-        em.add(linkTo(methodOn(EntandoAppController.class).listInNamespace(nsName)).withRel("apps"));
-        em.add(linkTo(methodOn(EntandoDeBundleController.class).listInNamespace(nsName)).withRel("bundles"));
+        String ns = ons.getName();
+        em.add(linkTo(methodOn(KubernetesNamespaceController.class).getByName(ns)).withSelfRel());
+        em.add(linkTo(methodOn(EntandoPluginController.class).listInNamespace(ns)).withRel("plugins"));
+        em.add(linkTo(methodOn(EntandoAppController.class).listInNamespace(ns)).withRel("apps"));
+        em.add(linkTo(methodOn(EntandoDeBundleController.class).listInNamespace(ns)).withRel("bundles"));
         return em;
     }
 

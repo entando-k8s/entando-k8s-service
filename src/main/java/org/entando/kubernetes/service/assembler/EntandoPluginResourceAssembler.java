@@ -4,8 +4,10 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import org.entando.kubernetes.controller.EntandoPluginController;
+import org.entando.kubernetes.controller.KubernetesNamespaceController;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.Links;
 import org.springframework.hateoas.server.RepresentationModelAssembler;
 import org.springframework.stereotype.Service;
 
@@ -17,18 +19,19 @@ public class EntandoPluginResourceAssembler implements
     @Override
     public EntityModel<EntandoPlugin> toModel(EntandoPlugin entity) {
         EntityModel<EntandoPlugin> response = new EntityModel<>(entity);
-
-        applyRel(response);
-
+        response.add(getLinks(entity));
         return response;
 
     }
 
-    private void applyRel(EntityModel<EntandoPlugin> response) {
-        String pluginName = response.getContent().getMetadata().getName();
-        String pluginNamespace = response.getContent().getMetadata().getNamespace();
-        response.add(linkTo(methodOn(EntandoPluginController.class).get(pluginName)) .withSelfRel());
-        response.add(linkTo(methodOn(EntandoPluginController.class).listInNamespace(pluginNamespace)).withRel("namespace_plugin"));
-        response.add(linkTo(methodOn(EntandoPluginController.class).list()).withRel("plugins"));
+    private Links getLinks(EntandoPlugin plugin) {
+        String pluginName = plugin.getMetadata().getName();
+        String pluginNamespace = plugin.getMetadata().getNamespace();
+        return Links.of(
+            linkTo(methodOn(EntandoPluginController.class).get(pluginName)).withSelfRel(),
+            linkTo(methodOn(EntandoPluginController.class).list()).withRel("plugins"),
+            linkTo(methodOn(EntandoPluginController.class).listInNamespace(pluginNamespace)).withRel("plugins-in-namespace"),
+            linkTo(methodOn(KubernetesNamespaceController.class).getByName(pluginNamespace)).withRel("namespace")
+        );
     }
 }

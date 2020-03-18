@@ -2,147 +2,103 @@ package org.entando.kubernetes.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.entando.kubernetes.util.EntandoPluginTestHelper.TEST_PLUGIN_NAMESPACE;
+import static org.hamcrest.CoreMatchers.anyOf;
+import static org.hamcrest.CoreMatchers.endsWith;
+import static org.hamcrest.collection.IsMapContaining.hasKey;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.hateoas.MediaTypes.HAL_JSON_VALUE;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import io.fabric8.kubernetes.api.model.Namespace;
-import io.fabric8.kubernetes.api.model.NamespaceBuilder;
+import java.net.URI;
 import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletResponse;
-import org.entando.kubernetes.model.plugin.EntandoPlugin;
-import org.entando.kubernetes.service.KubernetesNamespaceService;
-import org.entando.kubernetes.service.assembler.EntandoPluginResourceAssembler;
-import org.entando.kubernetes.service.assembler.KubernetesNamespaceResourceAssembler;
-import org.entando.kubernetes.util.EntandoPluginTestHelper;
-import org.junit.jupiter.api.Assertions;
+import org.entando.kubernetes.EntandoKubernetesJavaApplication;
+import org.entando.kubernetes.config.TestJwtDecoderConfig;
+import org.entando.kubernetes.config.TestKubernetesConfig;
+import org.entando.kubernetes.config.TestSecurityConfiguration;
+import org.entando.kubernetes.model.ObservedNamespace;
+import org.entando.kubernetes.model.ObservedNamespaces;
+import org.entando.kubernetes.service.KubernetesUtils;
+import org.entando.kubernetes.util.MockObservedNamespaces;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.springframework.hateoas.CollectionModel;
-import org.springframework.hateoas.EntityModel;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.zalando.problem.ThrowableProblem;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.MockMvc;
 
+@SpringBootTest(
+        webEnvironment = WebEnvironment.RANDOM_PORT,
+        classes = {
+                EntandoKubernetesJavaApplication.class,
+                TestSecurityConfiguration.class,
+                TestKubernetesConfig.class,
+                TestJwtDecoderConfig.class
+        })
+@AutoConfigureMockMvc
+@ActiveProfiles("test")
 @Tag("component")
 public class KubernetesNamespaceControllerTest {
 
-    private EntandoPluginController pluginController;
-    private EntandoPluginResourceAssembler pluginResourceAssembler = new EntandoPluginResourceAssembler();
+    @Autowired
+    private MockMvc mvc;
 
-    private KubernetesNamespaceController nsController;
-    private KubernetesNamespaceResourceAssembler nsRa;
-    private KubernetesNamespaceService nsService;
-
+    private ObservedNamespaces observedNamespaces;
 
     @BeforeEach
     public void setup() {
-        nsService = mock(KubernetesNamespaceService.class);
-        pluginController = mock(EntandoPluginController.class);
-        nsRa = new KubernetesNamespaceResourceAssembler();
-        nsController = new KubernetesNamespaceController(nsRa, nsService);
+        observedNamespaces = new ObservedNamespaces(mock(KubernetesUtils.class), Collections.singletonList(TEST_PLUGIN_NAMESPACE));
     }
 
     @Test
-    public void shouldReturnOkResponseAndLinks() {
-        when(nsService.getObservedNamespaceList()).thenReturn(Collections.emptyList());
-        assertThat(nsController.list().getStatusCode()).isEqualByComparingTo(HttpStatus.OK);
-        assertThat(nsController.list().getBody()).isNotNull();
-        assertThat(nsController.list().getBody().getLink("plugins").isPresent()).isTrue();
-        assertThat(nsController.list().getBody().getLink("apps").isPresent()).isTrue();
-        assertThat(nsController.list().getBody().getLink("bundles").isPresent()).isTrue();
+    public void shouldReturnOkResponseAndLinks() throws Exception {
+        mvc.perform(get(URI.create("/namespaces")).accept(HAL_JSON_VALUE))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._embedded.observedNamespaceList").exists())
+                .andExpect(jsonPath("$._links.plugins").exists())
+                .andExpect(jsonPath("$._links.apps").exists())
+                .andExpect(jsonPath("$._links.bundles").exists());
     }
 
     @Test
-    public void shouldThrowAnExceptionWhenAskingForNotObservedNamespace() {
-       ThrowableProblem tp = Assertions.assertThrows(ThrowableProblem.class, () -> {
-           when(nsService.getObservedNamespace(anyString())).thenReturn(Optional.empty());
-           nsController.getByName("any-namespace");
-       });
-       assertThat(tp.getStatus().getStatusCode()).isEqualTo(404);
+    public void shouldThrowAnExceptionWhenAskingForNotObservedNamespace() throws Exception {
+        mvc.perform(get(URI.create("/namespaces/not-checked")).accept(HAL_JSON_VALUE))
+                .andExpect(status().isBadRequest());
     }
 
     @Test
-    public void shouldReturnSelfLink() {
-       when(nsService.getObservedNamespace("my-name")) .thenReturn(Optional.of(testNamespace()));
-       ResponseEntity<EntityModel<Namespace>> re = nsController.getByName("my-name");
-       assertThat(re.getStatusCode()).isEqualByComparingTo(HttpStatus.OK);
-       assertThat(re.getBody()).isNotNull();
-       assertThat(re.getBody().getLinks()).isNotNull();
-       assertThat(re.getBody().getLinks().getLink("self").isPresent()).isTrue();
+    public void shouldReturnSelfLink() throws Exception {
+        mvc.perform(get("/namespaces/{name}", TEST_PLUGIN_NAMESPACE).accept(HAL_JSON_VALUE))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value(TEST_PLUGIN_NAMESPACE))
+                .andExpect(jsonPath("$._links.self").exists());
     }
 
     @Test
-    public void shouldReturnLinksToEntandoCustomResourceInNamespace() {
-        CollectionModel<EntityModel<EntandoPlugin>> epList = new CollectionModel<>(
-               testPluginList().stream().map(pluginResourceAssembler::toModel).collect(Collectors.toList())
-        );
-        when(nsService.getObservedNamespace(TEST_PLUGIN_NAMESPACE)) .thenReturn(Optional.of(testNamespace()));
-        when(pluginController.listInNamespace(TEST_PLUGIN_NAMESPACE)).thenReturn(ResponseEntity.ok(epList));
-
-        ResponseEntity<EntityModel<Namespace>> re = nsController.getByName(TEST_PLUGIN_NAMESPACE);
-        assertThat(re.getStatusCode()).isEqualByComparingTo(HttpStatus.OK);
-        assertThat(re.getBody()).isNotNull();
-        assertThat(re.getBody().getLinks()).isNotNull();
-        assertThat(re.getBody().getLinks().getLink("plugins").isPresent()).isTrue();
-        assertThat(re.getBody().getLinks().getLink("apps").isPresent()).isTrue();
-        assertThat(re.getBody().getLinks().getLink("bundles").isPresent()).isTrue();
+    public void shouldReturnLinksToEntandoCustomResourceInNamespace() throws Exception {
+        mvc.perform(get(URI.create("/namespaces/" + TEST_PLUGIN_NAMESPACE)).accept(HAL_JSON_VALUE))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$._links.plugins.href").value(endsWith("/plugins?namespace="+TEST_PLUGIN_NAMESPACE)))
+                .andExpect(jsonPath("$._links.bundles.href").value(endsWith("/bundles?namespace="+TEST_PLUGIN_NAMESPACE)))
+                .andExpect(jsonPath("$._links.apps.href").value(endsWith("/apps?namespace="+TEST_PLUGIN_NAMESPACE)));
 
     }
 
     @Test
-    public void shouldThrowExceptionForInvalidNamespaceName() {
-        HttpServletResponse resp = mock(HttpServletResponse.class);
+    public void shouldThrowExceptionForInvalidNamespaceName() throws Exception {
+
         String invalidNamespace = "Access-Control-Allow-Origin: *";
-        ThrowableProblem tp = Assertions.assertThrows(ThrowableProblem.class, () -> {
-            nsController.listAppsInNamespace(invalidNamespace, resp);
-        });
-        assertThat(tp.getStatus()).isNotNull();
-        assertThat(tp.getStatus().getStatusCode()).isEqualTo(400);
-
-        tp = Assertions.assertThrows(ThrowableProblem.class, () -> {
-            nsController.listBundlesInNamespace(invalidNamespace, resp);
-        });
-        assertThat(tp.getStatus()).isNotNull();
-        assertThat(tp.getStatus().getStatusCode()).isEqualTo(400);
-
-        tp = Assertions.assertThrows(ThrowableProblem.class, () -> {
-            nsController.listPluginsInNamespace(invalidNamespace, resp);
-        });
-        assertThat(tp.getStatus()).isNotNull();
-        assertThat(tp.getStatus().getStatusCode()).isEqualTo(400);
-    }
-
-    @Test
-    public void redirectsToOtherControllers() {
-        HttpServletResponse resp = mock(HttpServletResponse.class);
-        String namespace = "entando";
-        nsController.listAppsInNamespace(namespace, resp);
-        verify(resp, times(1)).setStatus(302);
-        verify(resp, times(1)).setHeader("Location", "/apps?namespace=entando");
-
-        resp = mock(HttpServletResponse.class);
-        nsController.listPluginsInNamespace(namespace, resp);
-        verify(resp, times(1)).setStatus(302);
-        verify(resp, times(1)).setHeader("Location", "/plugins?namespace=entando");
-
-        resp = mock(HttpServletResponse.class);
-        nsController.listBundlesInNamespace(namespace, resp);
-        verify(resp, times(1)).setStatus(302);
-        verify(resp, times(1)).setHeader("Location", "/bundles?namespace=entando");
-    }
-
-    private Namespace testNamespace() {
-        return new NamespaceBuilder().withNewMetadata().withName("my-name").endMetadata().build();
-    }
-
-    private List<EntandoPlugin>  testPluginList() {
-        return Collections.singletonList(EntandoPluginTestHelper.getTestEntandoPlugin());
+        mvc.perform(get("/namespaces/{name}", invalidNamespace).accept(HAL_JSON_VALUE))
+                .andExpect(status().isBadRequest());
     }
 }

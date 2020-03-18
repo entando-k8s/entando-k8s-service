@@ -2,81 +2,49 @@ package org.entando.kubernetes.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.fabric8.kubernetes.api.model.Namespace;
-import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import org.entando.kubernetes.config.TestKubernetesConfig;
+import org.entando.kubernetes.exception.NotObservedNamespaceException;
 import org.entando.kubernetes.model.ObservedNamespaces;
 import org.entando.kubernetes.util.MockObservedNamespaces;
-import org.junit.Rule;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
-import org.springframework.boot.test.context.TestConfiguration;
 
 @Tag("unit")
-@EnableRuleMigrationSupport
 public class KubernetesNamespaceServiceTest {
-    @Rule
-    public KubernetesServer server = new KubernetesServer(false, true);
 
-    private KubernetesNamespaceService nsService;
-
-    private KubernetesClient client;
     private final String APP_NAMESPACE = "app-namespace";
     private final String PLUGIN_NAMESPACE = "plugin-namespace";
     private final String BUNDLE_NAMESPACE = "bundle-namespace";
     private final String NOT_OBSERVED_NAMESPACE = "an-external-namespace";
 
+    ObservedNamespaces observedNamespaces;
+
     @BeforeEach
     public void setUp() {
-        client = server.getClient();
-        ObservedNamespaces observedNamespaces = new MockObservedNamespaces(Arrays.asList(APP_NAMESPACE, PLUGIN_NAMESPACE, BUNDLE_NAMESPACE));
-        nsService = new KubernetesNamespaceService(client, observedNamespaces);
-        client.namespaces().createNew()
-                .withNewMetadata()
-                .withName(APP_NAMESPACE)
-                .endMetadata().done();
-        client.namespaces().createNew()
-                .withNewMetadata()
-                .withName(PLUGIN_NAMESPACE)
-                .endMetadata().done();
-        client.namespaces().createNew()
-                .withNewMetadata()
-                .withName(BUNDLE_NAMESPACE)
-                .endMetadata().done();
-        client.namespaces().createNew()
-                .withNewMetadata()
-                .withName(NOT_OBSERVED_NAMESPACE)
-                .endMetadata().done();
+        observedNamespaces = new MockObservedNamespaces(Arrays.asList(APP_NAMESPACE, PLUGIN_NAMESPACE, BUNDLE_NAMESPACE));
     }
 
     @Test
     public void shouldReturnObservedNamespaces() {
-        List<String> nsNames = nsService.getObservedNamespaceList().stream()
-                .map(ns -> ns.getMetadata().getName())
-                .collect(Collectors.toList());
-        assertThat(nsNames).hasSize(3);
+        List<String> nsNames = observedNamespaces.getNames();
+        assertThat(nsNames).hasSize(4);
         assertThat(nsNames).doesNotContain(NOT_OBSERVED_NAMESPACE);
-        assertThat(nsNames).containsExactlyInAnyOrder(PLUGIN_NAMESPACE, APP_NAMESPACE, BUNDLE_NAMESPACE);
+        assertThat(nsNames).containsExactlyInAnyOrder(PLUGIN_NAMESPACE,
+                APP_NAMESPACE,
+                BUNDLE_NAMESPACE,
+                observedNamespaces.getCurrentNamespace()
+        );
+
     }
 
     @Test
-    public void shouldReturnObservedNamespaceByName() {
-       Optional<Namespace> obNs = nsService.getObservedNamespace(APP_NAMESPACE);
-       assertThat(obNs.isPresent()).isTrue();
-       assertThat(obNs.get().getMetadata().getName()).isEqualTo(APP_NAMESPACE);
-    }
-
-    @Test
-    public void shouldReturnEmptyOptionalWhenAskingForNotObservedNamespace() {
-        Optional<Namespace> obNs = nsService.getObservedNamespace(NOT_OBSERVED_NAMESPACE);
-        assertThat(obNs.isPresent()).isFalse();
+    public void shouldThrowAnExceptionIfNotObservedNamespace() {
+        Assertions.assertThrows(NotObservedNamespaceException.class, () -> {
+            observedNamespaces.failIfNotObserved(NOT_OBSERVED_NAMESPACE);
+        });
     }
 
 }

@@ -1,16 +1,16 @@
 package org.entando.kubernetes.controller;
 
+import static org.springframework.hateoas.MediaTypes.HAL_JSON_VALUE;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import io.fabric8.kubernetes.api.model.Namespace;
-import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import org.entando.kubernetes.exception.BadRequestExceptionFactory;
-import org.entando.kubernetes.exception.NotFoundExceptionFactory;
-import org.entando.kubernetes.service.KubernetesNamespaceService;
+import org.entando.kubernetes.model.ObservedNamespace;
+import org.entando.kubernetes.model.ObservedNamespaces;
 import org.entando.kubernetes.service.assembler.KubernetesNamespaceResourceAssembler;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
@@ -22,63 +22,66 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/namespaces")
+@RequiredArgsConstructor
 public class KubernetesNamespaceController {
 
-    private final KubernetesNamespaceResourceAssembler nsResourceAssembler;
-    private final KubernetesNamespaceService nsService;
+    private final KubernetesNamespaceResourceAssembler resAssembler;
+    private final ObservedNamespaces observedNamespaces;
 
-    public KubernetesNamespaceController(KubernetesNamespaceResourceAssembler nrs, KubernetesNamespaceService nsService) {
-       this.nsResourceAssembler = nrs;
-       this.nsService = nsService;
-    }
 
-    public ResponseEntity<CollectionModel<EntityModel<Namespace>>> list() {
-        List<Namespace> observedNamespaces = nsService.getObservedNamespaceList();
-        CollectionModel<EntityModel<Namespace>> nsCollection = new CollectionModel<>(
-                observedNamespaces.stream()
-                        .map(nsResourceAssembler::toModel)
-                        .collect(Collectors.toList()));
-        nsCollection.add(linkTo(methodOn(EntandoAppController.class).list()).withRel("apps"));
-        nsCollection.add(linkTo(methodOn(EntandoPluginController.class).list()).withRel("plugins"));
-        nsCollection.add(linkTo(methodOn(EntandoDeBundleController.class).list()).withRel("bundles"));
+    @GetMapping(produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
+    public ResponseEntity<CollectionModel<EntityModel<ObservedNamespace>>> list() {
+        CollectionModel<EntityModel<ObservedNamespace>> nsCollection = getNamespaceCollectionModel();
+        addNamespaceLinks(nsCollection);
         return ResponseEntity.ok(nsCollection);
     }
 
-    @GetMapping("/{name}")
-    public ResponseEntity<EntityModel<Namespace>> getByName(@PathVariable("name") String name) {
-        Optional<Namespace> observedNs = nsService.getObservedNamespace(name);
-        if (!observedNs.isPresent()) {
-            throw NotFoundExceptionFactory.observedNamespace(name);
-        }
-        EntityModel<Namespace> ns = nsResourceAssembler.toModel(observedNs.get());
-        return ResponseEntity.ok(ns);
+    @GetMapping(value = "/{name}", produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
+    public ResponseEntity<EntityModel<ObservedNamespace>> getByName(@PathVariable String name) {
+        String validNamespace = validateNamespace(name);
+        observedNamespaces.failIfNotObserved(validNamespace);
+        return ResponseEntity.ok(resAssembler.toModel(new ObservedNamespace(validNamespace)));
     }
 
-    @GetMapping("/{name}/plugins")
-    public void listPluginsInNamespace(@PathVariable("name") String name, HttpServletResponse resp) {
-        String validNamespace = validateNamespace(name);
-        resp.setHeader("Location", "/plugins?namespace="+validNamespace);
-        resp.setStatus(302);
-    }
-
-    @GetMapping("/{name}/apps")
-    public void listAppsInNamespace(@PathVariable("name") String name, HttpServletResponse resp) {
-        String validNamespace = validateNamespace(name);
-        resp.setHeader("Location", "/apps?namespace=" + validNamespace);
-        resp.setStatus(302);
-    }
-
-    @GetMapping("/{name}/bundles")
-    public void listBundlesInNamespace(@PathVariable("name") String name, HttpServletResponse resp) {
-        String validNamespace = validateNamespace(name);
-        resp.setHeader("Location", "/bundles?namespace=" + validNamespace);
-        resp.setStatus(302);
-    }
+//    @GetMapping("/{name}/plugins")
+//    public void listPluginsInNamespace(@PathVariable("name") String name, HttpServletResponse resp) {
+//        String validNamespace = validateNamespace(name);
+//        resp.setHeader("Location", "/plugins?namespace="+validNamespace);
+//        resp.setStatus(302);
+//    }
+//
+//    @GetMapping("/{name}/apps")
+//    public void listAppsInNamespace(@PathVariable("name") String name, HttpServletResponse resp) {
+//        String validNamespace = validateNamespace(name);
+//        resp.setHeader("Location", "/apps?namespace=" + validNamespace);
+//        resp.setStatus(302);
+//    }
+//
+//    @GetMapping("/{name}/bundles")
+//    public void listBundlesInNamespace(@PathVariable("name") String name, HttpServletResponse resp) {
+//        String validNamespace = validateNamespace(name);
+//        resp.setHeader("Location", "/bundles?namespace=" + validNamespace);
+//        resp.setStatus(302);
+//    }
 
     public String validateNamespace(String namespace) {
         if (!namespace.matches("[a-z0-9]([-a-z0-9]*[a-z0-9])?")) {
             throw BadRequestExceptionFactory.invalidNamespace(namespace);
         }
         return namespace;
+    }
+
+    private void addNamespaceLinks(CollectionModel<EntityModel<ObservedNamespace>> nsCollection) {
+        nsCollection.add(linkTo(methodOn(this.getClass()).getByName(null)).withRel("namespace"));
+        nsCollection.add(linkTo(methodOn(EntandoAppController.class).list()).withRel("apps"));
+        nsCollection.add(linkTo(methodOn(EntandoPluginController.class).list()).withRel("plugins"));
+        nsCollection.add(linkTo(methodOn(EntandoDeBundleController.class).list()).withRel("bundles"));
+    }
+
+
+    private CollectionModel<EntityModel<ObservedNamespace>> getNamespaceCollectionModel() {
+        return new CollectionModel<>(
+                observedNamespaces.getList().stream().map(resAssembler::toModel).collect(Collectors.toList())
+        );
     }
 }

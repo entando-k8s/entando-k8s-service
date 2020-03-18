@@ -21,7 +21,7 @@ public abstract class EntandoKubernetesResourceCollector<T extends HasMetadata> 
     protected final ObservedNamespaces observedNamespaces;
 
     public List<T> getAll() {
-        return collectFromNamespaces(observedNamespaces.getNsList());
+        return collectFromNamespaces(observedNamespaces.getNames());
     };
 
     public List<T> getAllInNamespace(String namespace) {
