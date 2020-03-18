@@ -29,6 +29,6 @@ public class EntandoAppResourceAssembler implements RepresentationModelAssembler
         response.add(linkTo(methodOn(EntandoAppController.class).get(appName))
                 .withSelfRel());
         response.add(linkTo(methodOn(EntandoAppController.class).listLinks(appName))
-                .withRel("links"));
+                .withRel("app-links"));
     }
 }

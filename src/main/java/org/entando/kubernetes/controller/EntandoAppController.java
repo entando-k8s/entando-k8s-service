@@ -1,6 +1,8 @@
 package org.entando.kubernetes.controller;
 
 import static org.springframework.hateoas.MediaTypes.HAL_JSON_VALUE;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.List;
@@ -51,8 +53,9 @@ public class EntandoAppController {
     public ResponseEntity<CollectionModel<EntityModel<EntandoApp>>> list() {
         log.info("Listing apps from all observed namespaces");
         List<EntandoApp> entandoApps = entandoAppService.getAll();
-        return ResponseEntity.ok(new CollectionModel<>(
-                entandoApps.stream().map(appResourceAssembler::toModel).collect(Collectors.toList())));
+        CollectionModel<EntityModel<EntandoApp>> collection = getAppsCollectionModel(entandoApps);
+        addAppCollectionLinks(collection);
+        return ResponseEntity.ok(collection);
     }
 
 
@@ -61,8 +64,9 @@ public class EntandoAppController {
     public ResponseEntity<CollectionModel<EntityModel<EntandoApp>>> listInNamespace(@RequestParam String namespace) {
         log.info("Listing apps");
         List<EntandoApp> entandoApps = entandoAppService.getAllInNamespace(namespace);
-        return ResponseEntity.ok(new CollectionModel<>(
-                entandoApps.stream().map(appResourceAssembler::toModel).collect(Collectors.toList())));
+        CollectionModel<EntityModel<EntandoApp>> collection = getAppsCollectionModel(entandoApps);
+        addAppCollectionLinks(collection);
+        return ResponseEntity.ok(collection);
     }
 
     @GetMapping(path = "/{name}", produces = {APPLICATION_JSON_VALUE,
@@ -79,11 +83,19 @@ public class EntandoAppController {
             @PathVariable("name") String appName) {
         EntandoApp entandoApp = getEntandoAppOrFail(appName);
         List<EntandoAppPluginLink> appLinks = entandoLinkService.getAppLinks(entandoApp);
-        List<EntityModel<EntandoAppPluginLink>> linkResources = appLinks.stream()
-                .map(linkResourceAssembler::toModel)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(new CollectionModel<>(linkResources));
+        CollectionModel<EntityModel<EntandoAppPluginLink>> linksCollection = getLinksCollectionModel(appLinks);
+        addLinkCollectionLinks(linksCollection);
+        return ResponseEntity.ok(linksCollection);
     }
+
+    @GetMapping(path = "/{name}/links", produces = {APPLICATION_JSON_VALUE,
+            HAL_JSON_VALUE}, params = "plugin")
+    public ResponseEntity<EntityModel<EntandoAppPluginLink>> listLinks(
+            @PathVariable("name") String appName, @RequestParam("plugin") String pluginName) {
+        EntandoAppPluginLink appPluginLink = getLinkOrFail(appName, pluginName);
+        return ResponseEntity.ok(linkResourceAssembler.toModel(appPluginLink));
+    }
+
 
     @PostMapping(path = "/{name}/links", consumes = APPLICATION_JSON_VALUE, produces = {
             APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
@@ -97,16 +109,16 @@ public class EntandoAppController {
         return ResponseEntity.status(HttpStatus.CREATED).body(linkResourceAssembler.toModel(deployedLink));
     }
 
-    @DeleteMapping(path = "/{name}/links/{pluginName}", produces = {
+    @DeleteMapping(path = "/{name}/links", produces = {
             APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
-    public ResponseEntity<Void> delete(
+    public ResponseEntity<Void> unlink(
             @PathVariable("name") String appName,
-            @PathVariable("pluginName") String pluginName) {
-        EntandoApp app = getEntandoAppOrFail(appName);
-        EntandoAppPluginLink linkToRemove = getLinkOrFail(app, pluginName);
+            @RequestParam("plugin") String pluginName) {
+        EntandoAppPluginLink linkToRemove = getLinkOrFail(appName, pluginName);
         entandoLinkService.delete(linkToRemove);
         return ResponseEntity.accepted().build();
     }
+
 
     private EntandoApp getEntandoAppOrFail(String appName) {
         return entandoAppService
@@ -116,10 +128,10 @@ public class EntandoAppController {
                 });
     }
 
-    private EntandoAppPluginLink getLinkOrFail(EntandoApp app, String pluginName) {
-        return entandoLinkService.getLink(app, pluginName)
+    private EntandoAppPluginLink getLinkOrFail(String appName, String pluginName) {
+        return entandoLinkService.findByAppNameAndPluginName(appName, pluginName)
                 .<ThrowableProblem>orElseThrow(() -> {
-                    throw NotFoundExceptionFactory.entandoLink(app.getMetadata().getName(), pluginName);
+                    throw NotFoundExceptionFactory.entandoLink(appName, pluginName);
                 });
     }
 
@@ -134,6 +146,27 @@ public class EntandoAppController {
             return entandoPluginService.deploy(plugin);
         });
 
+    }
+
+    private void addAppCollectionLinks(CollectionModel<EntityModel<EntandoApp>> collection) {
+        collection.add(linkTo(methodOn(EntandoAppController.class).get(null)).withRel("app"));
+        collection.add(linkTo(methodOn(EntandoAppController.class).listLinks(null)).withRel("app-links"));
+        collection.add(linkTo(methodOn(EntandoAppController.class).listInNamespace(null)).withRel("apps-in-namespace"));
+    }
+
+    private void addLinkCollectionLinks(CollectionModel<EntityModel<EntandoAppPluginLink>> linksCollection) {
+        linksCollection.add(linkTo(methodOn(EntandoAppController.class).unlink(null, null)).withRel("unlink"));
+    }
+
+    private CollectionModel<EntityModel<EntandoApp>> getAppsCollectionModel(List<EntandoApp> entandoApps) {
+        return new CollectionModel<>(
+                entandoApps.stream().map(appResourceAssembler::toModel).collect(Collectors.toList()));
+    }
+
+    private CollectionModel<EntityModel<EntandoAppPluginLink>> getLinksCollectionModel(List<EntandoAppPluginLink> appLinks) {
+        return new CollectionModel<>(appLinks.stream()
+                .map(linkResourceAssembler::toModel)
+                .collect(Collectors.toList()));
     }
 
 }

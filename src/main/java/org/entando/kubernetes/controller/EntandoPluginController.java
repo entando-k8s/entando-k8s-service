@@ -48,17 +48,20 @@ public class EntandoPluginController {
     public ResponseEntity<CollectionModel<EntityModel<EntandoPlugin>>> list() {
         log.info("Listing all deployed plugins in observed namespaces");
         List<EntandoPlugin> plugins = entandoPluginService.getAll();
-        return ResponseEntity
-                .ok(new CollectionModel<>(plugins.stream().map(resourceAssembler::toModel).collect(Collectors.toList())));
+        CollectionModel<EntityModel<EntandoPlugin>> collection = getPluginCollectionModel(plugins);
+        addCollectionLinks(collection);
+        return ResponseEntity.ok(collection);
     }
+
 
     @GetMapping(produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE}, params = "namespace")
     public ResponseEntity<CollectionModel<EntityModel<EntandoPlugin>>> listInNamespace(@RequestParam String namespace) {
         log.info("Listing all deployed plugins in {} observed namespace", namespace);
         //TODO: Throw an error when querying a non observed namespace
         List<EntandoPlugin> plugins = entandoPluginService.getAllInNamespace(namespace);
-        return ResponseEntity
-                .ok(new CollectionModel<>(plugins.stream().map(resourceAssembler::toModel).collect(Collectors.toList())));
+        CollectionModel<EntityModel<EntandoPlugin>> collection = getPluginCollectionModel(plugins);
+        addCollectionLinks(collection);
+        return ResponseEntity.ok(collection);
     }
 
     @GetMapping(path = "/{name}", produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
@@ -92,11 +95,11 @@ public class EntandoPluginController {
             @PathVariable("name") String pluginName) {
         EntandoPlugin entandoPlugin = getEntandoPluginOrFail(pluginName);
         List<EntandoAppPluginLink> appLinks = entandoLinkService.getPluginLinks(entandoPlugin);
-        List<EntityModel<EntandoAppPluginLink>> linkResources = appLinks.stream()
-                .map(linkResourceAssembler::toModel)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(new CollectionModel<>(linkResources));
+        CollectionModel<EntityModel<EntandoAppPluginLink>> lcm = getLinkCollectionModel(appLinks);
+        return ResponseEntity.ok(lcm);
     }
+
+
 
     private EntandoPlugin getEntandoPluginOrFail(String pluginName) {
         return entandoPluginService
@@ -112,6 +115,22 @@ public class EntandoPluginController {
         if (alreadyDeployedPlugin.isPresent()) {
             throw BadRequestExceptionFactory.pluginAlreadyDeployed(alreadyDeployedPlugin.get());
         }
+    }
+
+    private void addCollectionLinks(CollectionModel<EntityModel<EntandoPlugin>> collection) {
+        collection.add(linkTo(methodOn(this.getClass()).get(null)).withRel("plugin"));
+        collection.add(linkTo(methodOn(this.getClass()).listInNamespace(null)).withRel("plugins-in-namespace"));
+        collection.add(linkTo(methodOn(this.getClass()).listLinks(null)).withRel("plugin-links"));
+    }
+
+    private CollectionModel<EntityModel<EntandoPlugin>> getPluginCollectionModel(List<EntandoPlugin> plugins) {
+        return new CollectionModel<>(plugins.stream().map(resourceAssembler::toModel).collect(Collectors.toList()));
+    }
+
+    private CollectionModel<EntityModel<EntandoAppPluginLink>> getLinkCollectionModel(List<EntandoAppPluginLink> appLinks) {
+        return new CollectionModel<>(appLinks.stream()
+                .map(linkResourceAssembler::toModel)
+                .collect(Collectors.toList()));
     }
 
 }

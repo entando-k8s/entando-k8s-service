@@ -1,5 +1,6 @@
 package org.entando.kubernetes.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.entando.kubernetes.util.EntandoPluginTestHelper.BASE_PLUGIN_ENDPOINT;
 import static org.entando.kubernetes.util.EntandoPluginTestHelper.TEST_PLUGIN_NAME;
 import static org.entando.kubernetes.util.EntandoPluginTestHelper.TEST_PLUGIN_NAMESPACE;
@@ -13,25 +14,32 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URI;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.entando.kubernetes.EntandoKubernetesJavaApplication;
 import org.entando.kubernetes.config.TestJwtDecoderConfig;
 import org.entando.kubernetes.config.TestKubernetesConfig;
 import org.entando.kubernetes.config.TestSecurityConfiguration;
+import org.entando.kubernetes.model.app.EntandoApp;
+import org.entando.kubernetes.model.debundle.EntandoDeBundle;
 import org.entando.kubernetes.model.link.EntandoAppPluginLink;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.entando.kubernetes.service.EntandoLinkService;
 import org.entando.kubernetes.service.EntandoPluginService;
+import org.entando.kubernetes.util.EntandoDeBundleTestHelper;
 import org.entando.kubernetes.util.EntandoLinkTestHelper;
 import org.entando.kubernetes.util.EntandoPluginTestHelper;
+import org.entando.kubernetes.util.HalUtils;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,9 +47,15 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.Link;
+import org.springframework.hateoas.LinkRelation;
+import org.springframework.hateoas.Links;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @SpringBootTest(
@@ -100,6 +114,32 @@ public class EntandoPluginControllerTest {
                 .andExpect(jsonPath("$._embedded.entandoPluginList[0].metadata.namespace").value(TEST_PLUGIN_NAMESPACE));
 
         verify(entandoPluginService, times(1)).getAllInNamespace(TEST_PLUGIN_NAMESPACE);
+    }
+
+    @Test
+    public void shouldReturnCollectionLinks() throws Exception {
+        URI uri = UriComponentsBuilder
+                .fromUriString(BASE_PLUGIN_ENDPOINT)
+                .queryParam("namespace", TEST_PLUGIN_NAMESPACE)
+                .build().toUri();
+
+
+        EntandoPlugin tempPlugin = EntandoPluginTestHelper.getTestEntandoPlugin();
+        when(entandoPluginService.getAllInNamespace(any(String.class))).thenReturn(Collections.singletonList(tempPlugin));
+        MvcResult result =mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().is2xxSuccessful())
+                .andReturn();
+        CollectionModel<EntityModel<EntandoPlugin>> appCollection =
+                HalUtils.halMapper().readValue(
+                        result.getResponse().getContentAsString(),
+                        new TypeReference<CollectionModel<EntityModel<EntandoPlugin>>>() {}
+                );
+        Links cl = appCollection.getLinks();
+        assertThat(cl).isNotEmpty();
+        assertThat(cl.stream().map(Link::getRel).map(LinkRelation::value).collect(Collectors.toList()))
+                .containsExactlyInAnyOrder("plugin", "plugins-in-namespace", "plugin-links");
+        assertThat(cl.stream().allMatch(Link::isTemplated)).isTrue();
     }
 
     @Test

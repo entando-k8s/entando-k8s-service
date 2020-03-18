@@ -1,5 +1,6 @@
 package org.entando.kubernetes.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.entando.kubernetes.util.EntandoAppTestHelper.TEST_APP_NAME;
 import static org.entando.kubernetes.util.EntandoAppTestHelper.TEST_APP_NAMESPACE;
 import static org.entando.kubernetes.util.EntandoPluginTestHelper.TEST_PLUGIN_NAME;
@@ -18,14 +19,19 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URI;
 import java.util.Collections;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import org.assertj.core.api.Assertions;
 import org.entando.kubernetes.EntandoKubernetesJavaApplication;
 import org.entando.kubernetes.config.TestJwtDecoderConfig;
 import org.entando.kubernetes.config.TestKubernetesConfig;
@@ -39,6 +45,8 @@ import org.entando.kubernetes.service.EntandoPluginService;
 import org.entando.kubernetes.util.EntandoAppTestHelper;
 import org.entando.kubernetes.util.EntandoLinkTestHelper;
 import org.entando.kubernetes.util.EntandoPluginTestHelper;
+import org.entando.kubernetes.util.HalUtils;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -47,9 +55,16 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.Link;
+import org.springframework.hateoas.LinkRelation;
+import org.springframework.hateoas.Links;
+import org.springframework.hateoas.mediatype.hal.Jackson2HalModule;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @SpringBootTest(
@@ -114,6 +129,31 @@ public class EntandoAppControllerTest {
     }
 
     @Test
+    public void shouldReturnCollectionLinks() throws Exception {
+        URI uri = UriComponentsBuilder
+                .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
+                .queryParam("namespace", TEST_APP_NAMESPACE)
+                .build().toUri();
+
+        EntandoApp tempApp = EntandoAppTestHelper.getTestEntandoApp();
+        when(entandoAppService.getAllInNamespace(any(String.class))).thenReturn(Collections.singletonList(tempApp));
+        MvcResult result =mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().is2xxSuccessful())
+                .andReturn();
+        CollectionModel<EntityModel<EntandoApp>> appCollection =
+                HalUtils.halMapper().readValue(
+                        result.getResponse().getContentAsString(),
+                        new TypeReference<CollectionModel<EntityModel<EntandoApp>>>() {}
+                        );
+        Links cl = appCollection.getLinks();
+        assertThat(cl).isNotEmpty();
+        assertThat(cl.stream().map(Link::getRel).map(LinkRelation::value).collect(Collectors.toList()))
+                .containsExactlyInAnyOrder("app", "apps-in-namespace", "app-links");
+        assertThat(cl.stream().allMatch(Link::isTemplated)).isTrue();
+    }
+
+    @Test
     public void shouldReturn404IfAppNotFound() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
@@ -164,7 +204,8 @@ public class EntandoAppControllerTest {
                 )))
                 .andExpect(jsonPath(linkHateoasLinksJsonPath).exists())
                 .andExpect(jsonPath(linkHateoasLinksJsonPath + ".app.href").value(endsWith("apps/my-app")))
-                .andExpect(jsonPath(linkHateoasLinksJsonPath + ".plugin.href").value(endsWith("plugins/my-plugin")));
+                .andExpect(jsonPath(linkHateoasLinksJsonPath + ".plugin.href").value(endsWith("plugins/my-plugin")))
+                .andExpect(jsonPath(linkHateoasLinksJsonPath + ".unlink.href").value(endsWith("apps/my-app/links?plugin=my-plugin")));
 
     }
 
@@ -288,14 +329,13 @@ public class EntandoAppControllerTest {
     public void shouldDeleteExistingLinkBetweenAppAndPlugin() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
-                .pathSegment(TEST_APP_NAME, "links", TEST_PLUGIN_NAME)
+                .pathSegment(TEST_APP_NAME, "links")
+                .queryParam("plugin",TEST_PLUGIN_NAME)
                 .build().toUri();
 
         EntandoAppPluginLink el = EntandoLinkTestHelper.getTestLink();
-        EntandoApp ea = EntandoAppTestHelper.getTestEntandoApp();
 
-        when(entandoAppService.findByName(anyString())).thenReturn(Optional.of(ea));
-        when(entandoLinkService.getLink(any(EntandoApp.class), eq(TEST_PLUGIN_NAME))).thenReturn(Optional.of(el));
+        when(entandoLinkService.findByAppNameAndPluginName(eq(TEST_APP_NAME), eq(TEST_PLUGIN_NAME))).thenReturn(Optional.of(el));
 
         mvc.perform(delete(uri)
                 .accept(MediaType.APPLICATION_JSON))

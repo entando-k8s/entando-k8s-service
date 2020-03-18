@@ -29,6 +29,12 @@ public final class NotFoundExceptionFactory {
                 String.format("Link between EntandoApp %s and EntandoPlugin %s "
                         + "not found in observed namespace", appName, pluginName));
     }
+
+    public static ThrowableProblem entandoLinkWithName(String name) {
+        return Problem.valueOf(Status.NOT_FOUND,
+                String.format("EntandoAppPluginLink with name %s "
+                        + "not found in observed namespace", name));
+    }
     public static ThrowableProblem observedNamespace(String name) {
         return Problem.valueOf(Status.NOT_FOUND,
                 String.format("Namespace %s is not part of the observed namespaces", name));

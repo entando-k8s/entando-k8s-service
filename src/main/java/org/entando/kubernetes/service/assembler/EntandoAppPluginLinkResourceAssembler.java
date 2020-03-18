@@ -29,13 +29,13 @@ public class EntandoAppPluginLinkResourceAssembler implements
         EntandoAppPluginLink link = response.getContent();
         assert link != null;
         String pluginName = link.getSpec().getEntandoPluginName();
-        String pluginNamespace = link.getSpec().getEntandoPluginNamespace();
         String appName = link.getSpec().getEntandoAppName();
-        String appNamespace = link.getSpec().getEntandoAppNamespace();
 
         response.add(linkTo(methodOn(EntandoAppController.class)
                 .get(appName)).withRel("app"));
         response.add(linkTo(methodOn(EntandoPluginController.class)
                 .get(pluginName)).withRel("plugin"));
+        response.add(linkTo(methodOn(EntandoAppController.class)
+                .unlink(appName, pluginName)).withRel("unlink"));
     }
 }
