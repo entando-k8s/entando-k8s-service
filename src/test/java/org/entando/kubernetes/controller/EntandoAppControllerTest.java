@@ -120,9 +120,9 @@ public class EntandoAppControllerTest {
 
         mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is2xxSuccessful())
-                .andExpect(jsonPath("$._embedded.entandoAppList").isNotEmpty())
-                .andExpect(jsonPath("$._embedded.entandoAppList[0].metadata.name" ).value(TEST_APP_NAME))
-                .andExpect(jsonPath("$._embedded.entandoAppList[0].metadata.namespace").value(TEST_APP_NAMESPACE));
+                .andExpect(jsonPath("$._embedded.entandoApps").isNotEmpty())
+                .andExpect(jsonPath("$._embedded.entandoApps[0].metadata.name" ).value(TEST_APP_NAME))
+                .andExpect(jsonPath("$._embedded.entandoApps[0].metadata.namespace").value(TEST_APP_NAMESPACE));
 
 
         verify(entandoAppService, times(1)).getAllInNamespace(TEST_APP_NAMESPACE);
@@ -190,7 +190,7 @@ public class EntandoAppControllerTest {
         when(entandoAppService.findByName(anyString())).thenReturn(Optional.of(ea));
         when(entandoLinkService.getAppLinks(any(EntandoApp.class))).thenReturn(Collections.singletonList(el));
 
-        final String linkEntryJsonPath = "$._embedded.entandoAppPluginLinkList[0]";
+        final String linkEntryJsonPath = "$._embedded.entandoAppPluginLinks[0]";
         final String linkHateoasLinksJsonPath = linkEntryJsonPath + "._links";
 
         mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))

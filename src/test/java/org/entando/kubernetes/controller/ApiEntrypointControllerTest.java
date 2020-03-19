@@ -50,6 +50,7 @@ public class ApiEntrypointControllerTest {
                             hasKey("apps"),
                             hasKey("plugins"),
                             hasKey("bundles"),
+                            hasKey("app-plugin-links"),
                             hasKey("namespaces")
                         )
                 ));

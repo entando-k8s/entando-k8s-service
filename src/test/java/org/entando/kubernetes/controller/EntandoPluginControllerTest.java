@@ -109,9 +109,9 @@ public class EntandoPluginControllerTest {
 
         mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is2xxSuccessful())
-                .andExpect(jsonPath("$._embedded.entandoPluginList").isNotEmpty())
-                .andExpect(jsonPath("$._embedded.entandoPluginList[0].metadata.name" ).value(TEST_PLUGIN_NAME))
-                .andExpect(jsonPath("$._embedded.entandoPluginList[0].metadata.namespace").value(TEST_PLUGIN_NAMESPACE));
+                .andExpect(jsonPath("$._embedded.entandoPlugins").isNotEmpty())
+                .andExpect(jsonPath("$._embedded.entandoPlugins[0].metadata.name" ).value(TEST_PLUGIN_NAME))
+                .andExpect(jsonPath("$._embedded.entandoPlugins[0].metadata.namespace").value(TEST_PLUGIN_NAMESPACE));
 
         verify(entandoPluginService, times(1)).getAllInNamespace(TEST_PLUGIN_NAMESPACE);
     }
@@ -173,7 +173,7 @@ public class EntandoPluginControllerTest {
         when(entandoPluginService.findByName(eq(pluginName))).thenReturn(Optional.of(tempPlugin));
         when(entandoLinkService.getPluginLinks(eq(tempPlugin))).thenReturn(Collections.singletonList(tempLink));
 
-        String jsonPathToCheck = "$._embedded.entandoAppPluginLinkList";
+        String jsonPathToCheck = "$._embedded.entandoAppPluginLinks";
 
         mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is2xxSuccessful())

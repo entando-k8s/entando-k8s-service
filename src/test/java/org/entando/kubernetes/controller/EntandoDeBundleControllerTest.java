@@ -98,9 +98,9 @@ public class EntandoDeBundleControllerTest {
 
         mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is2xxSuccessful())
-                .andExpect(jsonPath("$._embedded.entandoDeBundleList").isNotEmpty())
-                .andExpect(jsonPath("$._embedded.entandoDeBundleList[0].metadata.name" ).value(TEST_BUNDLE_NAME))
-                .andExpect(jsonPath("$._embedded.entandoDeBundleList[0].metadata.namespace").value(TEST_BUNDLE_NAMESPACE));
+                .andExpect(jsonPath("$._embedded.entandoDeBundles").isNotEmpty())
+                .andExpect(jsonPath("$._embedded.entandoDeBundles[0].metadata.name" ).value(TEST_BUNDLE_NAME))
+                .andExpect(jsonPath("$._embedded.entandoDeBundles[0].metadata.namespace").value(TEST_BUNDLE_NAMESPACE));
 
 
         verify(entandoDeBundleService, times(1)).getAll();
@@ -118,9 +118,9 @@ public class EntandoDeBundleControllerTest {
 
         mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is2xxSuccessful())
-                .andExpect(jsonPath("$._embedded.entandoDeBundleList").isNotEmpty())
-                .andExpect(jsonPath("$._embedded.entandoDeBundleList[0].metadata.name" ).value(TEST_BUNDLE_NAME))
-                .andExpect(jsonPath("$._embedded.entandoDeBundleList[0].metadata.namespace").value(TEST_BUNDLE_NAMESPACE));
+                .andExpect(jsonPath("$._embedded.entandoDeBundles").isNotEmpty())
+                .andExpect(jsonPath("$._embedded.entandoDeBundles[0].metadata.name" ).value(TEST_BUNDLE_NAME))
+                .andExpect(jsonPath("$._embedded.entandoDeBundles[0].metadata.namespace").value(TEST_BUNDLE_NAMESPACE));
 
 
         verify(entandoDeBundleService, times(1)).getAllInNamespace(TEST_BUNDLE_NAMESPACE);

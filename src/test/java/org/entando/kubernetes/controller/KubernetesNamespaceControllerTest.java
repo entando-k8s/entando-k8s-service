@@ -64,7 +64,7 @@ public class KubernetesNamespaceControllerTest {
     public void shouldReturnOkResponseAndLinks() throws Exception {
         mvc.perform(get(URI.create("/namespaces")).accept(HAL_JSON_VALUE))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.observedNamespaceList").exists())
+                .andExpect(jsonPath("$._embedded.observedNamespaces").exists())
                 .andExpect(jsonPath("$._links.plugins").exists())
                 .andExpect(jsonPath("$._links.apps").exists())
                 .andExpect(jsonPath("$._links.bundles").exists());
