@@ -32,7 +32,7 @@ public class EntandoAppResourceAssembler implements RepresentationModelAssembler
         return Links.of(
             linkTo(methodOn(EntandoAppController.class).get(appName)) .withSelfRel(),
             linkTo(methodOn(EntandoAppController.class).list()).withRel("apps"),
-            linkTo(methodOn(EntandoAppController.class).listInNamespace(null)).withRel("apps-in-namespace"),
+            linkTo(methodOn(EntandoAppController.class).listInNamespace(appNamespace)).withRel("apps-in-namespace"),
             linkTo(methodOn(EntandoLinksController.class).listByApp(appName)).withRel("app-links"),
             linkTo(methodOn(KubernetesNamespaceController.class).getByName(appNamespace)) .withRel("namespace")
         );
