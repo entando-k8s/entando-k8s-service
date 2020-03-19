@@ -218,6 +218,7 @@
         </dependency>
 
         <!-- Not working yet with Spring Boot 2.2.0 and Spring Hateoas, waiting for fix -->
+        <!-- Check comments here: https://stackoverflow.com/a/60064485/3449226 -->
 <!--        <dependency>-->
 <!--            <groupId>io.springfox</groupId>-->
 <!--            <artifactId>springfox-swagger2</artifactId>-->
