@@ -4,6 +4,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import org.entando.kubernetes.controller.EntandoAppController;
+import org.entando.kubernetes.controller.EntandoLinksController;
 import org.entando.kubernetes.controller.KubernetesNamespaceController;
 import org.entando.kubernetes.model.app.EntandoApp;
 import org.springframework.hateoas.EntityModel;
@@ -32,7 +33,7 @@ public class EntandoAppResourceAssembler implements RepresentationModelAssembler
             linkTo(methodOn(EntandoAppController.class).get(appName)) .withSelfRel(),
             linkTo(methodOn(EntandoAppController.class).list()).withRel("apps"),
             linkTo(methodOn(EntandoAppController.class).listInNamespace(null)).withRel("apps-in-namespace"),
-            linkTo(methodOn(EntandoAppController.class).listLinks(appName)).withRel("app-links"),
+            linkTo(methodOn(EntandoLinksController.class).listByApp(appName)).withRel("app-links"),
             linkTo(methodOn(KubernetesNamespaceController.class).getByName(appNamespace)) .withRel("namespace")
         );
     }

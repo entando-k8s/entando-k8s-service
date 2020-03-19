@@ -159,32 +159,6 @@ public class EntandoPluginControllerTest {
 
     }
 
-    @Test
-    public void shouldReturnListOfLinksToThePlugin() throws Exception {
-        EntandoPlugin tempPlugin = EntandoPluginTestHelper.getTestEntandoPlugin();
-        EntandoAppPluginLink tempLink = EntandoLinkTestHelper.getTestLink();
-
-        String pluginName = tempPlugin.getMetadata().getName();
-        URI uri = UriComponentsBuilder
-                .fromUriString(BASE_PLUGIN_ENDPOINT)
-                .pathSegment(pluginName, "links")
-                .build().toUri();
-
-        when(entandoPluginService.findByName(eq(pluginName))).thenReturn(Optional.of(tempPlugin));
-        when(entandoLinkService.getPluginLinks(eq(tempPlugin))).thenReturn(Collections.singletonList(tempLink));
-
-        String jsonPathToCheck = "$._embedded.entandoAppPluginLinks";
-
-        mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().is2xxSuccessful())
-                .andExpect(jsonPath(jsonPathToCheck).isNotEmpty())
-                .andExpect(jsonPath(jsonPathToCheck + "[0].spec.entandoPluginName" ).value(TEST_PLUGIN_NAME))
-                .andExpect(jsonPath(jsonPathToCheck + "[0].spec.entandoPluginNamespace").value(TEST_PLUGIN_NAMESPACE));
-
-        verify(entandoPluginService, times(1)).findByName(pluginName);
-        verify(entandoLinkService, times(1)).getPluginLinks(any());
-
-    }
 
     @Test
     public void shouldReturn404IfPluginNotFound() throws Exception {

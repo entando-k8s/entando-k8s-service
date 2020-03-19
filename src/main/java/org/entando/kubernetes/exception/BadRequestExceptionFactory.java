@@ -1,6 +1,7 @@
 package org.entando.kubernetes.exception;
 
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
+import org.entando.kubernetes.model.request.AppPluginLinkRequest;
 import org.zalando.problem.Problem;
 import org.zalando.problem.Status;
 import org.zalando.problem.ThrowableProblem;
@@ -39,4 +40,8 @@ public final class BadRequestExceptionFactory {
                 String.format("Provided namespace %s is not part of namespaces observed by this instance", ex.getNamespace()));
     }
 
+    public static ThrowableProblem invalidAppPluginLinkDeleteRequest(AppPluginLinkRequest req) {
+        String message = "Invalid link delete request! appName and pluginName must be not null nor empty - " + req.toString();
+        return Problem.valueOf(Status.BAD_REQUEST, message);
+    }
 }

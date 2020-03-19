@@ -179,53 +179,21 @@ public class EntandoAppControllerTest {
     }
 
     @Test
-    public void shouldReturnAppLinks() throws Exception {
-        URI uri = UriComponentsBuilder
-                .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
-                .pathSegment(TEST_APP_NAME, "links")
-                .build().toUri();
-        EntandoApp ea = EntandoAppTestHelper.getTestEntandoApp();
-        EntandoAppPluginLink el = EntandoLinkTestHelper.getTestLink();
-
-        when(entandoAppService.findByName(anyString())).thenReturn(Optional.of(ea));
-        when(entandoLinkService.getAppLinks(any(EntandoApp.class))).thenReturn(Collections.singletonList(el));
-
-        final String linkEntryJsonPath = "$._embedded.entandoAppPluginLinks[0]";
-        final String linkHateoasLinksJsonPath = linkEntryJsonPath + "._links";
-
-        mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath(linkEntryJsonPath + ".metadata.name").value(el.getMetadata().getName()))
-                .andExpect(jsonPath(linkEntryJsonPath + ".spec").value(allOf(
-                        hasEntry("entandoAppNamespace", TEST_APP_NAMESPACE),
-                        hasEntry("entandoPluginNamespace", TEST_PLUGIN_NAMESPACE),
-                        hasEntry("entandoPluginName", TEST_PLUGIN_NAME),
-                        hasEntry("entandoAppName", TEST_APP_NAME)
-                )))
-                .andExpect(jsonPath(linkHateoasLinksJsonPath).exists())
-                .andExpect(jsonPath(linkHateoasLinksJsonPath + ".app.href").value(endsWith("apps/my-app")))
-                .andExpect(jsonPath(linkHateoasLinksJsonPath + ".plugin.href").value(endsWith("plugins/my-plugin")))
-                .andExpect(jsonPath(linkHateoasLinksJsonPath + ".unlink.href").value(endsWith("apps/my-app/links?plugin=my-plugin")));
-
-    }
-
-    @Test
     private void shouldReturnLinksInEntandoStructure() throws Exception {
-        URI uri;
-        uri = UriComponentsBuilder
+        URI uri = UriComponentsBuilder
                 .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
                 .pathSegment(TEST_APP_NAME)
                 .build().toUri();
         EntandoApp ea = EntandoAppTestHelper.getTestEntandoApp();
 
-        when(entandoAppService.getAll()).thenReturn(Collections.singletonList(ea));
+        when(entandoAppService.findByName(TEST_APP_NAME)).thenReturn(Optional.of(ea));
 
         String appLinksJsonPath = "$._links";
 
         mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath(appLinksJsonPath).value(hasKey("links")))
-                .andExpect(jsonPath(appLinksJsonPath + ".links.href").value(endsWith("apps/test-namespace/my-app/links")));
+                .andExpect(jsonPath(appLinksJsonPath + ".app-links.href").value(endsWith("/links?app=my-app")));
     }
 
     @Test
@@ -323,25 +291,6 @@ public class EntandoAppControllerTest {
         verify(entandoPluginService, times(1)).deploy(argumentCaptor.capture());
         EntandoPlugin passedPlugin = argumentCaptor.getValue();
         assertEquals(ea.getMetadata().getNamespace(), passedPlugin.getMetadata().getNamespace());
-    }
-
-    @Test
-    public void shouldDeleteExistingLinkBetweenAppAndPlugin() throws Exception {
-        URI uri = UriComponentsBuilder
-                .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
-                .pathSegment(TEST_APP_NAME, "links")
-                .queryParam("plugin",TEST_PLUGIN_NAME)
-                .build().toUri();
-
-        EntandoAppPluginLink el = EntandoLinkTestHelper.getTestLink();
-
-        when(entandoLinkService.findByAppNameAndPluginName(eq(TEST_APP_NAME), eq(TEST_PLUGIN_NAME))).thenReturn(Optional.of(el));
-
-        mvc.perform(delete(uri)
-                .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isAccepted());
-
-        verify(entandoLinkService, times(1)).delete(any(EntandoAppPluginLink.class));
     }
 
     @Test

@@ -77,38 +77,6 @@ public class EntandoAppController {
         return ResponseEntity.ok(appResourceAssembler.toModel(entandoApp));
     }
 
-    @GetMapping(path = "/{name}/links", produces = {APPLICATION_JSON_VALUE,
-            HAL_JSON_VALUE})
-    public ResponseEntity<CollectionModel<EntityModel<EntandoAppPluginLink>>> listLinks(
-            @PathVariable("name") String appName) {
-        EntandoApp entandoApp = getEntandoAppOrFail(appName);
-        List<EntandoAppPluginLink> appLinks = entandoLinkService.getAppLinks(entandoApp);
-        CollectionModel<EntityModel<EntandoAppPluginLink>> linksCollection = getLinksCollectionModel(appLinks);
-        addLinkCollectionLinks(linksCollection);
-        return ResponseEntity.ok(linksCollection);
-    }
-
-    @GetMapping(path = "/{name}/links/{linkName}", produces = {APPLICATION_JSON_VALUE,
-            HAL_JSON_VALUE})
-    public ResponseEntity<EntityModel<EntandoAppPluginLink>> getAppLink(
-            @PathVariable("name") String appName, @PathVariable("linkName") String linkName) {
-        EntandoApp entandoApp = getEntandoAppOrFail(appName);
-        List<EntandoAppPluginLink> appLinks = entandoLinkService.getAppLinks(entandoApp);
-        EntandoAppPluginLink link = appLinks.stream()
-                .filter(l -> l.getMetadata().getName().equals(linkName)).findFirst()
-                .<ThrowableProblem>orElseThrow(() -> NotFoundExceptionFactory.entandoLinkWithName(linkName));
-        return ResponseEntity.ok(linkResourceAssembler.toModel(link));
-    }
-
-    @GetMapping(path = "/{name}/links", produces = {APPLICATION_JSON_VALUE,
-            HAL_JSON_VALUE}, params = "plugin")
-    public ResponseEntity<EntityModel<EntandoAppPluginLink>> listLinks(
-            @PathVariable("name") String appName, @RequestParam("plugin") String pluginName) {
-        EntandoAppPluginLink appPluginLink = getAppPluginLinkOrFail(appName, pluginName);
-        return ResponseEntity.ok(linkResourceAssembler.toModel(appPluginLink));
-    }
-
-
     @PostMapping(path = "/{name}/links", consumes = APPLICATION_JSON_VALUE, produces = {
             APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
     public ResponseEntity<EntityModel<EntandoAppPluginLink>> linkToPlugin(
@@ -121,36 +89,12 @@ public class EntandoAppController {
         return ResponseEntity.status(HttpStatus.CREATED).body(linkResourceAssembler.toModel(deployedLink));
     }
 
-    @DeleteMapping(path = "/{name}/links", produces = {
-            APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
-    public ResponseEntity<Void> unlink(
-            @PathVariable("name") String appName,
-            @RequestParam("plugin") String pluginName) {
-        EntandoAppPluginLink linkToRemove = getAppPluginLinkOrFail(appName, pluginName);
-        entandoLinkService.delete(linkToRemove);
-        return ResponseEntity.accepted().build();
-    }
-
 
     private EntandoApp getEntandoAppOrFail(String appName) {
         return entandoAppService
                 .findByName(appName)
                 .<ThrowableProblem>orElseThrow(() -> {
                     throw NotFoundExceptionFactory.entandoApp(appName);
-                });
-    }
-
-    private EntandoAppPluginLink getAppPluginLinkOrFail(String appName, String pluginName) {
-        return entandoLinkService.findByAppNameAndPluginName(appName, pluginName)
-                .<ThrowableProblem>orElseThrow(() -> {
-                    throw NotFoundExceptionFactory.entandoLink(appName, pluginName);
-                });
-    }
-
-    private EntandoAppPluginLink getLink(String linkName) {
-        return entandoLinkService.findByName(linkName)
-                .<ThrowableProblem>orElseThrow(() -> {
-                    throw NotFoundExceptionFactory.entandoLinkWithName(linkName);
                 });
     }
 
@@ -169,12 +113,8 @@ public class EntandoAppController {
 
     private void addAppCollectionLinks(CollectionModel<EntityModel<EntandoApp>> collection) {
         collection.add(linkTo(methodOn(EntandoAppController.class).get(null)).withRel("app"));
-        collection.add(linkTo(methodOn(EntandoAppController.class).listLinks(null)).withRel("app-links"));
+        collection.add(linkTo(methodOn(EntandoLinksController.class).listByApp(null)).withRel("app-links"));
         collection.add(linkTo(methodOn(EntandoAppController.class).listInNamespace(null)).withRel("apps-in-namespace"));
-    }
-
-    private void addLinkCollectionLinks(CollectionModel<EntityModel<EntandoAppPluginLink>> linksCollection) {
-        linksCollection.add(linkTo(methodOn(EntandoAppController.class).unlink(null, null)).withRel("unlink"));
     }
 
     private CollectionModel<EntityModel<EntandoApp>> getAppsCollectionModel(List<EntandoApp> entandoApps) {

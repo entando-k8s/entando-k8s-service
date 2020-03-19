@@ -1,25 +1,39 @@
 package org.entando.kubernetes.controller;
 
+import static org.springframework.hateoas.MediaTypes.HAL_JSON_VALUE;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import java.net.URI;
+import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.entando.kubernetes.exception.NotFoundExceptionFactory;
+import org.entando.kubernetes.model.app.EntandoApp;
 import org.entando.kubernetes.model.link.EntandoAppPluginLink;
+import org.entando.kubernetes.model.plugin.EntandoPlugin;
+import org.entando.kubernetes.model.request.AppPluginLinkRequest;
+import org.entando.kubernetes.service.EntandoAppService;
 import org.entando.kubernetes.service.EntandoLinkService;
+import org.entando.kubernetes.service.EntandoPluginService;
 import org.entando.kubernetes.service.assembler.EntandoAppPluginLinkResourceAssembler;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.IanaLinkRelations;
+import org.springframework.hateoas.Link;
 import org.springframework.hateoas.Links;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.ModelAndView;
 
 @Slf4j
 @RestController
@@ -28,54 +42,87 @@ import org.springframework.web.servlet.ModelAndView;
 public class EntandoLinksController {
 
     private final EntandoLinkService entandoLinkService;
+    private final EntandoAppService entandoAppService;
+    private final EntandoPluginService entandoPluginService;
     private final EntandoAppPluginLinkResourceAssembler linkResourceAssembler;
 
-    @GetMapping
+    @GetMapping(produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
     public ResponseEntity<CollectionModel<EntityModel<EntandoAppPluginLink>>> list() {
-        CollectionModel<EntityModel<EntandoAppPluginLink>> cm = new CollectionModel(entandoLinkService.getAll()
-                .stream().map(linkResourceAssembler::toModel).collect(
-                Collectors.toList()));
-        cm.add(getCollectionLinks());
-        return ResponseEntity.ok(cm);
+        return ResponseEntity.ok(getCollectionWithLinks(entandoLinkService.getAll()));
     }
 
-    @GetMapping(params = "namespace")
+    @GetMapping(produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE}, params = "namespace")
     public ResponseEntity<CollectionModel<EntityModel<EntandoAppPluginLink>>> listByNamespace(@RequestParam("namespace") String namespace) {
-        CollectionModel<EntityModel<EntandoAppPluginLink>> cm = new CollectionModel(entandoLinkService.getAllInNamespace(namespace)
-                .stream().map(linkResourceAssembler::toModel).collect(
-                        Collectors.toList()));
-        cm.add(getCollectionLinks());
-        return ResponseEntity.ok(cm);
+        List<EntandoAppPluginLink> el = entandoLinkService.getAllInNamespace(namespace);
+        return ResponseEntity.ok(getCollectionWithLinks(el));
     }
 
-    @GetMapping(params = "app")
-    public ModelAndView listByApp(@RequestParam("app") String appName) {
-        return new ModelAndView(String.format("redirect:/apps/%s/links", appName));
+    @GetMapping(params = "app", produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
+    public ResponseEntity<CollectionModel<EntityModel<EntandoAppPluginLink>>> listByApp(@RequestParam("app") String appName) {
+        List<EntandoAppPluginLink> el = entandoLinkService.findByAppName(appName);
+        return ResponseEntity.ok(getCollectionWithLinks(el));
     }
 
-    @GetMapping(params = "plugin")
-    public ModelAndView listByPlugin(@RequestParam("plugin") String pluginName) {
-        return new ModelAndView(String.format("redirect:/plugins/%s/links", pluginName));
+    @GetMapping(params = "plugin", produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
+    public ResponseEntity<CollectionModel<EntityModel<EntandoAppPluginLink>>> listByPlugin(@RequestParam("plugin") String pluginName) {
+        List<EntandoAppPluginLink> el = entandoLinkService.findByPluginName(pluginName);
+        return ResponseEntity.ok(getCollectionWithLinks(el));
     }
 
-    @GetMapping("/{name}")
+    @GetMapping(value = "/{name}", produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
     public ResponseEntity<EntityModel<EntandoAppPluginLink>> get(@PathVariable String name) {
-        EntandoAppPluginLink link = getLinkOrFail(name);
+        EntandoAppPluginLink link = getLinkByNameOrFail(name);
         return ResponseEntity.ok(linkResourceAssembler.toModel(link));
     }
 
-    private EntandoAppPluginLink getLinkOrFail(String name) {
+    @PostMapping(consumes = {APPLICATION_JSON_VALUE}, produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
+    public ResponseEntity<EntityModel<EntandoAppPluginLink>> create(@RequestBody AppPluginLinkRequest req) {
+        EntandoApp ea = getAppByNameOrFail(req.getAppName());
+        EntandoPlugin ep = getPluginByNameOrFail(req.getPluginName());
+        EntandoAppPluginLink link = entandoLinkService.buildBetweenAppAndPlugin(ea, ep);
+        EntityModel<EntandoAppPluginLink> model = linkResourceAssembler.toModel(link);
+        URI linkLocation = model.getLink(IanaLinkRelations.SELF).map(Link::toUri).orElse(null);
+        assert linkLocation != null;
+        return ResponseEntity.created(linkLocation).body(model);
+    }
+
+    @DeleteMapping(value = "/{name}")
+    public ResponseEntity<Object> delete(@PathVariable String name) {
+        EntandoAppPluginLink link = getLinkByNameOrFail(name);
+        entandoLinkService.delete(link);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+    private EntandoApp getAppByNameOrFail(String name) {
+        return entandoAppService.findByName(name)
+                .orElseThrow(() -> NotFoundExceptionFactory.entandoApp(name));
+    }
+
+    private EntandoPlugin getPluginByNameOrFail(String name) {
+        return entandoPluginService.findByName(name)
+                .orElseThrow(() -> NotFoundExceptionFactory.entandoPlugin(name));
+    }
+
+    private EntandoAppPluginLink getLinkByNameOrFail(String name) {
         return entandoLinkService.findByName(name)
                 .orElseThrow(() -> NotFoundExceptionFactory.entandoLinkWithName(name));
     }
 
-    private Links getCollectionLinks() {
-        return Links.of(
-                linkTo(methodOn(EntandoLinksController.class).get(null)).withRel("link"),
-                linkTo(methodOn(EntandoAppController.class).listLinks(null)).withRel("app-links"),
-                linkTo(methodOn(EntandoPluginController.class).listLinks(null)).withRel("plugin-links"),
-                linkTo(methodOn(EntandoLinksController.class).listByNamespace(null)).withRel("links-in-namespace")
-        );
+    private CollectionModel<EntityModel<EntandoAppPluginLink>> getCollectionWithLinks(List<EntandoAppPluginLink> all) {
+        CollectionModel<EntityModel<EntandoAppPluginLink>> cm = new CollectionModel<>(all
+                .stream().map(linkResourceAssembler::toModel).collect(
+                        Collectors.toList()));
+        cm.add(getCollectionLinks());
+        return cm;
     }
 
+    private Links getCollectionLinks() {
+        return Links.of(
+                linkTo(methodOn(EntandoLinksController.class).get(null)).withRel("app-plugin-link"),
+                linkTo(methodOn(EntandoLinksController.class).delete(null)).withRel("delete"),
+                linkTo(methodOn(EntandoLinksController.class).listByApp(null)).withRel("app-links"),
+                linkTo(methodOn(EntandoLinksController.class).listByPlugin(null)).withRel("plugin-links"),
+                linkTo(methodOn(EntandoLinksController.class).listByNamespace(null)).withRel("app-plugin-links-in-namespace")
+        );
+    }
 }

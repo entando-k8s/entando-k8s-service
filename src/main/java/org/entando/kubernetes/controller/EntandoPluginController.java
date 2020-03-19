@@ -39,10 +39,8 @@ import org.zalando.problem.ThrowableProblem;
 @RequiredArgsConstructor
 public class EntandoPluginController {
 
-    private final EntandoLinkService entandoLinkService;
     private final EntandoPluginService entandoPluginService;
     private final EntandoPluginResourceAssembler resourceAssembler;
-    private final EntandoAppPluginLinkResourceAssembler linkResourceAssembler;
 
     @GetMapping(produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
     public ResponseEntity<CollectionModel<EntityModel<EntandoPlugin>>> list() {
@@ -84,22 +82,10 @@ public class EntandoPluginController {
     public ResponseEntity<EntityModel<EntandoPlugin>> create(
             @RequestBody EntandoPlugin entandoPlugin) {
         throwExceptionIfAlreadyDeployed(entandoPlugin);
-        //TODO: throw exception if working with non observed namespace
         EntandoPlugin deployedPlugin = entandoPluginService.deploy(entandoPlugin);
         URI resourceLink = linkTo(methodOn(getClass()).get(deployedPlugin.getMetadata().getName())).toUri();
         return ResponseEntity.created(resourceLink).body(resourceAssembler.toModel(deployedPlugin));
     }
-
-    @GetMapping(path = "/{name}/links", produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
-    public ResponseEntity<CollectionModel<EntityModel<EntandoAppPluginLink>>> listLinks(
-            @PathVariable("name") String pluginName) {
-        EntandoPlugin entandoPlugin = getEntandoPluginOrFail(pluginName);
-        List<EntandoAppPluginLink> appLinks = entandoLinkService.getPluginLinks(entandoPlugin);
-        CollectionModel<EntityModel<EntandoAppPluginLink>> lcm = getLinkCollectionModel(appLinks);
-        return ResponseEntity.ok(lcm);
-    }
-
-
 
     private EntandoPlugin getEntandoPluginOrFail(String pluginName) {
         return entandoPluginService
@@ -118,19 +104,13 @@ public class EntandoPluginController {
     }
 
     private void addCollectionLinks(CollectionModel<EntityModel<EntandoPlugin>> collection) {
-        collection.add(linkTo(methodOn(this.getClass()).get(null)).withRel("plugin"));
-        collection.add(linkTo(methodOn(this.getClass()).listInNamespace(null)).withRel("plugins-in-namespace"));
-        collection.add(linkTo(methodOn(this.getClass()).listLinks(null)).withRel("plugin-links"));
+        collection.add(linkTo(methodOn(EntandoPluginController.class).get(null)).withRel("plugin"));
+        collection.add(linkTo(methodOn(EntandoPluginController.class).listInNamespace(null)).withRel("plugins-in-namespace"));
+        collection.add(linkTo(methodOn(EntandoLinksController.class).listByPlugin(null)).withRel("plugin-links"));
     }
 
     private CollectionModel<EntityModel<EntandoPlugin>> getPluginCollectionModel(List<EntandoPlugin> plugins) {
         return new CollectionModel<>(plugins.stream().map(resourceAssembler::toModel).collect(Collectors.toList()));
-    }
-
-    private CollectionModel<EntityModel<EntandoAppPluginLink>> getLinkCollectionModel(List<EntandoAppPluginLink> appLinks) {
-        return new CollectionModel<>(appLinks.stream()
-                .map(linkResourceAssembler::toModel)
-                .collect(Collectors.toList()));
     }
 
 }
