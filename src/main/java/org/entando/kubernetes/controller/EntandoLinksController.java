@@ -52,19 +52,19 @@ public class EntandoLinksController {
     }
 
     @GetMapping(produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE}, params = "namespace")
-    public ResponseEntity<CollectionModel<EntityModel<EntandoAppPluginLink>>> listByNamespace(@RequestParam("namespace") String namespace) {
+    public ResponseEntity<CollectionModel<EntityModel<EntandoAppPluginLink>>> listInNamespace(@RequestParam("namespace") String namespace) {
         List<EntandoAppPluginLink> el = entandoLinkService.getAllInNamespace(namespace);
         return ResponseEntity.ok(getCollectionWithLinks(el));
     }
 
     @GetMapping(params = "app", produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
-    public ResponseEntity<CollectionModel<EntityModel<EntandoAppPluginLink>>> listByApp(@RequestParam("app") String appName) {
+    public ResponseEntity<CollectionModel<EntityModel<EntandoAppPluginLink>>> listAppLinks(@RequestParam("app") String appName) {
         List<EntandoAppPluginLink> el = entandoLinkService.findByAppName(appName);
         return ResponseEntity.ok(getCollectionWithLinks(el));
     }
 
     @GetMapping(params = "plugin", produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
-    public ResponseEntity<CollectionModel<EntityModel<EntandoAppPluginLink>>> listByPlugin(@RequestParam("plugin") String pluginName) {
+    public ResponseEntity<CollectionModel<EntityModel<EntandoAppPluginLink>>> listPluginLinks(@RequestParam("plugin") String pluginName) {
         List<EntandoAppPluginLink> el = entandoLinkService.findByPluginName(pluginName);
         return ResponseEntity.ok(getCollectionWithLinks(el));
     }
@@ -120,9 +120,9 @@ public class EntandoLinksController {
         return Links.of(
                 linkTo(methodOn(EntandoLinksController.class).get(null)).withRel("app-plugin-link"),
                 linkTo(methodOn(EntandoLinksController.class).delete(null)).withRel("delete"),
-                linkTo(methodOn(EntandoLinksController.class).listByApp(null)).withRel("app-links"),
-                linkTo(methodOn(EntandoLinksController.class).listByPlugin(null)).withRel("plugin-links"),
-                linkTo(methodOn(EntandoLinksController.class).listByNamespace(null)).withRel("app-plugin-links-in-namespace")
+                linkTo(methodOn(EntandoLinksController.class).listAppLinks(null)).withRel("app-links"),
+                linkTo(methodOn(EntandoLinksController.class).listPluginLinks(null)).withRel("plugin-links"),
+                linkTo(methodOn(EntandoLinksController.class).listInNamespace(null)).withRel("app-plugin-links-in-namespace")
         );
     }
 }

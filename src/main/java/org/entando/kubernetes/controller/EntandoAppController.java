@@ -24,7 +24,6 @@ import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -113,19 +112,13 @@ public class EntandoAppController {
 
     private void addAppCollectionLinks(CollectionModel<EntityModel<EntandoApp>> collection) {
         collection.add(linkTo(methodOn(EntandoAppController.class).get(null)).withRel("app"));
-        collection.add(linkTo(methodOn(EntandoLinksController.class).listByApp(null)).withRel("app-links"));
+        collection.add(linkTo(methodOn(EntandoLinksController.class).listAppLinks(null)).withRel("app-links"));
         collection.add(linkTo(methodOn(EntandoAppController.class).listInNamespace(null)).withRel("apps-in-namespace"));
     }
 
     private CollectionModel<EntityModel<EntandoApp>> getAppsCollectionModel(List<EntandoApp> entandoApps) {
         return new CollectionModel<>(
                 entandoApps.stream().map(appResourceAssembler::toModel).collect(Collectors.toList()));
-    }
-
-    private CollectionModel<EntityModel<EntandoAppPluginLink>> getLinksCollectionModel(List<EntandoAppPluginLink> appLinks) {
-        return new CollectionModel<>(appLinks.stream()
-                .map(linkResourceAssembler::toModel)
-                .collect(Collectors.toList()));
     }
 
 }

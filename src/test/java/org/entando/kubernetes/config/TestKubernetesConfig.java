@@ -1,6 +1,5 @@
 package org.entando.kubernetes.config;
 
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.fabric8.kubernetes.client.KubernetesClient;

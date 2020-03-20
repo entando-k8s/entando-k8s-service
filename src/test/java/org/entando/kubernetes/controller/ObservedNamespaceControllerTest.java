@@ -1,18 +1,10 @@
 package org.entando.kubernetes.controller;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.entando.kubernetes.util.EntandoPluginTestHelper.TEST_PLUGIN_NAMESPACE;
-import static org.hamcrest.CoreMatchers.anyOf;
 import static org.hamcrest.CoreMatchers.endsWith;
-import static org.hamcrest.collection.IsMapContaining.hasKey;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import static org.springframework.hateoas.MediaTypes.HAL_JSON_VALUE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -22,10 +14,8 @@ import org.entando.kubernetes.EntandoKubernetesJavaApplication;
 import org.entando.kubernetes.config.TestJwtDecoderConfig;
 import org.entando.kubernetes.config.TestKubernetesConfig;
 import org.entando.kubernetes.config.TestSecurityConfiguration;
-import org.entando.kubernetes.model.ObservedNamespace;
 import org.entando.kubernetes.model.ObservedNamespaces;
 import org.entando.kubernetes.service.KubernetesUtils;
-import org.entando.kubernetes.util.MockObservedNamespaces;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -33,7 +23,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -48,7 +37,7 @@ import org.springframework.test.web.servlet.MockMvc;
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Tag("component")
-public class KubernetesNamespaceControllerTest {
+public class ObservedNamespaceControllerTest {
 
     @Autowired
     private MockMvc mvc;
@@ -65,9 +54,10 @@ public class KubernetesNamespaceControllerTest {
         mvc.perform(get(URI.create("/namespaces")).accept(HAL_JSON_VALUE))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$._embedded.observedNamespaces").exists())
-                .andExpect(jsonPath("$._links.plugins").exists())
-                .andExpect(jsonPath("$._links.apps").exists())
-                .andExpect(jsonPath("$._links.bundles").exists());
+                .andExpect(jsonPath("$._links.plugins-in-namespace").exists())
+                .andExpect(jsonPath("$._links.apps-in-namespace").exists())
+                .andExpect(jsonPath("$._links.bundles-in-namespace").exists())
+                .andExpect(jsonPath("$._links.app-plugin-links-in-namespace").exists());
     }
 
     @Test
@@ -88,9 +78,10 @@ public class KubernetesNamespaceControllerTest {
     public void shouldReturnLinksToEntandoCustomResourceInNamespace() throws Exception {
         mvc.perform(get(URI.create("/namespaces/" + TEST_PLUGIN_NAMESPACE)).accept(HAL_JSON_VALUE))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$._links.plugins.href").value(endsWith("/plugins?namespace="+TEST_PLUGIN_NAMESPACE)))
-                .andExpect(jsonPath("$._links.bundles.href").value(endsWith("/bundles?namespace="+TEST_PLUGIN_NAMESPACE)))
-                .andExpect(jsonPath("$._links.apps.href").value(endsWith("/apps?namespace="+TEST_PLUGIN_NAMESPACE)));
+                .andExpect(jsonPath("$._links.plugins-in-namespace.href").value(endsWith("/plugins?namespace="+TEST_PLUGIN_NAMESPACE)))
+                .andExpect(jsonPath("$._links.bundles-in-namespace.href").value(endsWith("/bundles?namespace="+TEST_PLUGIN_NAMESPACE)))
+                .andExpect(jsonPath("$._links.apps-in-namespace.href").value(endsWith("/apps?namespace="+TEST_PLUGIN_NAMESPACE)))
+                .andExpect(jsonPath("$._links.app-plugin-links-in-namespace.href").value(endsWith("/app-plugin-links?namespace="+TEST_PLUGIN_NAMESPACE)));
 
     }
 

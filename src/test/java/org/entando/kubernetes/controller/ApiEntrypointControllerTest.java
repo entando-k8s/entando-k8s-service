@@ -1,6 +1,5 @@
 package org.entando.kubernetes.controller;
 
-import static org.hamcrest.CoreMatchers.anyOf;
 import static org.hamcrest.collection.IsMapContaining.hasKey;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -42,14 +41,10 @@ public class ApiEntrypointControllerTest {
         mvc.perform(get("/").accept(MediaTypes.HAL_JSON_VALUE))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$._links").value(
-                        anyOf(
-                            hasKey("apps"),
-                            hasKey("plugins"),
-                            hasKey("bundles"),
-                            hasKey("app-plugin-links"),
-                            hasKey("namespaces")
-                        )
-                ));
+                .andExpect(jsonPath("$._links",hasKey("apps")))
+                .andExpect(jsonPath("$._links",hasKey("plugins")))
+                .andExpect(jsonPath("$._links",hasKey("bundles")))
+                .andExpect(jsonPath("$._links",hasKey("app-plugin-links")))
+                .andExpect(jsonPath("$._links",hasKey("observed-namespaces")));
     }
 }

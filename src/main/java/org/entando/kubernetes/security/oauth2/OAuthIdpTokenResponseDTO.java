@@ -40,7 +40,9 @@ public class OAuthIdpTokenResponseDTO implements Serializable {
     @JsonProperty("refresh_expires_in")
     private String refreshExpiresIn;
 
-    public OAuthIdpTokenResponseDTO() {}
+    public OAuthIdpTokenResponseDTO() {
+        // Jackson requirement for deserialization
+    }
 
     public String getRefreshExpiresIn() {
         return refreshExpiresIn;

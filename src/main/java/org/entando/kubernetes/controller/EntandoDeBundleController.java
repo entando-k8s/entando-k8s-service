@@ -1,6 +1,8 @@
 package org.entando.kubernetes.controller;
 
 import static org.springframework.hateoas.MediaTypes.HAL_JSON_VALUE;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.List;
@@ -14,6 +16,7 @@ import org.entando.kubernetes.service.EntandoDeBundleService;
 import org.entando.kubernetes.service.assembler.EntandoDeBundleResourceAssembler;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.Links;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -35,7 +38,7 @@ public class EntandoDeBundleController {
         log.info("Listing available digital-exchange bundles");
         List<EntandoDeBundle> deBundles = entandoBundleService.getAll();
         return ResponseEntity
-                .ok(new CollectionModel<>(deBundles.stream().map(resourceAssembler::toModel).collect(Collectors.toList())));
+                .ok(getCollectionWithLinks(deBundles));
     }
 
     @GetMapping(produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE}, params = {
@@ -43,12 +46,9 @@ public class EntandoDeBundleController {
     public ResponseEntity<CollectionModel<EntityModel<EntandoDeBundle>>> listInNamespace(
             @RequestParam("namespace") String namespace) {
         log.info("Listing available entando-de-bundles in namespace {}", namespace);
-        //TODO: Add links to collection
         List<EntandoDeBundle> deBundles = entandoBundleService.getAllInNamespace(namespace);
-        return ResponseEntity.ok(new CollectionModel<>(
-                deBundles.stream()
-                        .map(resourceAssembler::toModel)
-                        .collect(Collectors.toList())));
+        CollectionModel<EntityModel<EntandoDeBundle>> collection = getCollectionWithLinks(deBundles);
+        return ResponseEntity.ok(collection);
     }
 
     @GetMapping(path = "/{name}", produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
@@ -57,6 +57,23 @@ public class EntandoDeBundleController {
         EntandoDeBundle bundle = getBundleOrFail(name);
         return ResponseEntity.ok(resourceAssembler.toModel(bundle));
     }
+
+    private CollectionModel<EntityModel<EntandoDeBundle>> getCollectionWithLinks(List<EntandoDeBundle> deBundles) {
+        CollectionModel<EntityModel<EntandoDeBundle>> c =new CollectionModel<>(
+                deBundles.stream()
+                        .map(resourceAssembler::toModel)
+                        .collect(Collectors.toList()));
+        c.add(getCollectionLinks());
+        return c;
+    }
+
+    private Links getCollectionLinks() {
+        return Links.of(
+                linkTo(methodOn(EntandoDeBundleController.class).get(null)).withRel("bundle"),
+                linkTo(methodOn(EntandoDeBundleController.class).listInNamespace(null)).withRel("bundles-in-namespace")
+        );
+    }
+
 
     private EntandoDeBundle getBundleOrFail(String name) {
         Optional<EntandoDeBundle> ob = entandoBundleService.findByName(name);

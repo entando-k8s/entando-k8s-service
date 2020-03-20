@@ -12,7 +12,6 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import java.util.Collections;
 import java.util.List;
-import org.entando.kubernetes.config.TestKubernetesConfig;
 import org.entando.kubernetes.model.ObservedNamespaces;
 import org.entando.kubernetes.model.app.EntandoApp;
 import org.entando.kubernetes.model.app.EntandoAppBuilder;

@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 @Tag("unit")
-public class KubernetesNamespaceServiceTest {
+public class ObservedNamespaceServiceTest {
 
     private final String APP_NAMESPACE = "app-namespace";
     private final String PLUGIN_NAMESPACE = "plugin-namespace";

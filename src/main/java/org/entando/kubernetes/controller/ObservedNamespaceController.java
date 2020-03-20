@@ -6,7 +6,6 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.entando.kubernetes.exception.BadRequestExceptionFactory;
 import org.entando.kubernetes.model.ObservedNamespace;
@@ -23,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/namespaces")
 @RequiredArgsConstructor
-public class KubernetesNamespaceController {
+public class ObservedNamespaceController {
 
     private final KubernetesNamespaceResourceAssembler resAssembler;
     private final ObservedNamespaces observedNamespaces;
@@ -43,27 +42,6 @@ public class KubernetesNamespaceController {
         return ResponseEntity.ok(resAssembler.toModel(new ObservedNamespace(validNamespace)));
     }
 
-//    @GetMapping("/{name}/plugins")
-//    public void listPluginsInNamespace(@PathVariable("name") String name, HttpServletResponse resp) {
-//        String validNamespace = validateNamespace(name);
-//        resp.setHeader("Location", "/plugins?namespace="+validNamespace);
-//        resp.setStatus(302);
-//    }
-//
-//    @GetMapping("/{name}/apps")
-//    public void listAppsInNamespace(@PathVariable("name") String name, HttpServletResponse resp) {
-//        String validNamespace = validateNamespace(name);
-//        resp.setHeader("Location", "/apps?namespace=" + validNamespace);
-//        resp.setStatus(302);
-//    }
-//
-//    @GetMapping("/{name}/bundles")
-//    public void listBundlesInNamespace(@PathVariable("name") String name, HttpServletResponse resp) {
-//        String validNamespace = validateNamespace(name);
-//        resp.setHeader("Location", "/bundles?namespace=" + validNamespace);
-//        resp.setStatus(302);
-//    }
-
     public String validateNamespace(String namespace) {
         if (!namespace.matches("[a-z0-9]([-a-z0-9]*[a-z0-9])?")) {
             throw BadRequestExceptionFactory.invalidNamespace(namespace);
@@ -73,9 +51,10 @@ public class KubernetesNamespaceController {
 
     private void addNamespaceLinks(CollectionModel<EntityModel<ObservedNamespace>> nsCollection) {
         nsCollection.add(linkTo(methodOn(this.getClass()).getByName(null)).withRel("namespace"));
-        nsCollection.add(linkTo(methodOn(EntandoAppController.class).list()).withRel("apps"));
-        nsCollection.add(linkTo(methodOn(EntandoPluginController.class).list()).withRel("plugins"));
-        nsCollection.add(linkTo(methodOn(EntandoDeBundleController.class).list()).withRel("bundles"));
+        nsCollection.add(linkTo(methodOn(EntandoAppController.class).listInNamespace(null)).withRel("apps-in-namespace"));
+        nsCollection.add(linkTo(methodOn(EntandoPluginController.class).listInNamespace(null)).withRel("plugins-in-namespace"));
+        nsCollection.add(linkTo(methodOn(EntandoDeBundleController.class).listInNamespace(null)).withRel("bundles-in-namespace"));
+        nsCollection.add(linkTo(methodOn(EntandoLinksController.class).listInNamespace(null)).withRel("app-plugin-links-in-namespace"));
     }
 
 

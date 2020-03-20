@@ -16,6 +16,8 @@ import org.entando.kubernetes.model.plugin.EntandoPluginBuilder;
 import org.entando.kubernetes.model.plugin.EntandoPluginList;
 import org.entando.kubernetes.model.plugin.EntandoPluginOperationFactory;
 import org.springframework.stereotype.Service;
+import org.zalando.problem.Problem;
+import org.zalando.problem.Status;
 
 @Slf4j
 @Service
@@ -61,8 +63,9 @@ public class EntandoPluginService extends EntandoKubernetesResourceCollector<Ent
     }
 
     private EntandoPlugin pluginCleanUp(EntandoPlugin plugin) {
-        //TODO verify the plugin has a name
-        //assert !Strings.isNullOrEmpty(plugin.getMetadata().getName());
+        if (Strings.isNullOrEmpty(plugin.getMetadata().getName())) {
+            throw Problem.builder().withStatus(Status.BAD_REQUEST).withDetail("Plugin name is null or empty!").build();
+        }
         if (Strings.isNullOrEmpty(plugin.getMetadata().getNamespace())) {
             plugin.getMetadata().setNamespace(observedNamespaces.getCurrentNamespace());
         }

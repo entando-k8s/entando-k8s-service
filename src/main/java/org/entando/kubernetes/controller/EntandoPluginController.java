@@ -13,11 +13,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.entando.kubernetes.exception.BadRequestExceptionFactory;
 import org.entando.kubernetes.exception.NotFoundExceptionFactory;
-import org.entando.kubernetes.model.link.EntandoAppPluginLink;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
-import org.entando.kubernetes.service.EntandoLinkService;
 import org.entando.kubernetes.service.EntandoPluginService;
-import org.entando.kubernetes.service.assembler.EntandoAppPluginLinkResourceAssembler;
 import org.entando.kubernetes.service.assembler.EntandoPluginResourceAssembler;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
@@ -55,7 +52,6 @@ public class EntandoPluginController {
     @GetMapping(produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE}, params = "namespace")
     public ResponseEntity<CollectionModel<EntityModel<EntandoPlugin>>> listInNamespace(@RequestParam String namespace) {
         log.info("Listing all deployed plugins in {} observed namespace", namespace);
-        //TODO: Throw an error when querying a non observed namespace
         List<EntandoPlugin> plugins = entandoPluginService.getAllInNamespace(namespace);
         CollectionModel<EntityModel<EntandoPlugin>> collection = getPluginCollectionModel(plugins);
         addCollectionLinks(collection);
@@ -106,7 +102,7 @@ public class EntandoPluginController {
     private void addCollectionLinks(CollectionModel<EntityModel<EntandoPlugin>> collection) {
         collection.add(linkTo(methodOn(EntandoPluginController.class).get(null)).withRel("plugin"));
         collection.add(linkTo(methodOn(EntandoPluginController.class).listInNamespace(null)).withRel("plugins-in-namespace"));
-        collection.add(linkTo(methodOn(EntandoLinksController.class).listByPlugin(null)).withRel("plugin-links"));
+        collection.add(linkTo(methodOn(EntandoLinksController.class).listPluginLinks(null)).withRel("plugin-links"));
     }
 
     private CollectionModel<EntityModel<EntandoPlugin>> getPluginCollectionModel(List<EntandoPlugin> plugins) {

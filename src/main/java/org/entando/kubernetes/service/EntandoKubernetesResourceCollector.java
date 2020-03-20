@@ -22,7 +22,7 @@ public abstract class EntandoKubernetesResourceCollector<T extends HasMetadata> 
 
     public List<T> getAll() {
         return collectFromNamespaces(observedNamespaces.getNames());
-    };
+    }
 
     public List<T> getAllInNamespace(String namespace) {
         observedNamespaces.failIfNotObserved(namespace);
@@ -34,7 +34,7 @@ public abstract class EntandoKubernetesResourceCollector<T extends HasMetadata> 
     public List<T> collectFromNamespaces(List<String> namespaceList) {
         CompletableFuture<List<T>>[] allRequests = namespaceList.stream()
                 .map(ns -> CompletableFuture.supplyAsync(() -> getAllInNamespace(ns))
-                        .exceptionally((ex) -> Collections.emptyList()))
+                        .exceptionally(ex -> Collections.emptyList()))
                 .toArray(CompletableFuture[]::new);
 
         CompletableFuture<List<T>> collectedResources = CompletableFuture.allOf(allRequests)

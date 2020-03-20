@@ -4,7 +4,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import org.entando.kubernetes.controller.EntandoPluginController;
-import org.entando.kubernetes.controller.KubernetesNamespaceController;
+import org.entando.kubernetes.controller.ObservedNamespaceController;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Links;
@@ -31,7 +31,7 @@ public class EntandoPluginResourceAssembler implements
             linkTo(methodOn(EntandoPluginController.class).get(pluginName)).withSelfRel(),
             linkTo(methodOn(EntandoPluginController.class).list()).withRel("plugins"),
             linkTo(methodOn(EntandoPluginController.class).listInNamespace(pluginNamespace)).withRel("plugins-in-namespace"),
-            linkTo(methodOn(KubernetesNamespaceController.class).getByName(pluginNamespace)).withRel("namespace")
+            linkTo(methodOn(ObservedNamespaceController.class).getByName(pluginNamespace)).withRel("namespace")
         );
     }
 }

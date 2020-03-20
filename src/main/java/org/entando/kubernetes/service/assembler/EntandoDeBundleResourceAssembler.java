@@ -4,10 +4,9 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import org.entando.kubernetes.controller.EntandoDeBundleController;
-import org.entando.kubernetes.controller.KubernetesNamespaceController;
+import org.entando.kubernetes.controller.ObservedNamespaceController;
 import org.entando.kubernetes.model.debundle.EntandoDeBundle;
 import org.springframework.hateoas.EntityModel;
-import org.springframework.hateoas.Link;
 import org.springframework.hateoas.Links;
 import org.springframework.hateoas.server.RepresentationModelAssembler;
 import org.springframework.stereotype.Component;
@@ -30,7 +29,7 @@ public class EntandoDeBundleResourceAssembler implements
             linkTo(methodOn(EntandoDeBundleController.class).get(bundleName)).withSelfRel(),
             linkTo(methodOn(EntandoDeBundleController.class).list()).withRel("bundles"),
             linkTo(methodOn(EntandoDeBundleController.class).listInNamespace(bundleNamespace)).withRel("bundles-in-namespace"),
-            linkTo(methodOn(KubernetesNamespaceController.class).getByName(bundleNamespace)).withRel("namespace")
+            linkTo(methodOn(ObservedNamespaceController.class).getByName(bundleNamespace)).withRel("namespace")
         );
     }
 }

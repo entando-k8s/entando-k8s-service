@@ -9,7 +9,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import org.entando.kubernetes.config.TestKubernetesConfig;
 import org.entando.kubernetes.exception.NotObservedNamespaceException;
 import org.entando.kubernetes.model.ObservedNamespaces;
 import org.entando.kubernetes.model.debundle.EntandoDeBundle;
