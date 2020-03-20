@@ -11,9 +11,13 @@ import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Optional;
+import org.entando.kubernetes.exception.NotObservedNamespaceException;
+import org.entando.kubernetes.model.ObservedNamespaces;
 import org.entando.kubernetes.model.app.EntandoApp;
 import org.entando.kubernetes.util.EntandoAppTestHelper;
+import org.entando.kubernetes.util.MockObservedNamespaces;
 import org.junit.Rule;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -33,31 +37,32 @@ public class EntandoAppServiceTest {
     @BeforeEach
     public void setUp() {
         client = server.getClient();
-        entandoAppService = new EntandoAppService(client, Collections.singletonList(TEST_APP_NAMESPACE));
+        ObservedNamespaces ons = new MockObservedNamespaces(Collections.singletonList(TEST_APP_NAMESPACE));
+        entandoAppService = new EntandoAppService(client, ons);
         EntandoAppTestHelper.createEntandoAppCrd(client);
     }
 
     @Test
     public void shouldReturnAnEmptyListIfNoAppAvailable() {
-        assertTrue(entandoAppService.getApps().isEmpty());
+        assertTrue(entandoAppService.getAll().isEmpty());
     }
 
     @Test
     public void shouldReturnOneApp() throws IOException {
         EntandoAppTestHelper.createTestEntandoApp(client);
-        assertEquals(1, entandoAppService.getApps().size());
+        assertEquals(1, entandoAppService.getAll().size());
     }
 
     @Test
     public void shouldReturnAppInClientNamespace() throws IOException {
         EntandoAppTestHelper.createTestEntandoApp(client);
-        assertEquals(1, entandoAppService.getAppsInNamespace(TEST_APP_NAMESPACE).size());
+        assertEquals(1, entandoAppService.getAllInNamespace(TEST_APP_NAMESPACE).size());
     }
 
     @Test
     public void shouldFindAnAppInAnyNamespace() {
         EntandoAppTestHelper.createTestEntandoApp(client);
-        Optional<EntandoApp> opApp = entandoAppService.findAppByName(TEST_APP_NAME);
+        Optional<EntandoApp> opApp = entandoAppService.findByName(TEST_APP_NAME);
         assertTrue(opApp.isPresent());
         EntandoApp app = opApp.get();
 
@@ -69,7 +74,7 @@ public class EntandoAppServiceTest {
     public void shouldFindAnAppInNamespace() {
         EntandoAppTestHelper.createTestEntandoApp(client);
         Optional<EntandoApp> opl =
-                entandoAppService.findAppByNameAndNamespace(TEST_APP_NAME, TEST_APP_NAMESPACE);
+                entandoAppService.findByNameAndNamespace(TEST_APP_NAME, TEST_APP_NAMESPACE);
         assertTrue(opl.isPresent());
         EntandoApp plg = opl.get();
 
@@ -78,16 +83,16 @@ public class EntandoAppServiceTest {
     }
 
     @Test
-    public void shouldNotFindAppInNamespace() {
+    public void shouldThrowExceptionIfSearchingAppInNotObservedNamespace() {
         EntandoAppTestHelper.createTestEntandoApp(client);
-        Optional<EntandoApp> opl =
-                entandoAppService.findAppByNameAndNamespace(TEST_APP_NAME, client.getNamespace());
-        assertFalse(opl.isPresent());
+        Assertions.assertThrows(NotObservedNamespaceException.class, () -> {
+            entandoAppService.findByNameAndNamespace( TEST_APP_NAME, "any" );
+        });
     }
 
     @Test
     public void shouldReturnEmptyOptionalForNotFoundApp() {
-        assertFalse(entandoAppService.findAppByName("some-App").isPresent());
+        assertFalse(entandoAppService.findByName("some-App").isPresent());
     }
 
 }

@@ -9,9 +9,13 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import org.entando.kubernetes.exception.NotObservedNamespaceException;
+import org.entando.kubernetes.model.ObservedNamespaces;
 import org.entando.kubernetes.model.debundle.EntandoDeBundle;
 import org.entando.kubernetes.util.EntandoDeBundleTestHelper;
+import org.entando.kubernetes.util.MockObservedNamespaces;
 import org.junit.Rule;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -31,7 +35,10 @@ public class EntandoDeBundleServiceTest {
     @BeforeEach
     public void setup() {
         client = server.getClient();
-        entandoDeBundleService = new EntandoDeBundleService(client, Collections.singletonList(TEST_BUNDLE_NAMESPACE));
+        ObservedNamespaces observedNamespaces = new MockObservedNamespaces(
+                Collections.singletonList(TEST_BUNDLE_NAMESPACE)
+        );
+        entandoDeBundleService = new EntandoDeBundleService(client,observedNamespaces);
         EntandoDeBundleTestHelper.createEntandoDeBundleCrd(client);
     }
 
@@ -41,21 +48,23 @@ public class EntandoDeBundleServiceTest {
     }
 
     @Test
-    public void shouldReturnEmptyListIfNoBundleIsAvailableInTheCluster() {
-        assertThat(entandoDeBundleService.getBundles().isEmpty()).isTrue();
+    public void shouldReturnEmptyListIfNoBundleIsAvailableInTheObservedNamespace() {
+        assertThat(entandoDeBundleService.getAll().isEmpty()).isTrue();
     }
 
     @Test
-    public void shouldReturnBundlesAvailableInTheCluster() {
+    public void shouldReturnBundlesAvailableInTheObservedNamespace() {
         EntandoDeBundleTestHelper.createTestEntandoDeBundle(client);
-        assertThat(entandoDeBundleService.getBundles().isEmpty()).isFalse();
+        assertThat(entandoDeBundleService.getAll().isEmpty()).isFalse();
     }
 
     @Test
     public void shouldReturnBundlesAvailableInASpecificNamespace() {
-        EntandoDeBundle bundleA = EntandoDeBundleTestHelper.createTestEntandoDeBundleInNamespace(client, "namespaceA");
-        EntandoDeBundle bundleB = EntandoDeBundleTestHelper.createTestEntandoDeBundleInNamespace(client, "namespaceB");
-        List<EntandoDeBundle> bundlesInNamespaceB = entandoDeBundleService.getBundlesInNamespace("namespaceB");
+        ObservedNamespaces ons = new MockObservedNamespaces(Arrays.asList("namespaceA", "namespaceB"));
+        EntandoDeBundleService customEntandoDeBundleService = new EntandoDeBundleService(client, ons);
+        EntandoDeBundleTestHelper.createTestEntandoDeBundleInNamespace(client, "namespaceA");
+        EntandoDeBundleTestHelper.createTestEntandoDeBundleInNamespace(client, "namespaceB");
+        List<EntandoDeBundle> bundlesInNamespaceB = customEntandoDeBundleService.getAllInNamespace("namespaceB");
         assertThat(bundlesInNamespaceB.size()).isEqualTo(1);
         assertThat(bundlesInNamespaceB.get(0).getMetadata().getNamespace()).isEqualTo("namespaceB");
     }
@@ -63,30 +72,30 @@ public class EntandoDeBundleServiceTest {
     @Test
     public void shouldFindBundleByName() {
         EntandoDeBundle bundle = EntandoDeBundleTestHelper.createTestEntandoDeBundle(client);
-        String bundleName = bundle.getSpec().getDetails().getName();
-        List<EntandoDeBundle> foundBundles = entandoDeBundleService.findBundlesByName(bundleName);
-        assertThat(foundBundles).hasSize(1);
-        assertThat(foundBundles.get(0).getSpec().getDetails().getName()).isEqualTo(bundleName);
+        String bundleName = bundle.getMetadata().getName();
+        Optional<EntandoDeBundle> foundBundles = entandoDeBundleService.findByName(bundleName);
+        assertThat(foundBundles).isPresent();
+        assertThat(foundBundles.get().getMetadata().getName()).isEqualTo(bundleName);
     }
 
     @Test
     public void shouldFindBundleByNameAndNamespace() {
         EntandoDeBundle bundle = EntandoDeBundleTestHelper.createTestEntandoDeBundle(client);
-        String bundleName = bundle.getSpec().getDetails().getName();
+        String bundleName = bundle.getMetadata().getName();
         String bundleNamespace = bundle.getMetadata().getNamespace();
         Optional<EntandoDeBundle> foundBundles = entandoDeBundleService
-                .findBundleByNameAndNamespace(bundleName, bundleNamespace);
+                .findByNameAndNamespace(bundleName, bundleNamespace);
         assertThat(foundBundles).isNotEmpty();
-        assertThat(foundBundles.get().getSpec().getDetails().getName()).isEqualTo(bundleName);
+        assertThat(foundBundles.get().getMetadata().getName()).isEqualTo(bundleName);
     }
 
     @Test
     public void shouldNotFindBundleByNameInWrongNamespace() {
         EntandoDeBundle bundle = EntandoDeBundleTestHelper.createTestEntandoDeBundle(client);
         String bundleName = bundle.getSpec().getDetails().getName();
-        Optional<EntandoDeBundle> foundBundles = entandoDeBundleService
-                .findBundleByNameAndNamespace(bundleName, "myNamespace");
-        assertThat(foundBundles).isEmpty();
+        Assertions.assertThrows(NotObservedNamespaceException.class, () -> {
+            entandoDeBundleService.findByNameAndNamespace(bundleName, "myNamespace");
+        });
     }
 
     @Test

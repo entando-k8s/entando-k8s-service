@@ -217,6 +217,14 @@
             <version>1.2.19</version>
         </dependency>
 
+        <!-- Not working yet with Spring Boot 2.2.0 and Spring Hateoas, waiting for fix -->
+        <!-- Check comments here: https://stackoverflow.com/a/60064485/3449226 -->
+<!--        <dependency>-->
+<!--            <groupId>io.springfox</groupId>-->
+<!--            <artifactId>springfox-swagger2</artifactId>-->
+<!--            <version>2.9.2</version>-->
+<!--        </dependency>-->
+
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -270,6 +278,12 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-hateoas</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.atteo</groupId>
+            <artifactId>evo-inflector</artifactId>
+            <version>1.2.2</version>
         </dependency>
 
         <dependency>

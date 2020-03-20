@@ -18,7 +18,7 @@ import org.springframework.core.io.ClassPathResource;
 
 public class EntandoDeBundleTestHelper {
 
-    public static final String BASE_BUNDLES_ENDPOINT = "/de-bundles";
+    public static final String BASE_BUNDLES_ENDPOINT = "/bundles";
     public static final String TEST_BUNDLE_NAME = "my-bundle";
     public static final String TEST_BUNDLE_NAMESPACE = "test-namespace";
 
