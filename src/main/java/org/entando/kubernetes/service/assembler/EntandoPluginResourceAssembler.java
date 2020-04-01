@@ -31,6 +31,7 @@ public class EntandoPluginResourceAssembler implements
             linkTo(methodOn(EntandoPluginController.class).get(pluginName)).withSelfRel(),
             linkTo(methodOn(EntandoPluginController.class).list()).withRel("plugins"),
             linkTo(methodOn(EntandoPluginController.class).listInNamespace(pluginNamespace)).withRel("plugins-in-namespace"),
+            linkTo(methodOn(EntandoPluginController.class).getPluginIngress(pluginName)).withRel("plugin-ingress"),
             linkTo(methodOn(ObservedNamespaceController.class).getByName(pluginNamespace)).withRel("namespace")
         );
     }

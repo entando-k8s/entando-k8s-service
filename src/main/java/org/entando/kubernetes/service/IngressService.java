@@ -11,6 +11,7 @@ import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.entando.kubernetes.model.ObservedNamespaces;
 import org.entando.kubernetes.model.app.EntandoApp;
+import org.entando.kubernetes.model.plugin.EntandoPlugin;
 
 @Slf4j
 public class IngressService {
@@ -29,6 +30,14 @@ public class IngressService {
         List<Ingress> appIngresses = getIngressOperations()
                 .inNamespace(app.getMetadata().getName())
                 .withLabel(app.getKind(), app.getMetadata().getName())
+                .list().getItems();
+        return appIngresses.stream().findFirst();
+    }
+
+    public Optional<Ingress> findByEntandoPlugin(EntandoPlugin plugin) {
+        List<Ingress> appIngresses = getIngressOperations()
+                .inNamespace(plugin.getMetadata().getName())
+                .withLabel(plugin.getKind(), plugin.getMetadata().getName())
                 .list().getItems();
         return appIngresses.stream().findFirst();
     }
