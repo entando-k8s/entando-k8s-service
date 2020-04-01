@@ -13,7 +13,6 @@ import org.entando.kubernetes.model.app.EntandoAppOperationFactory;
 import org.springframework.stereotype.Service;
 
 @Slf4j
-@Service
 public class EntandoAppService extends EntandoKubernetesResourceCollector<EntandoApp> {
 
     public EntandoAppService(KubernetesClient client,

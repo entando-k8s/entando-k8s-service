@@ -5,6 +5,7 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import io.fabric8.kubernetes.api.model.extensions.Ingress;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -14,9 +15,7 @@ import org.entando.kubernetes.exception.NotFoundExceptionFactory;
 import org.entando.kubernetes.model.app.EntandoApp;
 import org.entando.kubernetes.model.link.EntandoAppPluginLink;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
-import org.entando.kubernetes.service.EntandoAppService;
-import org.entando.kubernetes.service.EntandoLinkService;
-import org.entando.kubernetes.service.EntandoPluginService;
+import org.entando.kubernetes.service.EntandoKubernetesServiceProvider;
 import org.entando.kubernetes.service.KubernetesUtils;
 import org.entando.kubernetes.service.assembler.EntandoAppPluginLinkResourceAssembler;
 import org.entando.kubernetes.service.assembler.EntandoAppResourceAssembler;
@@ -31,6 +30,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.zalando.problem.Problem;
+import org.zalando.problem.Status;
 import org.zalando.problem.ThrowableProblem;
 
 
@@ -41,9 +42,7 @@ import org.zalando.problem.ThrowableProblem;
 @RequestMapping("/apps")
 public class EntandoAppController {
 
-    private final EntandoAppService entandoAppService;
-    private final EntandoLinkService entandoLinkService;
-    private final EntandoPluginService entandoPluginService;
+    private final EntandoKubernetesServiceProvider serviceProvider;
     private final EntandoAppResourceAssembler appResourceAssembler;
     private final EntandoAppPluginLinkResourceAssembler linkResourceAssembler;
     private final KubernetesUtils k8sUtils;
@@ -51,7 +50,7 @@ public class EntandoAppController {
     @GetMapping(produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
     public ResponseEntity<CollectionModel<EntityModel<EntandoApp>>> list() {
         log.info("Listing apps from all observed namespaces");
-        List<EntandoApp> entandoApps = entandoAppService.getAll();
+        List<EntandoApp> entandoApps = serviceProvider.getAppService().getAll();
         CollectionModel<EntityModel<EntandoApp>> collection = getAppsCollectionModel(entandoApps);
         addAppCollectionLinks(collection);
         return ResponseEntity.ok(collection);
@@ -62,7 +61,7 @@ public class EntandoAppController {
             HAL_JSON_VALUE}, params = "namespace")
     public ResponseEntity<CollectionModel<EntityModel<EntandoApp>>> listInNamespace(@RequestParam String namespace) {
         log.info("Listing apps");
-        List<EntandoApp> entandoApps = entandoAppService.getAllInNamespace(namespace);
+        List<EntandoApp> entandoApps = serviceProvider.getAppService().getAllInNamespace(namespace);
         CollectionModel<EntityModel<EntandoApp>> collection = getAppsCollectionModel(entandoApps);
         addAppCollectionLinks(collection);
         return ResponseEntity.ok(collection);
@@ -76,6 +75,14 @@ public class EntandoAppController {
         return ResponseEntity.ok(appResourceAssembler.toModel(entandoApp));
     }
 
+    @GetMapping(path = "/{name}/ingress", produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
+    public ResponseEntity<EntityModel<Ingress>> getAppIngress(@PathVariable("name") String appName) {
+        log.debug("Requesting app with name {}", appName);
+        EntandoApp entandoApp = getEntandoAppOrFail(appName);
+        Ingress appIngress = getEntandoAppIngressOrFail(entandoApp);
+        return ResponseEntity.ok(new EntityModel<>(appIngress));
+    }
+
     @PostMapping(path = "/{name}/links", consumes = APPLICATION_JSON_VALUE, produces = {
             APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
     public ResponseEntity<EntityModel<EntandoAppPluginLink>> linkToPlugin(
@@ -83,14 +90,25 @@ public class EntandoAppController {
             @RequestBody EntandoPlugin entandoPlugin) {
         EntandoApp entandoApp = getEntandoAppOrFail(appName);
         EntandoPlugin plugin = getOrCreatePlugin(entandoPlugin);
-        EntandoAppPluginLink newLink = entandoLinkService.buildBetweenAppAndPlugin(entandoApp, plugin);
-        EntandoAppPluginLink deployedLink = entandoLinkService.deploy(newLink);
+        EntandoAppPluginLink newLink = serviceProvider.getLinkService().buildBetweenAppAndPlugin(entandoApp, plugin);
+        EntandoAppPluginLink deployedLink = serviceProvider.getLinkService().deploy(newLink);
         return ResponseEntity.status(HttpStatus.CREATED).body(linkResourceAssembler.toModel(deployedLink));
     }
 
+    public Ingress getEntandoAppIngressOrFail(EntandoApp app) {
+        return serviceProvider.getIngressService()
+                .findByEntandoApp(app)
+                .orElseThrow(() -> {
+                    throw Problem.builder()
+                            .withStatus(Status.NOT_FOUND)
+                            .withDetail("Ingress not found for app " + app.getMetadata().getName() +
+                                    " in namespace " + app.getMetadata().getNamespace())
+                              .build();
+                });
+    }
 
     private EntandoApp getEntandoAppOrFail(String appName) {
-        return entandoAppService
+        return serviceProvider.getAppService()
                 .findByName(appName)
                 .<ThrowableProblem>orElseThrow(() -> {
                     throw NotFoundExceptionFactory.entandoApp(appName);
@@ -99,13 +117,13 @@ public class EntandoAppController {
 
     private EntandoPlugin getOrCreatePlugin(EntandoPlugin plugin) {
         String pluginName = plugin.getMetadata().getName();
-        Optional<EntandoPlugin> optionalPlugin = entandoPluginService.findByName(pluginName);
+        Optional<EntandoPlugin> optionalPlugin = serviceProvider.getPluginService().findByName(pluginName);
         return optionalPlugin.orElseGet(() -> {
             String pluginNamespace = Optional.ofNullable(plugin.getMetadata().getNamespace())
                     .filter(ns -> !ns.isEmpty())
                     .orElse(k8sUtils.getCurrentNamespace());
             plugin.getMetadata().setNamespace(pluginNamespace);
-            return entandoPluginService.deploy(plugin);
+            return serviceProvider.getPluginService().deploy(plugin);
         });
 
     }

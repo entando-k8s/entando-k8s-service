@@ -18,7 +18,6 @@ import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.springframework.stereotype.Service;
 
 @Slf4j
-@Service
 public class EntandoLinkService extends EntandoKubernetesResourceCollector<EntandoAppPluginLink> {
 
     public EntandoLinkService(KubernetesClient client,
