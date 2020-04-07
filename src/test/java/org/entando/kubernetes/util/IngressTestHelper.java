@@ -3,6 +3,7 @@ package org.entando.kubernetes.util;
 import io.fabric8.kubernetes.api.model.extensions.Ingress;
 import io.fabric8.kubernetes.api.model.extensions.IngressBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
+import org.entando.kubernetes.model.EntandoBaseCustomResource;
 import org.entando.kubernetes.model.app.EntandoApp;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
 
@@ -33,6 +34,17 @@ public class IngressTestHelper {
                 .endMetadata()
                 .build();
         return client.extensions().ingresses().inNamespace(namespace).create(appIngress);
+    }
 
+    public static Ingress getIngressForEntandoResource(EntandoBaseCustomResource ebcr) {
+        String namespace = ebcr.getMetadata().getNamespace();
+        String name = ebcr.getMetadata().getName();
+        return new IngressBuilder()
+                .withNewMetadata()
+                .withName(name + "-ingress")
+                .withNamespace(namespace)
+                .addToLabels(ebcr.getKind(), name)
+                .endMetadata()
+                .build();
     }
 }

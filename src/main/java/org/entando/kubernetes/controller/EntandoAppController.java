@@ -33,8 +33,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.zalando.problem.Problem;
-import org.zalando.problem.Status;
 import org.zalando.problem.ThrowableProblem;
 
 
@@ -105,11 +103,7 @@ public class EntandoAppController {
         return ingressService
                 .findByEntandoApp(app)
                 .<ThrowableProblem>orElseThrow(() -> {
-                    throw Problem.builder()
-                            .withStatus(Status.NOT_FOUND)
-                            .withDetail("Ingress not found for app " + app.getMetadata().getName() +
-                                    " in namespace " + app.getMetadata().getNamespace())
-                              .build();
+                    throw NotFoundExceptionFactory.ingress(app);
                 });
     }
 

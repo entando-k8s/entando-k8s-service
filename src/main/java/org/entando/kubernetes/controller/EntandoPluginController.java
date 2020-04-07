@@ -107,7 +107,7 @@ public class EntandoPluginController {
         return ingressService
                 .findByEntandoPlugin(plugin)
                 .<ThrowableProblem>orElseThrow(() -> {
-                    throw notFoundIngressForPlugin(plugin);
+                    throw NotFoundExceptionFactory.ingress(plugin);
                 });
 
     }
@@ -128,14 +128,6 @@ public class EntandoPluginController {
 
     private CollectionModel<EntityModel<EntandoPlugin>> getPluginCollectionModel(List<EntandoPlugin> plugins) {
         return new CollectionModel<>(plugins.stream().map(resourceAssembler::toModel).collect(Collectors.toList()));
-    }
-
-    private ThrowableProblem notFoundIngressForPlugin(EntandoPlugin plugin) {
-        return Problem.builder()
-                .withStatus(Status.NOT_FOUND)
-                .withDetail("Ingress not found for EntandoPlugin " + plugin.getMetadata().getName() +
-                        " in namespace " + plugin.getMetadata().getNamespace())
-                .build();
     }
 
 
