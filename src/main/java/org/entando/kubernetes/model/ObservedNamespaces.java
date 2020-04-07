@@ -41,7 +41,8 @@ public class ObservedNamespaces {
     }
 
     public String getCurrentNamespace() {
-        return kubernetesUtils.getCurrentNamespace();
+        return "local";
+//        return kubernetesUtils.getCurrentNamespace();
     }
 
     public boolean isObservedNamespace(String namespace) {

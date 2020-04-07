@@ -98,7 +98,7 @@ public class EntandoAppController {
     public Ingress getEntandoAppIngressOrFail(EntandoApp app) {
         return serviceProvider.getIngressService()
                 .findByEntandoApp(app)
-                .orElseThrow(() -> {
+                .<ThrowableProblem>orElseThrow(() -> {
                     throw Problem.builder()
                             .withStatus(Status.NOT_FOUND)
                             .withDetail("Ingress not found for app " + app.getMetadata().getName() +

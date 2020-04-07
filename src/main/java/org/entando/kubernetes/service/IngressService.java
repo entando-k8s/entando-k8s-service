@@ -28,7 +28,7 @@ public class IngressService {
 
     public Optional<Ingress> findByEntandoApp(EntandoApp app) {
         List<Ingress> appIngresses = getIngressOperations()
-                .inNamespace(app.getMetadata().getName())
+                .inNamespace(app.getMetadata().getNamespace())
                 .withLabel(app.getKind(), app.getMetadata().getName())
                 .list().getItems();
         return appIngresses.stream().findFirst();
@@ -36,7 +36,7 @@ public class IngressService {
 
     public Optional<Ingress> findByEntandoPlugin(EntandoPlugin plugin) {
         List<Ingress> appIngresses = getIngressOperations()
-                .inNamespace(plugin.getMetadata().getName())
+                .inNamespace(plugin.getMetadata().getNamespace())
                 .withLabel(plugin.getKind(), plugin.getMetadata().getName())
                 .list().getItems();
         return appIngresses.stream().findFirst();

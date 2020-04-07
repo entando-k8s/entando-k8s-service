@@ -104,7 +104,7 @@ public class EntandoPluginController {
     private Ingress getEntandoPluginIngressOrFail(EntandoPlugin plugin) {
         return serviceProvider.getIngressService()
                 .findByEntandoPlugin(plugin)
-                .orElseThrow(() -> {
+                .<ThrowableProblem>orElseThrow(() -> {
                     throw notFoundIngressForPlugin(plugin);
                 });
 

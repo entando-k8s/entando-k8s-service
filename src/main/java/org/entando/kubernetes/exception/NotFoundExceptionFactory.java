@@ -9,6 +9,10 @@ public final class NotFoundExceptionFactory {
     private NotFoundExceptionFactory() {
     }
 
+    public static ThrowableProblem generic(String message) {
+        return Problem.valueOf(Status.NOT_FOUND, message);
+    }
+
     public static ThrowableProblem entandoApp(String name) {
         return Problem.valueOf(Status.NOT_FOUND,
                 String.format("EntandoApp with name %s not found in observed namespaces", name));
