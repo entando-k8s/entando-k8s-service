@@ -20,6 +20,7 @@ import org.zalando.problem.Problem;
 import org.zalando.problem.Status;
 
 @Slf4j
+@Service
 public class EntandoPluginService extends EntandoKubernetesResourceCollector<EntandoPlugin> {
 
 

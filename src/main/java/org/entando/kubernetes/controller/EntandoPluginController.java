@@ -15,7 +15,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.entando.kubernetes.exception.BadRequestExceptionFactory;
 import org.entando.kubernetes.exception.NotFoundExceptionFactory;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
-import org.entando.kubernetes.service.EntandoKubernetesServiceProvider;
+import org.entando.kubernetes.service.EntandoPluginService;
+import org.entando.kubernetes.service.IngressService;
 import org.entando.kubernetes.service.assembler.EntandoPluginResourceAssembler;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
@@ -39,13 +40,14 @@ import org.zalando.problem.ThrowableProblem;
 @RequiredArgsConstructor
 public class EntandoPluginController {
 
-    private final EntandoKubernetesServiceProvider serviceProvider;
+    private final EntandoPluginService pluginService;   
     private final EntandoPluginResourceAssembler resourceAssembler;
+    private final IngressService ingressService;
 
     @GetMapping(produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
     public ResponseEntity<CollectionModel<EntityModel<EntandoPlugin>>> list() {
         log.info("Listing all deployed plugins in observed namespaces");
-        List<EntandoPlugin> plugins = serviceProvider.getPluginService().getAll();
+        List<EntandoPlugin> plugins = pluginService.getAll();
         CollectionModel<EntityModel<EntandoPlugin>> collection = getPluginCollectionModel(plugins);
         addCollectionLinks(collection);
         return ResponseEntity.ok(collection);
@@ -55,7 +57,7 @@ public class EntandoPluginController {
     @GetMapping(produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE}, params = "namespace")
     public ResponseEntity<CollectionModel<EntityModel<EntandoPlugin>>> listInNamespace(@RequestParam String namespace) {
         log.info("Listing all deployed plugins in {} observed namespace", namespace);
-        List<EntandoPlugin> plugins = serviceProvider.getPluginService().getAllInNamespace(namespace);
+        List<EntandoPlugin> plugins = pluginService.getAllInNamespace(namespace);
         CollectionModel<EntityModel<EntandoPlugin>> collection = getPluginCollectionModel(plugins);
         addCollectionLinks(collection);
         return ResponseEntity.ok(collection);
@@ -80,7 +82,7 @@ public class EntandoPluginController {
     public ResponseEntity<Void> delete(@PathVariable("name") String pluginName) {
         log.info("Deleting plugin with identifier {} from observed namespaces", pluginName);
         EntandoPlugin plugin = getEntandoPluginOrFail(pluginName);
-        serviceProvider.getPluginService().deletePlugin(plugin);
+        pluginService.deletePlugin(plugin);
         return ResponseEntity.accepted().build();
     }
 
@@ -88,13 +90,13 @@ public class EntandoPluginController {
     public ResponseEntity<EntityModel<EntandoPlugin>> create(
             @RequestBody EntandoPlugin entandoPlugin) {
         throwExceptionIfAlreadyDeployed(entandoPlugin);
-        EntandoPlugin deployedPlugin = serviceProvider.getPluginService().deploy(entandoPlugin);
+        EntandoPlugin deployedPlugin = pluginService.deploy(entandoPlugin);
         URI resourceLink = linkTo(methodOn(getClass()).get(deployedPlugin.getMetadata().getName())).toUri();
         return ResponseEntity.created(resourceLink).body(resourceAssembler.toModel(deployedPlugin));
     }
 
     private EntandoPlugin getEntandoPluginOrFail(String pluginName) {
-        return serviceProvider.getPluginService()
+        return pluginService
                 .findByName(pluginName)
                 .<ThrowableProblem>orElseThrow(() -> {
                     throw NotFoundExceptionFactory.entandoPlugin(pluginName);
@@ -102,7 +104,7 @@ public class EntandoPluginController {
     }
 
     private Ingress getEntandoPluginIngressOrFail(EntandoPlugin plugin) {
-        return serviceProvider.getIngressService()
+        return ingressService
                 .findByEntandoPlugin(plugin)
                 .<ThrowableProblem>orElseThrow(() -> {
                     throw notFoundIngressForPlugin(plugin);
@@ -111,7 +113,7 @@ public class EntandoPluginController {
     }
 
     private void throwExceptionIfAlreadyDeployed(EntandoPlugin entandoPlugin) {
-        Optional<EntandoPlugin> alreadyDeployedPlugin = serviceProvider.getPluginService()
+        Optional<EntandoPlugin> alreadyDeployedPlugin = pluginService
                 .findByName(entandoPlugin.getMetadata().getName());
         if (alreadyDeployedPlugin.isPresent()) {
             throw BadRequestExceptionFactory.pluginAlreadyDeployed(alreadyDeployedPlugin.get());

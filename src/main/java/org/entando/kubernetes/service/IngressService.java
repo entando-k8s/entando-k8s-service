@@ -12,8 +12,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.entando.kubernetes.model.ObservedNamespaces;
 import org.entando.kubernetes.model.app.EntandoApp;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
+import org.springframework.stereotype.Service;
 
 @Slf4j
+@Service
 public class IngressService {
 
     private KubernetesClient client;

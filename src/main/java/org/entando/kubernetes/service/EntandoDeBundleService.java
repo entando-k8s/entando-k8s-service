@@ -14,6 +14,7 @@ import org.entando.kubernetes.model.debundle.EntandoDeBundleOperationFactory;
 import org.springframework.stereotype.Service;
 
 @Slf4j
+@Service
 public class EntandoDeBundleService extends EntandoKubernetesResourceCollector<EntandoDeBundle>{
 
     public EntandoDeBundleService(KubernetesClient client,
