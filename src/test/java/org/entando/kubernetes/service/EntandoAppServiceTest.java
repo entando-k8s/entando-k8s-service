@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Optional;
 import org.entando.kubernetes.exception.NotObservedNamespaceException;
-import org.entando.kubernetes.model.ObservedNamespaces;
+import org.entando.kubernetes.model.namespace.ObservedNamespaces;
 import org.entando.kubernetes.model.app.EntandoApp;
 import org.entando.kubernetes.util.EntandoAppTestHelper;
 import org.entando.kubernetes.util.MockObservedNamespaces;
