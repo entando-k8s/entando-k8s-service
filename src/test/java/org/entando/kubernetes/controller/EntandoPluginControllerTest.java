@@ -11,6 +11,7 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -40,6 +41,7 @@ import org.entando.kubernetes.util.HalUtils;
 import org.entando.kubernetes.util.IngressTestHelper;
 import org.hamcrest.core.StringContains;
 import org.hamcrest.core.StringStartsWith;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
@@ -54,9 +56,12 @@ import org.springframework.hateoas.Link;
 import org.springframework.hateoas.LinkRelation;
 import org.springframework.hateoas.Links;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @SpringBootTest(
@@ -67,12 +72,11 @@ import org.springframework.web.util.UriComponentsBuilder;
                 TestKubernetesConfig.class,
                 TestJwtDecoderConfig.class
         })
-@AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Tag("component")
+@WithMockUser
 public class EntandoPluginControllerTest {
 
-    @Autowired
     private MockMvc mvc;
 
     @Autowired
@@ -83,6 +87,17 @@ public class EntandoPluginControllerTest {
 
     @MockBean
     private IngressService ingressService;
+
+    @Autowired
+    private WebApplicationContext context;
+
+    @BeforeEach
+    public void setup() {
+        mvc = MockMvcBuilders
+                .webAppContextSetup(context)
+                .apply(springSecurity())
+                .build();
+    }
 
     @Test
     public void shouldReturnEmptyListIfNotPluginIsDeployed() throws Exception {

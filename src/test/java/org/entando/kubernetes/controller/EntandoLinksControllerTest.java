@@ -13,6 +13,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.hateoas.MediaTypes.HAL_JSON;
 import static org.springframework.hateoas.MediaTypes.HAL_JSON_VALUE;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -39,6 +40,7 @@ import org.entando.kubernetes.util.EntandoAppTestHelper;
 import org.entando.kubernetes.util.EntandoLinkTestHelper;
 import org.entando.kubernetes.util.EntandoPluginTestHelper;
 import org.entando.kubernetes.util.HalUtils;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,9 +55,12 @@ import org.springframework.hateoas.LinkRelation;
 import org.springframework.hateoas.Links;
 import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 
 @SpringBootTest(
         webEnvironment = WebEnvironment.RANDOM_PORT,
@@ -65,13 +70,12 @@ import org.springframework.test.web.servlet.MvcResult;
                 TestKubernetesConfig.class,
                 TestJwtDecoderConfig.class
         })
-@AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Tag("component")
+@WithMockUser
 public class EntandoLinksControllerTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    private MockMvc mvc;
 
     @MockBean
     private EntandoLinkService linkService;
@@ -82,11 +86,22 @@ public class EntandoLinksControllerTest {
     @MockBean
     private EntandoPluginService entandoPluginService;
 
+    @Autowired
+    private WebApplicationContext context;
+
+    @BeforeEach
+    public void setup() {
+        mvc = MockMvcBuilders
+                .webAppContextSetup(context)
+                .apply(springSecurity())
+                .build();
+    }
+
     @Test
     public void shouldReturnListOfLinks() throws Exception {
         when(linkService.getAll()).thenReturn(Collections.singletonList(EntandoLinkTestHelper.getTestLink()));
 
-        MvcResult result = mockMvc.perform(get("/app-plugin-links").accept(MediaTypes.HAL_JSON_VALUE))
+        MvcResult result = mvc.perform(get("/app-plugin-links").accept(MediaTypes.HAL_JSON_VALUE))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$._embedded.entandoAppPluginLinks.length()").value(1))
                 .andReturn();
@@ -112,7 +127,7 @@ public class EntandoLinksControllerTest {
         EntandoAppPluginLink el = EntandoLinkTestHelper.getTestLink();
         when(linkService.getAllInNamespace(el.getMetadata().getNamespace())).thenReturn(Collections.singletonList(el));
 
-        mockMvc.perform(get("/app-plugin-links?namespace={namespace}", el.getMetadata().getNamespace())
+        mvc.perform(get("/app-plugin-links?namespace={namespace}", el.getMetadata().getNamespace())
                         .accept(MediaTypes.HAL_JSON_VALUE))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$._embedded.entandoAppPluginLinks.length()").value(1));
@@ -125,7 +140,7 @@ public class EntandoLinksControllerTest {
         when(linkService.findByName(name)).thenReturn(Optional.of(el));
 
 
-        MvcResult result = mockMvc.perform(get("/app-plugin-links/{name}", name)
+        MvcResult result = mvc.perform(get("/app-plugin-links/{name}", name)
                 .accept(MediaTypes.HAL_JSON_VALUE))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.metadata.name").value(name))
@@ -154,7 +169,7 @@ public class EntandoLinksControllerTest {
         String linkEntryJsonPath = "$._embedded.entandoAppPluginLinks[0]";
         String linkHateoasLinksJsonPath = linkEntryJsonPath + "._links";
 
-        mockMvc.perform(get("/app-plugin-links?plugin={name}", pluginName).accept(MediaType.APPLICATION_JSON))
+        mvc.perform(get("/app-plugin-links?plugin={name}", pluginName).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(jsonPath(linkEntryJsonPath + ".spec.entandoPluginName" ).value(TEST_PLUGIN_NAME))
                 .andExpect(jsonPath(linkEntryJsonPath + ".spec.entandoPluginNamespace").value(TEST_PLUGIN_NAMESPACE))
@@ -178,7 +193,7 @@ public class EntandoLinksControllerTest {
         String linkEntryJsonPath = "$._embedded.entandoAppPluginLinks[0]";
         String linkHateoasLinksJsonPath = linkEntryJsonPath + "._links";
 
-        mockMvc.perform(get("/app-plugin-links?app={name}", appName).accept(HAL_JSON))
+        mvc.perform(get("/app-plugin-links?app={name}", appName).accept(HAL_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath(linkEntryJsonPath + ".metadata.name").value(el.getMetadata().getName()))
                 .andExpect(jsonPath(linkEntryJsonPath + ".spec").value(allOf(
@@ -207,7 +222,7 @@ public class EntandoLinksControllerTest {
         AppPluginLinkRequest req = AppPluginLinkRequest.builder().appName(ea.getMetadata().getName())
                 .pluginName(ep.getMetadata().getName()).build();
 
-        mockMvc.perform(
+        mvc.perform(
                 post("/app-plugin-links")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(HalUtils.halMapper().writeValueAsString(req)).
@@ -222,7 +237,7 @@ public class EntandoLinksControllerTest {
         when(linkService.findByName(eq(el.getMetadata().getName())))
                 .thenReturn(Optional.of(el));
 
-        mockMvc.perform(delete("/app-plugin-links/{name}", el.getMetadata().getName()))
+        mvc.perform(delete("/app-plugin-links/{name}", el.getMetadata().getName()))
                 .andExpect(status().isNoContent());
     }
 
@@ -230,7 +245,7 @@ public class EntandoLinksControllerTest {
     public void shouldReturnNotFound() throws Exception {
         when(linkService.findByName(anyString())).thenReturn(Optional.empty());
 
-        mockMvc.perform(get("/app-plugin-links/any-name")
+        mvc.perform(get("/app-plugin-links/any-name")
                 .accept(MediaTypes.HAL_JSON_VALUE))
                 .andExpect(status().isNotFound());
     }

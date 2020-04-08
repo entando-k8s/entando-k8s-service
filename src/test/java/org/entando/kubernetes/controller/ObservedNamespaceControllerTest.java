@@ -4,6 +4,7 @@ import static org.entando.kubernetes.util.EntandoPluginTestHelper.TEST_PLUGIN_NA
 import static org.hamcrest.CoreMatchers.endsWith;
 import static org.mockito.Mockito.mock;
 import static org.springframework.hateoas.MediaTypes.HAL_JSON_VALUE;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -23,8 +24,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 
 @SpringBootTest(
         webEnvironment = WebEnvironment.RANDOM_PORT,
@@ -34,19 +38,25 @@ import org.springframework.test.web.servlet.MockMvc;
                 TestKubernetesConfig.class,
                 TestJwtDecoderConfig.class
         })
-@AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Tag("component")
+@WithMockUser
 public class ObservedNamespaceControllerTest {
 
-    @Autowired
     private MockMvc mvc;
 
     private ObservedNamespaces observedNamespaces;
 
+    @Autowired
+    private WebApplicationContext context;
+
     @BeforeEach
     public void setup() {
         observedNamespaces = new ObservedNamespaces(mock(KubernetesUtils.class), Collections.singletonList(TEST_PLUGIN_NAMESPACE));
+        mvc = MockMvcBuilders
+                .webAppContextSetup(context)
+                .apply(springSecurity())
+                .build();
     }
 
     @Test
