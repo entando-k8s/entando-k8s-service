@@ -5,7 +5,6 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 import org.entando.kubernetes.controller.EntandoAppController;
 import org.entando.kubernetes.controller.EntandoLinksController;
-import org.entando.kubernetes.controller.EntandoPluginController;
 import org.entando.kubernetes.controller.ObservedNamespaceController;
 import org.entando.kubernetes.model.app.EntandoApp;
 import org.springframework.hateoas.EntityModel;

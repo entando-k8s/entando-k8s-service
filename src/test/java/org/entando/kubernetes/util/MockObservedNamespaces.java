@@ -2,7 +2,6 @@ package org.entando.kubernetes.util;
 
 import java.util.Arrays;
 import java.util.List;
-import org.entando.kubernetes.config.TestKubernetesConfig;
 import org.entando.kubernetes.model.namespace.ObservedNamespaces;
 import org.entando.kubernetes.model.namespace.provider.StaticNamespaceProvider;
 import org.entando.kubernetes.service.KubernetesUtils;
