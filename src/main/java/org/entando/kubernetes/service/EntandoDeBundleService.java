@@ -6,11 +6,11 @@ import io.fabric8.kubernetes.client.dsl.Resource;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import org.entando.kubernetes.model.namespace.ObservedNamespaces;
 import org.entando.kubernetes.model.debundle.DoneableEntandoDeBundle;
 import org.entando.kubernetes.model.debundle.EntandoDeBundle;
 import org.entando.kubernetes.model.debundle.EntandoDeBundleList;
 import org.entando.kubernetes.model.debundle.EntandoDeBundleOperationFactory;
+import org.entando.kubernetes.model.namespace.ObservedNamespaces;
 import org.springframework.stereotype.Service;
 
 @Slf4j

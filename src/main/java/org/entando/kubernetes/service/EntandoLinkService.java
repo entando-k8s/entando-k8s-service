@@ -7,13 +7,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import org.entando.kubernetes.model.namespace.ObservedNamespaces;
 import org.entando.kubernetes.model.app.EntandoApp;
 import org.entando.kubernetes.model.link.DoneableEntandoAppPluginLink;
 import org.entando.kubernetes.model.link.EntandoAppPluginLink;
 import org.entando.kubernetes.model.link.EntandoAppPluginLinkBuilder;
 import org.entando.kubernetes.model.link.EntandoAppPluginLinkList;
 import org.entando.kubernetes.model.link.EntandoAppPluginLinkOperationFactory;
+import org.entando.kubernetes.model.namespace.ObservedNamespaces;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.springframework.stereotype.Service;
 

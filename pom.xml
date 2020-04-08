@@ -82,7 +82,7 @@
         <sonar.projectKey>${github.organization}_${project.artifactId}</sonar.projectKey>
         <sonar.coverage.jacoco.xmlReportPaths>target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
         <sonar.java.checkstyle.reportPaths>target/checkstyle-result.xml</sonar.java.checkstyle.reportPaths>
-
+        <sonar.coverage.exclusions>src/main/java/org/entando/kubernetes/config/*.java</sonar.coverage.exclusions>
         <!--dependencies -->
         <entando.k8s.custom.model.version>6.0.65</entando.k8s.custom.model.version>
         <postgresql.driver.version>42.2.8</postgresql.driver.version>
