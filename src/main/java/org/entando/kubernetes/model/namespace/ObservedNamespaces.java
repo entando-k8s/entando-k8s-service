@@ -1,4 +1,4 @@
-package org.entando.kubernetes.model;
+package org.entando.kubernetes.model.namespace;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.entando.kubernetes.exception.NotObservedNamespaceException;
+import org.entando.kubernetes.model.namespace.provider.FileBasedNamespaceProvider;
 import org.entando.kubernetes.service.KubernetesUtils;
 
 @Slf4j
@@ -19,7 +20,7 @@ public class ObservedNamespaces {
     private final List<String> names;
 
     public ObservedNamespaces(List<String> list) {
-        this(new KubernetesUtils(), list);
+        this(new KubernetesUtils(new FileBasedNamespaceProvider()), list);
     }
 
     public ObservedNamespaces(KubernetesUtils kubernetesUtils) {

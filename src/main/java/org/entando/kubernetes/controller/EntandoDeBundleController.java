@@ -30,13 +30,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/bundles")
 public class EntandoDeBundleController {
 
-    private final EntandoDeBundleService entandoBundleService;
     private final EntandoDeBundleResourceAssembler resourceAssembler;
+    private final EntandoDeBundleService bundleService;
 
     @GetMapping(path = "", produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
     public ResponseEntity<CollectionModel<EntityModel<EntandoDeBundle>>> list() {
         log.info("Listing available digital-exchange bundles");
-        List<EntandoDeBundle> deBundles = entandoBundleService.getAll();
+        List<EntandoDeBundle> deBundles = bundleService.getAll();
         return ResponseEntity
                 .ok(getCollectionWithLinks(deBundles));
     }
@@ -46,7 +46,7 @@ public class EntandoDeBundleController {
     public ResponseEntity<CollectionModel<EntityModel<EntandoDeBundle>>> listInNamespace(
             @RequestParam("namespace") String namespace) {
         log.info("Listing available entando-de-bundles in namespace {}", namespace);
-        List<EntandoDeBundle> deBundles = entandoBundleService.getAllInNamespace(namespace);
+        List<EntandoDeBundle> deBundles = bundleService.getAllInNamespace(namespace);
         CollectionModel<EntityModel<EntandoDeBundle>> collection = getCollectionWithLinks(deBundles);
         return ResponseEntity.ok(collection);
     }
@@ -76,7 +76,7 @@ public class EntandoDeBundleController {
 
 
     private EntandoDeBundle getBundleOrFail(String name) {
-        Optional<EntandoDeBundle> ob = entandoBundleService.findByName(name);
+        Optional<EntandoDeBundle> ob = bundleService.findByName(name);
         return ob.orElseThrow(() -> NotFoundExceptionFactory.entandoDeBundle(name));
     }
 

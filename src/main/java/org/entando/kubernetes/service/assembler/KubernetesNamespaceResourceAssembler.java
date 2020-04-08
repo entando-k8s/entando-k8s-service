@@ -8,7 +8,7 @@ import org.entando.kubernetes.controller.EntandoDeBundleController;
 import org.entando.kubernetes.controller.EntandoLinksController;
 import org.entando.kubernetes.controller.EntandoPluginController;
 import org.entando.kubernetes.controller.ObservedNamespaceController;
-import org.entando.kubernetes.model.ObservedNamespace;
+import org.entando.kubernetes.model.namespace.ObservedNamespace;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.server.RepresentationModelAssembler;
 import org.springframework.stereotype.Component;

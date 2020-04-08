@@ -3,6 +3,7 @@ package org.entando.kubernetes.controller;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.entando.kubernetes.util.EntandoAppTestHelper.TEST_APP_NAME;
 import static org.entando.kubernetes.util.EntandoAppTestHelper.TEST_APP_NAMESPACE;
+import static org.entando.kubernetes.util.EntandoPluginTestHelper.BASE_PLUGIN_ENDPOINT;
 import static org.entando.kubernetes.util.EntandoPluginTestHelper.TEST_PLUGIN_NAME;
 import static org.entando.kubernetes.util.EntandoPluginTestHelper.TEST_PLUGIN_NAMESPACE;
 import static org.hamcrest.CoreMatchers.endsWith;
@@ -25,6 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.fabric8.kubernetes.api.model.extensions.Ingress;
 import java.net.URI;
 import java.util.Collections;
 import java.util.Optional;
@@ -39,9 +41,12 @@ import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.entando.kubernetes.service.EntandoAppService;
 import org.entando.kubernetes.service.EntandoLinkService;
 import org.entando.kubernetes.service.EntandoPluginService;
+import org.entando.kubernetes.service.IngressService;
 import org.entando.kubernetes.util.EntandoAppTestHelper;
 import org.entando.kubernetes.util.EntandoPluginTestHelper;
 import org.entando.kubernetes.util.HalUtils;
+import org.entando.kubernetes.util.IngressTestHelper;
+import org.hamcrest.core.StringContains;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -88,6 +93,9 @@ public class EntandoAppControllerTest {
 
     @MockBean
     private EntandoPluginService entandoPluginService;
+
+    @MockBean
+    private IngressService ingressService;
 
     @Test
     public void shouldReturnEmptyListIfNotAppIsDeployed() throws Exception {
@@ -157,6 +165,44 @@ public class EntandoAppControllerTest {
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
 
+    }
+
+    @Test
+    public void shouldGetPluginIngress() throws Exception {
+        URI uri = UriComponentsBuilder
+                .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
+                .pathSegment(TEST_APP_NAME, "ingress")
+                .build().toUri();
+        EntandoApp ea = EntandoAppTestHelper.getTestEntandoApp();
+        String entandoAppName = ea.getMetadata().getName();
+
+
+        Ingress appIngress = IngressTestHelper.getIngressForEntandoResource(ea);
+
+        when(entandoAppService.findByName(eq(entandoAppName))).thenReturn(Optional.of(ea));
+        when(ingressService.findByEntandoApp(any(EntandoApp.class))).thenReturn(Optional.of(appIngress));
+
+        mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().is2xxSuccessful())
+                .andExpect(jsonPath("$.metadata.name").value(entandoAppName + "-ingress"))
+                .andExpect(jsonPath("$.metadata.labels.EntandoApp").value(entandoAppName));
+    }
+
+    @Test
+    public void shouldReturn404IfIngressNotFound() throws Exception {
+        URI uri = UriComponentsBuilder
+                .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
+                .pathSegment(TEST_APP_NAME, "ingress")
+                .build().toUri();
+        EntandoApp ea = EntandoAppTestHelper.getTestEntandoApp();
+        String entandoAppName = ea.getMetadata().getName();
+
+        when(entandoAppService.findByName(eq(entandoAppName))).thenReturn(Optional.of(ea));
+        when(ingressService.findByEntandoApp(any(EntandoApp.class))).thenReturn(Optional.empty());
+
+        mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(StringContains.containsString("Ingress not found for EntandoApp")));
     }
 
     @Test

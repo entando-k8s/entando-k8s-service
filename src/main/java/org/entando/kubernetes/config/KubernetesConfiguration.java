@@ -6,7 +6,8 @@ import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.ArrayList;
 import java.util.List;
-import org.entando.kubernetes.model.ObservedNamespaces;
+import org.entando.kubernetes.model.namespace.ObservedNamespaces;
+import org.entando.kubernetes.model.namespace.provider.FileBasedNamespaceProvider;
 import org.entando.kubernetes.service.KubernetesUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -22,7 +23,7 @@ public class KubernetesConfiguration {
 
     @Bean
     public KubernetesUtils k8sUtils() {
-        return new KubernetesUtils();
+        return new KubernetesUtils(new FileBasedNamespaceProvider());
     }
 
     @Bean

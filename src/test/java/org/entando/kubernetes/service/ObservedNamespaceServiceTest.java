@@ -5,7 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.Arrays;
 import java.util.List;
 import org.entando.kubernetes.exception.NotObservedNamespaceException;
-import org.entando.kubernetes.model.ObservedNamespaces;
+import org.entando.kubernetes.model.namespace.ObservedNamespaces;
 import org.entando.kubernetes.util.MockObservedNamespaces;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;

@@ -21,6 +21,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.fabric8.kubernetes.api.model.extensions.Ingress;
 import java.net.URI;
 import java.nio.file.Paths;
 import java.util.Collections;
@@ -33,10 +34,15 @@ import org.entando.kubernetes.config.TestSecurityConfiguration;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.entando.kubernetes.service.EntandoLinkService;
 import org.entando.kubernetes.service.EntandoPluginService;
+import org.entando.kubernetes.service.IngressService;
 import org.entando.kubernetes.util.EntandoPluginTestHelper;
 import org.entando.kubernetes.util.HalUtils;
+import org.entando.kubernetes.util.IngressTestHelper;
+import org.hamcrest.core.StringContains;
+import org.hamcrest.core.StringStartsWith;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -76,7 +82,7 @@ public class EntandoPluginControllerTest {
     private EntandoPluginService entandoPluginService;
 
     @MockBean
-    private EntandoLinkService entandoLinkService;
+    private IngressService ingressService;
 
     @Test
     public void shouldReturnEmptyListIfNotPluginIsDeployed() throws Exception {
@@ -154,6 +160,44 @@ public class EntandoPluginControllerTest {
 
     }
 
+    @Test
+    public void shouldGetPluginIngress() throws Exception {
+        EntandoPlugin tempPlugin = EntandoPluginTestHelper.getTestEntandoPlugin();
+        String pluginName = tempPlugin.getMetadata().getName();
+        URI uri = UriComponentsBuilder
+                .fromUriString(BASE_PLUGIN_ENDPOINT)
+                .pathSegment(pluginName, "ingress")
+                .build().toUri();
+
+        Ingress pluginIngress = IngressTestHelper.getIngressForEntandoResource(tempPlugin);
+
+        when(entandoPluginService.findByName(eq(pluginName))).thenReturn(Optional.of(tempPlugin));
+        when(ingressService.findByEntandoPlugin(any(EntandoPlugin.class))).thenReturn(Optional.of(pluginIngress));
+
+        mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().is2xxSuccessful())
+                .andExpect(jsonPath("$.metadata.name").value(pluginName + "-ingress"))
+                .andExpect(jsonPath("$.metadata.labels.EntandoPlugin").value(pluginName));
+
+
+    }
+
+    @Test
+    public void shouldReturn404IfIngressNotFound() throws Exception {
+        EntandoPlugin tempPlugin = EntandoPluginTestHelper.getTestEntandoPlugin();
+        String pluginName = tempPlugin.getMetadata().getName();
+        URI uri = UriComponentsBuilder
+                .fromUriString(BASE_PLUGIN_ENDPOINT)
+                .pathSegment(pluginName, "ingress")
+                .build().toUri();
+
+        when(entandoPluginService.findByName(eq(pluginName))).thenReturn(Optional.of(tempPlugin));
+        when(ingressService.findByEntandoPlugin(any(EntandoPlugin.class))).thenReturn(Optional.empty());
+
+        mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(StringContains.containsString("Ingress not found for EntandoPlugin")));
+    }
 
     @Test
     public void shouldReturn404IfPluginNotFound() throws Exception {

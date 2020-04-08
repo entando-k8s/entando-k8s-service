@@ -3,28 +3,31 @@ package org.entando.kubernetes.config;
 import static org.mockito.Mockito.when;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
+import java.net.URISyntaxException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
-import org.entando.kubernetes.model.ObservedNamespaces;
+import org.entando.kubernetes.model.namespace.ObservedNamespaces;
+import org.entando.kubernetes.model.namespace.provider.FileBasedNamespaceProvider;
+import org.entando.kubernetes.model.namespace.provider.NamespaceProvider;
+import org.entando.kubernetes.model.namespace.provider.StaticNamespaceProvider;
 import org.entando.kubernetes.service.KubernetesUtils;
 import org.entando.kubernetes.util.MockObservedNamespaces;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 
 @TestConfiguration
 public class TestKubernetesConfig {
-
-    private final String TEST_CURRENT_NAMESPACE = "test-namespace";
 
     @Value("${entando.namespaces.to.observe}")
     public List<String> namespacesToObserve;
 
     @Bean
-    public KubernetesUtils k8sUtils() {
-        KubernetesUtils mockedK8sUtils = Mockito.mock(KubernetesUtils.class);
-        when(mockedK8sUtils.getCurrentNamespace()).thenReturn(TEST_CURRENT_NAMESPACE);
-        return mockedK8sUtils;
+    public NamespaceProvider namespaceProvider() {
+        return new StaticNamespaceProvider("test-namespace");
     }
 
     @Bean

@@ -1,4 +1,4 @@
-package org.entando.kubernetes.model;
+package org.entando.kubernetes.model.namespace;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

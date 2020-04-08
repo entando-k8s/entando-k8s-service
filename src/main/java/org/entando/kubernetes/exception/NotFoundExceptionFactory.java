@@ -1,5 +1,7 @@
 package org.entando.kubernetes.exception;
 
+import org.entando.kubernetes.model.EntandoBaseCustomResource;
+import org.entando.kubernetes.model.app.EntandoApp;
 import org.zalando.problem.Problem;
 import org.zalando.problem.Status;
 import org.zalando.problem.ThrowableProblem;
@@ -7,6 +9,10 @@ import org.zalando.problem.ThrowableProblem;
 public final class NotFoundExceptionFactory {
 
     private NotFoundExceptionFactory() {
+    }
+
+    public static ThrowableProblem generic(String message) {
+        return Problem.valueOf(Status.NOT_FOUND, message);
     }
 
     public static ThrowableProblem entandoApp(String name) {
@@ -38,6 +44,15 @@ public final class NotFoundExceptionFactory {
     public static ThrowableProblem observedNamespace(String name) {
         return Problem.valueOf(Status.NOT_FOUND,
                 String.format("Namespace %s is not part of the observed namespaces", name));
+    }
+
+    public static ThrowableProblem ingress(EntandoBaseCustomResource r)  {
+        return Problem.builder()
+                .withStatus(Status.NOT_FOUND)
+                .withDetail("Ingress not found for " + r.getKind() + " " + r.getMetadata().getName() +
+                        " in namespace " + r.getMetadata().getNamespace())
+                .build();
+
     }
 
 }

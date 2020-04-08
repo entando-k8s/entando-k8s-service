@@ -31,7 +31,6 @@ public class EntandoAppTestHelper {
         return getEntandoAppOperations(client).inNamespace(ea.getMetadata().getNamespace()).createOrReplace(ea);
     }
 
-
     public static MixedOperation<EntandoApp, EntandoAppList, DoneableEntandoApp,
             Resource<EntandoApp, DoneableEntandoApp>> getEntandoAppOperations(KubernetesClient client) {
         CustomResourceDefinition entandoAppCrd = createEntandoAppCrd(client);
