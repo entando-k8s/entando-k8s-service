@@ -1,5 +1,7 @@
 package org.entando.kubernetes.controller;
 
+import static org.entando.kubernetes.model.EntandoDeploymentPhase.FAILED;
+import static org.entando.kubernetes.model.EntandoDeploymentPhase.SUCCESSFUL;
 import static org.springframework.hateoas.MediaTypes.HAL_JSON_VALUE;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -7,10 +9,12 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.entando.kubernetes.exception.NotFoundExceptionFactory;
+import org.entando.kubernetes.model.EntandoDeploymentPhase;
 import org.entando.kubernetes.model.app.EntandoApp;
 import org.entando.kubernetes.model.link.EntandoAppPluginLink;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
@@ -89,9 +93,20 @@ public class EntandoLinksController {
     @DeleteMapping(value = "/{name}")
     public ResponseEntity<Object> delete(@PathVariable String name) {
         EntandoAppPluginLink link = getLinkByNameOrFail(name);
+        cleanPossiblyFailedPlugin(link);
         linkService.delete(link);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
+
+    private void cleanPossiblyFailedPlugin(EntandoAppPluginLink link) {
+        Optional<EntandoPlugin> optPlugin = pluginService.findByName(link.getSpec().getEntandoPluginName());
+        if (optPlugin.isPresent() && !optPlugin.get().getStatus().getEntandoDeploymentPhase().equals(SUCCESSFUL)) {
+            log.info("Removing link associated plugin {} as it's deployment phase is not SUCCESSFUL",
+                    optPlugin.get().getMetadata().getName());
+            pluginService.deletePlugin(optPlugin.get());
+        }
+    }
+
 
     private EntandoApp getAppByNameOrFail(String name) {
         return appService.findByName(name)

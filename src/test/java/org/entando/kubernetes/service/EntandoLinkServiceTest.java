@@ -23,6 +23,7 @@ import org.entando.kubernetes.util.EntandoLinkTestHelper;
 import org.entando.kubernetes.util.EntandoPluginTestHelper;
 import org.entando.kubernetes.util.MockObservedNamespaces;
 import org.junit.Rule;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -141,5 +142,10 @@ public class EntandoLinkServiceTest {
         assertTrue(links.isEmpty());
     }
 
+    @Test
+    public void shouldNotThrowIfDeletingNonExistingPlugin() {
+        EntandoAppPluginLink el = EntandoLinkTestHelper.getTestLink();
+        Assertions.assertDoesNotThrow(() -> linkService.delete(el));
+    }
 
 }

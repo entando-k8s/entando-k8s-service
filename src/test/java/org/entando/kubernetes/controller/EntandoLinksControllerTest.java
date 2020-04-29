@@ -8,8 +8,10 @@ import static org.entando.kubernetes.util.EntandoPluginTestHelper.TEST_PLUGIN_NA
 import static org.hamcrest.CoreMatchers.endsWith;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.hasEntry;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 import static org.springframework.hateoas.MediaTypes.HAL_JSON;
 import static org.springframework.hateoas.MediaTypes.HAL_JSON_VALUE;
@@ -29,6 +31,7 @@ import org.entando.kubernetes.EntandoKubernetesJavaApplication;
 import org.entando.kubernetes.config.TestJwtDecoderConfig;
 import org.entando.kubernetes.config.TestKubernetesConfig;
 import org.entando.kubernetes.config.TestSecurityConfiguration;
+import org.entando.kubernetes.model.EntandoDeploymentPhase;
 import org.entando.kubernetes.model.app.EntandoApp;
 import org.entando.kubernetes.model.link.EntandoAppPluginLink;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
@@ -43,6 +46,8 @@ import org.entando.kubernetes.util.HalUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
@@ -77,7 +82,7 @@ public class EntandoLinksControllerTest {
     private MockMvc mvc;
 
     @MockBean
-    private EntandoLinkService linkService;
+    private EntandoLinkService entandoLinkService;
 
     @MockBean
     private EntandoAppService entandoAppService;
@@ -98,7 +103,7 @@ public class EntandoLinksControllerTest {
 
     @Test
     public void shouldReturnListOfLinks() throws Exception {
-        when(linkService.getAll()).thenReturn(Collections.singletonList(EntandoLinkTestHelper.getTestLink()));
+        when(entandoLinkService.getAll()).thenReturn(Collections.singletonList(EntandoLinkTestHelper.getTestLink()));
 
         MvcResult result = mvc.perform(get("/app-plugin-links").accept(MediaTypes.HAL_JSON_VALUE))
                 .andExpect(status().isOk())
@@ -124,7 +129,7 @@ public class EntandoLinksControllerTest {
     @Test
     public void shouldReturnLinksFromNamespace() throws Exception {
         EntandoAppPluginLink el = EntandoLinkTestHelper.getTestLink();
-        when(linkService.getAllInNamespace(el.getMetadata().getNamespace())).thenReturn(Collections.singletonList(el));
+        when(entandoLinkService.getAllInNamespace(el.getMetadata().getNamespace())).thenReturn(Collections.singletonList(el));
 
         mvc.perform(get("/app-plugin-links?namespace={namespace}", el.getMetadata().getNamespace())
                         .accept(MediaTypes.HAL_JSON_VALUE))
@@ -136,7 +141,7 @@ public class EntandoLinksControllerTest {
     public void shouldReturnLinkByName() throws Exception {
         EntandoAppPluginLink el = EntandoLinkTestHelper.getTestLink();
         String name = el.getMetadata().getName();
-        when(linkService.findByName(name)).thenReturn(Optional.of(el));
+        when(entandoLinkService.findByName(name)).thenReturn(Optional.of(el));
 
 
         MvcResult result = mvc.perform(get("/app-plugin-links/{name}", name)
@@ -163,7 +168,7 @@ public class EntandoLinksControllerTest {
         String linkNamespace = tempLink.getMetadata().getNamespace();
 
         String pluginName = tempPlugin.getMetadata().getName();
-        when(linkService.findByPluginName(eq(pluginName))).thenReturn(Collections.singletonList(tempLink));
+        when(entandoLinkService.findByPluginName(eq(pluginName))).thenReturn(Collections.singletonList(tempLink));
 
         String linkEntryJsonPath = "$._embedded.entandoAppPluginLinks[0]";
         String linkHateoasLinksJsonPath = linkEntryJsonPath + "._links";
@@ -187,7 +192,7 @@ public class EntandoLinksControllerTest {
         String appName = ea.getMetadata().getName();
         String linkNamespace = el.getMetadata().getNamespace();
 
-        when(linkService.findByAppName(eq(appName))).thenReturn(Collections.singletonList(el));
+        when(entandoLinkService.findByAppName(eq(appName))).thenReturn(Collections.singletonList(el));
 
         String linkEntryJsonPath = "$._embedded.entandoAppPluginLinks[0]";
         String linkHateoasLinksJsonPath = linkEntryJsonPath + "._links";
@@ -216,7 +221,7 @@ public class EntandoLinksControllerTest {
 
         when(entandoAppService.findByName(eq(ea.getMetadata().getName()))).thenReturn(Optional.of(ea));
         when(entandoPluginService.findByName(eq(ep.getMetadata().getName()))).thenReturn(Optional.of(ep));
-        when(linkService.buildBetweenAppAndPlugin(eq(ea), eq(ep))).thenReturn(el);
+        when(entandoLinkService.buildBetweenAppAndPlugin(eq(ea), eq(ep))).thenReturn(el);
 
         AppPluginLinkRequest req = AppPluginLinkRequest.builder().appName(ea.getMetadata().getName())
                 .pluginName(ep.getMetadata().getName()).build();
@@ -231,18 +236,53 @@ public class EntandoLinksControllerTest {
     }
 
     @Test
-    public void shouldDeleteLink() throws Exception {
+    public void shouldDeleteLinkAndFailingPlugin() throws Exception {
         EntandoAppPluginLink el = EntandoLinkTestHelper.getTestLink();
-        when(linkService.findByName(eq(el.getMetadata().getName())))
+        EntandoPlugin plugin = EntandoPluginTestHelper.getTestEntandoPlugin();
+        plugin.getStatus().setEntandoDeploymentPhase(EntandoDeploymentPhase.FAILED);
+        when(entandoLinkService.findByName(eq(el.getMetadata().getName())))
                 .thenReturn(Optional.of(el));
+        when(entandoPluginService.findByName(eq(plugin.getMetadata().getName())))
+                .thenReturn(Optional.of(plugin));
 
         mvc.perform(delete("/app-plugin-links/{name}", el.getMetadata().getName()))
                 .andExpect(status().isNoContent());
+        ArgumentCaptor<EntandoPlugin> argCapt = ArgumentCaptor.forClass(EntandoPlugin.class);
+        Mockito.verify(entandoLinkService, times(1)).delete(any(EntandoAppPluginLink.class));
+        Mockito.verify(entandoPluginService, times(1)).deletePlugin(argCapt.capture());
+        assertThat(argCapt.getValue().getMetadata().getName()).isEqualTo(plugin.getMetadata().getName());
+        assertThat(argCapt.getValue().getStatus().getEntandoDeploymentPhase()).isEqualTo(EntandoDeploymentPhase.FAILED);
+
+        plugin = EntandoPluginTestHelper.getTestEntandoPlugin();
+        plugin.getStatus().setEntandoDeploymentPhase(EntandoDeploymentPhase.STARTED);
+        when(entandoPluginService.findByName(eq(plugin.getMetadata().getName())))
+                .thenReturn(Optional.of(plugin));
+        mvc.perform(delete("/app-plugin-links/{name}", el.getMetadata().getName()))
+                .andExpect(status().isNoContent());
+        Mockito.verify(entandoPluginService, times(2)).deletePlugin(argCapt.capture());
+        assertThat(argCapt.getValue().getStatus().getEntandoDeploymentPhase()).isEqualTo(EntandoDeploymentPhase.STARTED);
+    }
+
+    @Test
+    public void shouldDeleteLinkButKeepWorkingPlugin() throws Exception {
+        EntandoAppPluginLink el = EntandoLinkTestHelper.getTestLink();
+        EntandoPlugin plugin = EntandoPluginTestHelper.getTestEntandoPlugin();
+        plugin.getStatus().setEntandoDeploymentPhase(EntandoDeploymentPhase.SUCCESSFUL);
+        when(entandoLinkService.findByName(eq(el.getMetadata().getName())))
+                .thenReturn(Optional.of(el));
+        when(entandoPluginService.findByName(eq(plugin.getMetadata().getName())))
+                .thenReturn(Optional.of(plugin));
+
+        mvc.perform(delete("/app-plugin-links/{name}", el.getMetadata().getName()))
+                .andExpect(status().isNoContent());
+        ArgumentCaptor<EntandoPlugin> argCapt = ArgumentCaptor.forClass(EntandoPlugin.class);
+        Mockito.verify(entandoLinkService, times(1)).delete(any(EntandoAppPluginLink.class));
+        Mockito.verify(entandoPluginService, times(0)).deletePlugin(any(EntandoPlugin.class));
     }
 
     @Test
     public void shouldReturnNotFound() throws Exception {
-        when(linkService.findByName(anyString())).thenReturn(Optional.empty());
+        when(entandoLinkService.findByName(anyString())).thenReturn(Optional.empty());
 
         mvc.perform(get("/app-plugin-links/any-name")
                 .accept(MediaTypes.HAL_JSON_VALUE))
