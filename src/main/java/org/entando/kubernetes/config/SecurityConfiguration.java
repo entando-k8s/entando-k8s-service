@@ -53,6 +53,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .antMatchers("/actuator/health").permitAll()
                 .antMatchers("/actuator/info").permitAll()
                 .antMatchers("/actuator/prometheus").permitAll()
+                .antMatchers("/v3/api-docs/**", "/swagger-ui.html", "/swagger-ui/**").permitAll()
                 .antMatchers("/actuator/**").hasAuthority(ADMIN)
                 .antMatchers("/**").authenticated()
                 .and()
