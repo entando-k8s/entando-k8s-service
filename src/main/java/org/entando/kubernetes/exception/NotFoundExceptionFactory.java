@@ -24,9 +24,9 @@ public final class NotFoundExceptionFactory {
                 String.format("EntandoPlugin with name %s not found in observed namespaces", name));
     }
 
-    public static ThrowableProblem entandoDeBundle(String name) {
+    public static ThrowableProblem entandoComponentBundle(String name) {
         return Problem.valueOf(Status.NOT_FOUND,
-                String.format("Bundle with name %s not found in observed namespace", name));
+                String.format("Component bundle with name %s not found in observed namespace", name));
     }
 
     public static ThrowableProblem entandoLink(String appName, String pluginName) {

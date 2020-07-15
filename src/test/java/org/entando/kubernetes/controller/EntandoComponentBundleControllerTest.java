@@ -1,7 +1,7 @@
 package org.entando.kubernetes.controller;
 
-import static org.entando.kubernetes.util.EntandoDeBundleTestHelper.TEST_BUNDLE_NAME;
-import static org.entando.kubernetes.util.EntandoDeBundleTestHelper.TEST_BUNDLE_NAMESPACE;
+import static org.entando.kubernetes.util.EntandoComponentBundleTestHelper.TEST_BUNDLE_NAME;
+import static org.entando.kubernetes.util.EntandoComponentBundleTestHelper.TEST_BUNDLE_NAMESPACE;
 import static org.hamcrest.Matchers.hasKey;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
@@ -20,9 +20,9 @@ import org.entando.kubernetes.EntandoKubernetesJavaApplication;
 import org.entando.kubernetes.config.TestJwtDecoderConfig;
 import org.entando.kubernetes.config.TestKubernetesConfig;
 import org.entando.kubernetes.config.TestSecurityConfiguration;
-import org.entando.kubernetes.model.debundle.EntandoDeBundle;
-import org.entando.kubernetes.service.EntandoDeBundleService;
-import org.entando.kubernetes.util.EntandoDeBundleTestHelper;
+import org.entando.kubernetes.model.bundle.EntandoComponentBundle;
+import org.entando.kubernetes.service.EntandoComponentBundleService;
+import org.entando.kubernetes.util.EntandoComponentBundleTestHelper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -49,13 +49,13 @@ import org.springframework.web.util.UriComponentsBuilder;
 @ActiveProfiles("test")
 @Tag("component")
 @WithMockUser
-public class EntandoDeBundleControllerTest {
+public class EntandoComponentBundleControllerTest {
 
     private MockMvc mvc;
 
 
     @MockBean
-    private EntandoDeBundleService entandoDeBundleService;
+    private EntandoComponentBundleService entandoComponentBundleService;
 
     @Autowired
     private WebApplicationContext context;
@@ -70,58 +70,58 @@ public class EntandoDeBundleControllerTest {
 
 
     @Test
-    public void shouldReturnEmptyListIfNotBundleIsDeployed() throws Exception {
+    void shouldReturnEmptyListIfNotBundleIsDeployed() throws Exception {
         URI uri = UriComponentsBuilder
-                .fromUriString(EntandoDeBundleTestHelper.BASE_BUNDLES_ENDPOINT)
+                .fromUriString(EntandoComponentBundleTestHelper.BASE_BUNDLES_ENDPOINT)
                 .build().toUri();
-        when(entandoDeBundleService.getAll()).thenReturn(Collections.emptyList());
+        when(entandoComponentBundleService.getAll()).thenReturn(Collections.emptyList());
 
         mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(content().json("{}"));
 
-        verify(entandoDeBundleService, times(1)).getAll();
+        verify(entandoComponentBundleService, times(1)).getAll();
     }
 
     @Test
-    public void shouldReturnAListWithOneBundle() throws Exception {
+    void shouldReturnAListWithOneBundle() throws Exception {
         URI uri = UriComponentsBuilder
-                .fromUriString(EntandoDeBundleTestHelper.BASE_BUNDLES_ENDPOINT)
+                .fromUriString(EntandoComponentBundleTestHelper.BASE_BUNDLES_ENDPOINT)
                 .build().toUri();
 
-        EntandoDeBundle tempBundle = EntandoDeBundleTestHelper.getTestEntandoDeBundle();
-        when(entandoDeBundleService.getAll()).thenReturn(Collections.singletonList(tempBundle));
+        EntandoComponentBundle tempBundle = EntandoComponentBundleTestHelper.getTestEntandoComponentBundle();
+        when(entandoComponentBundleService.getAll()).thenReturn(Collections.singletonList(tempBundle));
 
         mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is2xxSuccessful())
-                .andExpect(jsonPath("$._embedded.entandoDeBundles").isNotEmpty())
-                .andExpect(jsonPath("$._embedded.entandoDeBundles[0].metadata.name" ).value(TEST_BUNDLE_NAME))
-                .andExpect(jsonPath("$._embedded.entandoDeBundles[0].metadata.namespace").value(TEST_BUNDLE_NAMESPACE))
+                .andExpect(jsonPath("$._embedded.entandoComponentBundles").isNotEmpty())
+                .andExpect(jsonPath("$._embedded.entandoComponentBundles[0].metadata.name" ).value(TEST_BUNDLE_NAME))
+                .andExpect(jsonPath("$._embedded.entandoComponentBundles[0].metadata.namespace").value(TEST_BUNDLE_NAMESPACE))
                 .andExpect(jsonPath("$._links", hasKey("bundle")))
                 .andExpect(jsonPath("$._links", hasKey("bundles-in-namespace")));
 
 
-        verify(entandoDeBundleService, times(1)).getAll();
+        verify(entandoComponentBundleService, times(1)).getAll();
     }
 
     @Test
-    public void shouldReturnAListWithOneBundleWhenSearchingInANamespace() throws Exception {
+    void shouldReturnAListWithOneBundleWhenSearchingInANamespace() throws Exception {
         URI uri = UriComponentsBuilder
-                .fromUriString(EntandoDeBundleTestHelper.BASE_BUNDLES_ENDPOINT)
+                .fromUriString(EntandoComponentBundleTestHelper.BASE_BUNDLES_ENDPOINT)
                 .queryParam("namespace", TEST_BUNDLE_NAMESPACE)
                 .build().toUri();
 
-        EntandoDeBundle tempBundle = EntandoDeBundleTestHelper.getTestEntandoDeBundle();
-        when(entandoDeBundleService.getAllInNamespace(anyString())).thenReturn(Collections.singletonList(tempBundle));
+        EntandoComponentBundle tempBundle = EntandoComponentBundleTestHelper.getTestEntandoComponentBundle();
+        when(entandoComponentBundleService.getAllInNamespace(anyString())).thenReturn(Collections.singletonList(tempBundle));
 
         mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is2xxSuccessful())
-                .andExpect(jsonPath("$._embedded.entandoDeBundles").isNotEmpty())
-                .andExpect(jsonPath("$._embedded.entandoDeBundles[0].metadata.name" ).value(TEST_BUNDLE_NAME))
-                .andExpect(jsonPath("$._embedded.entandoDeBundles[0].metadata.namespace").value(TEST_BUNDLE_NAMESPACE));
+                .andExpect(jsonPath("$._embedded.entandoComponentBundles").isNotEmpty())
+                .andExpect(jsonPath("$._embedded.entandoComponentBundles[0].metadata.name" ).value(TEST_BUNDLE_NAME))
+                .andExpect(jsonPath("$._embedded.entandoComponentBundles[0].metadata.namespace").value(TEST_BUNDLE_NAMESPACE));
 
 
-        verify(entandoDeBundleService, times(1)).getAllInNamespace(TEST_BUNDLE_NAMESPACE);
+        verify(entandoComponentBundleService, times(1)).getAllInNamespace(TEST_BUNDLE_NAMESPACE);
     }
 
 //    public void shouldReturnAListWithOneBundleWhenFilteringByName() throws Exception {
@@ -144,14 +144,14 @@ public class EntandoDeBundleControllerTest {
 //    }
 
     @Test
-    public void shouldReturnAListWithOneBundleWhenFilteringByNameAndNamespace() throws Exception {
+    void shouldReturnAListWithOneBundleWhenFilteringByNameAndNamespace() throws Exception {
         URI uri = UriComponentsBuilder
-                .fromUriString(EntandoDeBundleTestHelper.BASE_BUNDLES_ENDPOINT)
+                .fromUriString(EntandoComponentBundleTestHelper.BASE_BUNDLES_ENDPOINT)
                 .pathSegment(TEST_BUNDLE_NAME)
                 .build().toUri();
 
-        EntandoDeBundle tempBundle = EntandoDeBundleTestHelper.getTestEntandoDeBundle();
-        when(entandoDeBundleService.findByName(anyString())).thenReturn(Optional.of(tempBundle));
+        EntandoComponentBundle tempBundle = EntandoComponentBundleTestHelper.getTestEntandoComponentBundle();
+        when(entandoComponentBundleService.findByName(anyString())).thenReturn(Optional.of(tempBundle));
 
         mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is2xxSuccessful())
@@ -159,7 +159,7 @@ public class EntandoDeBundleControllerTest {
                 .andExpect(jsonPath("$.metadata.namespace").value(TEST_BUNDLE_NAMESPACE));
 
 
-        verify(entandoDeBundleService, times(1))
+        verify(entandoComponentBundleService, times(1))
                 .findByName(TEST_BUNDLE_NAME);
 
         mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
