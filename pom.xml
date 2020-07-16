@@ -87,7 +87,7 @@
         <entando.k8s.custom.model.version>6.0.65</entando.k8s.custom.model.version>
         <entando.k8s.component.bundle.custom.model.version>6.1.15</entando.k8s.component.bundle.custom.model.version>
         <postgresql.driver.version>42.2.8</postgresql.driver.version>
-        <fabric8.version>4.1.3</fabric8.version>
+        <fabric8.version>4.10.3</fabric8.version>
         <junit.version>5.4.2</junit.version>
         <!-- plugin  versions -->
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
@@ -105,6 +105,8 @@
         <jacoco-maven-plugin.version>0.8.4</jacoco-maven-plugin.version>
         <dependency-check-maven.version>5.2.4</dependency-check-maven.version>
         <maven-surefire-report-plugin.version>3.0.0-M4</maven-surefire-report-plugin.version>
+        <tomcat-embed.version>9.0.37</tomcat-embed.version>
+        <spring-security.version>5.3.3.RELEASE</spring-security.version>
     </properties>
 
     <reporting>
@@ -128,52 +130,52 @@
         <dependency>
             <groupId>org.apache.tomcat.embed</groupId>
             <artifactId>tomcat-embed-core</artifactId>
-            <version>9.0.31</version>
+            <version>${tomcat-embed.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.tomcat.embed</groupId>
             <artifactId>tomcat-embed-el</artifactId>
-            <version>9.0.31</version>
+            <version>${tomcat-embed.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.tomcat.embed</groupId>
             <artifactId>tomcat-embed-websocket</artifactId>
-            <version>9.0.31</version>
+            <version>${tomcat-embed.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-web</artifactId>
-            <version>5.2.2.RELEASE</version>
+            <version>${spring-security.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-config</artifactId>
-            <version>5.2.2.RELEASE</version>
+            <version>${spring-security.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-core</artifactId>
-            <version>5.2.2.RELEASE</version>
+            <version>${spring-security.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-oauth2-resource-server</artifactId>
-            <version>5.2.2.RELEASE</version>
+            <version>${spring-security.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-oauth2-jose</artifactId>
-            <version>5.2.2.RELEASE</version>
+            <version>${spring-security.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-oauth2-core</artifactId>
-            <version>5.2.2.RELEASE</version>
+            <version>${spring-security.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-oauth2-client</artifactId>
-            <version>5.2.2.RELEASE</version>
+            <version>${spring-security.version}</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.springframework.security.oauth/spring-security-oauth2 -->
         <dependency>
