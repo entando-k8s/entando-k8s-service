@@ -89,6 +89,8 @@
         <postgresql.driver.version>42.2.8</postgresql.driver.version>
         <fabric8.version>4.10.3</fabric8.version>
         <junit.version>5.4.2</junit.version>
+        <tomcat-embed.version>9.0.37</tomcat-embed.version>
+        <spring-security.version>5.3.3.RELEASE</spring-security.version>
         <!-- plugin  versions -->
         <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
         <maven-surefire-plugin.version>3.0.0-M1</maven-surefire-plugin.version>
@@ -105,8 +107,6 @@
         <jacoco-maven-plugin.version>0.8.4</jacoco-maven-plugin.version>
         <dependency-check-maven.version>5.2.4</dependency-check-maven.version>
         <maven-surefire-report-plugin.version>3.0.0-M4</maven-surefire-report-plugin.version>
-        <tomcat-embed.version>9.0.37</tomcat-embed.version>
-        <spring-security.version>5.3.3.RELEASE</spring-security.version>
     </properties>
 
     <reporting>
