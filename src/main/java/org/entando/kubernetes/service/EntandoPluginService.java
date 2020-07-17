@@ -51,7 +51,7 @@ public class EntandoPluginService extends EntandoKubernetesResourceCollector<Ent
         EntandoPlugin pluginToRemove = new EntandoPlugin();
         ObjectMeta pluginMeta = new ObjectMetaBuilder().withName(pluginId).withNamespace(namespace).build();
         pluginToRemove.setMetadata(pluginMeta);
-        getPluginOperations().inNamespace(namespace).delete(pluginToRemove);
+        getPluginOperations().inAnyNamespace().delete(pluginToRemove);
     }
 
     public EntandoPlugin deploy(EntandoPlugin plugin) {

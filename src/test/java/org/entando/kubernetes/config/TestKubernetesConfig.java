@@ -3,6 +3,7 @@ package org.entando.kubernetes.config;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.List;
 import org.entando.kubernetes.model.namespace.ObservedNamespaces;
+import org.entando.kubernetes.model.namespace.provider.FileBasedNamespaceProvider;
 import org.entando.kubernetes.model.namespace.provider.NamespaceProvider;
 import org.entando.kubernetes.model.namespace.provider.StaticNamespaceProvider;
 import org.entando.kubernetes.service.KubernetesUtils;
