@@ -42,7 +42,7 @@ public class EntandoPluginService extends EntandoKubernetesResourceCollector<Ent
 
     public void deletePlugin(EntandoPlugin plugin) {
         log.info("Delete plugin {} from observed namespaces", plugin.getMetadata().getName());
-        getPluginOperations().delete(plugin);
+        getPluginOperations().inAnyNamespace().delete(plugin);
     }
 
     public void deletePluginInNamespace(String pluginId, String namespace) {
