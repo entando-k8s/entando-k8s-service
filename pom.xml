@@ -14,10 +14,9 @@
     <description>A REST layer to interact with Kubernetes resources</description>
 
     <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.2.8.RELEASE</version>
-        <relativePath/>
+        <groupId>org.entando</groupId>
+        <artifactId>entando-spring-boot-parent</artifactId>
+        <version>6.2.3</version>
     </parent>
     <url>http://www.entando.com/</url>
     <licenses>
@@ -31,18 +30,6 @@
         <name>Entando Inc.</name>
         <url>http://www.entando.com/</url>
     </organization>
-    <distributionManagement>
-        <repository>
-            <id>${maven.release.repository.id}</id>
-            <name>Releases</name>
-            <url>${maven.release.repository.url}</url>
-        </repository>
-        <snapshotRepository>
-            <id>${maven.snapshot.repository.id}</id>
-            <name>Snapshot</name>
-            <url>${maven.snapshot.repository.url}</url>
-        </snapshotRepository>
-    </distributionManagement>
     <repositories>
         <repository>
             <id>jx-releases</id>
@@ -54,145 +41,112 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
-        <repository>
-            <id>sonatype-snapshots</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>always</updatePolicy>
-            </snapshots>
-        </repository>
     </repositories>
 
     <properties>
-        <verifyAllFailures>true</verifyAllFailures>
-        <ignoreAllFailures>false</ignoreAllFailures>
-        <skipInterProcessTests>true</skipInterProcessTests>
-        <skipInProcessTests>true</skipInProcessTests>
+        <preDeploymentTestGroups>unit,component,in-process</preDeploymentTestGroups>
+        <postDeploymentTestGroups></postDeploymentTestGroups>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
         <github.organization>entando-k8s</github.organization>
-        <!--Standard Sonar configuration -->
-        <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-        <sonar.organization>${github.organization}</sonar.organization>
-        <sonar.projectKey>${github.organization}_${project.artifactId}</sonar.projectKey>
-        <sonar.coverage.jacoco.xmlReportPaths>target/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
-        <sonar.java.checkstyle.reportPaths>target/checkstyle-result.xml</sonar.java.checkstyle.reportPaths>
-        <sonar.coverage.exclusions>src/main/java/org/entando/kubernetes/config/*.java</sonar.coverage.exclusions>
-        <!--dependencies -->
-        <entando.k8s.custom.model.version>6.0.65</entando.k8s.custom.model.version>
-        <postgresql.driver.version>42.2.8</postgresql.driver.version>
-        <fabric8.version>4.10.3</fabric8.version>
-        <junit.version>5.4.2</junit.version>
-        <tomcat-embed.version>9.0.37</tomcat-embed.version>
-        <spring-security.version>5.3.3.RELEASE</spring-security.version>
-        <log4j.version>2.13.3</log4j.version>
-        <!-- plugin  versions -->
-        <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
-        <maven-surefire-plugin.version>3.0.0-M1</maven-surefire-plugin.version>
-        <maven-checkstyle-plugin.version>3.1.0</maven-checkstyle-plugin.version>
-        <maven-failsafe-plugin.version>3.0.0-M4</maven-failsafe-plugin.version>
-        <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
-        <maven-javadoc-plugin.version>3.1.1</maven-javadoc-plugin.version>
-        <maven-source-plugin.version>3.1.0</maven-source-plugin.version>
-        <maven-jar-plugin.version>3.1.2</maven-jar-plugin.version>
-        <maven-deploy-plugin.version>2.8.2</maven-deploy-plugin.version>
-        <maven-project-info-reports-plugin.version>3.0.0</maven-project-info-reports-plugin.version>
-        <maven-enforcer-plugin.version>3.0.0-M3</maven-enforcer-plugin.version>
-        <maven-site-plugin.version>3.8.2</maven-site-plugin.version>
-        <jacoco-maven-plugin.version>0.8.4</jacoco-maven-plugin.version>
-        <dependency-check-maven.version>5.2.4</dependency-check-maven.version>
-        <maven-surefire-report-plugin.version>3.0.0-M4</maven-surefire-report-plugin.version>
+        <entando.k8s.custom.model.version>6.2.0</entando.k8s.custom.model.version>
+        <fabric8.version>4.7.0</fabric8.version>
     </properties>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.entando</groupId>
+                <artifactId>entando-k8s-custom-model</artifactId>
+                <version>${entando.k8s.custom.model.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.slf4j</groupId>
+                        <artifactId>slf4j-jdk14</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.jboss.slf4j</groupId>
+                        <artifactId>slf4j-jboss-logging</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.slf4j</groupId>
+                        <artifactId>jul-to-slf4j</artifactId>
+                    </exclusion>
+                </exclusions>
+            </dependency>
+            <dependency>
+                <groupId>io.fabric8</groupId>
+                <artifactId>kubernetes-server-mock</artifactId>
+                <version>${fabric8.version}</version>
+                <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.atteo</groupId>
+                <artifactId>evo-inflector</artifactId>
+                <version>1.2.2</version>
+            </dependency>
 
-    <reporting>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-pmd-plugin</artifactId>
-                <version>3.12.0</version>
-                <configuration>
-                    <rulesets>
-                        <ruleset>config/pmd/pmd-ruleset.xml</ruleset>
-                    </rulesets>
-                </configuration>
-            </plugin>
-        </plugins>
-    </reporting>
-
+            <dependency>
+                <groupId>org.zalando</groupId>
+                <artifactId>problem-spring-web-starter</artifactId>
+                <version>0.25.2</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
     <dependencies>
 
         <!-- OWASP Fixes -->
         <dependency>
             <groupId>org.apache.tomcat.embed</groupId>
             <artifactId>tomcat-embed-core</artifactId>
-            <version>${tomcat-embed.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.tomcat.embed</groupId>
             <artifactId>tomcat-embed-el</artifactId>
-            <version>${tomcat-embed.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.tomcat.embed</groupId>
             <artifactId>tomcat-embed-websocket</artifactId>
-            <version>${tomcat-embed.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-web</artifactId>
-            <version>${spring-security.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-config</artifactId>
-            <version>${spring-security.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-core</artifactId>
-            <version>${spring-security.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-oauth2-resource-server</artifactId>
-            <version>${spring-security.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-oauth2-jose</artifactId>
-            <version>${spring-security.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-oauth2-core</artifactId>
-            <version>${spring-security.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-oauth2-client</artifactId>
-            <version>${spring-security.version}</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.springframework.security.oauth/spring-security-oauth2 -->
         <dependency>
             <groupId>org.springframework.security.oauth</groupId>
             <artifactId>spring-security-oauth2</artifactId>
-            <version>2.4.0.RELEASE</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-api -->
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-api</artifactId>
-            <version>${log4j.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
             <artifactId>log4j-to-slf4j</artifactId>
-            <version>${log4j.version}</version>
         </dependency>
         <!-- END OWASP Fixes -->
 
@@ -209,7 +163,6 @@
         <dependency>
             <groupId>org.springframework.security.oauth.boot</groupId>
             <artifactId>spring-security-oauth2-autoconfigure</artifactId>
-            <version>2.2.4.RELEASE</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-oauth2-client -->
@@ -228,7 +181,6 @@
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-ui</artifactId>
-            <version>1.2.19</version>
         </dependency>
 
         <!-- Not working yet with Spring Boot 2.2.0 and Spring Hateoas, waiting for fix -->
@@ -242,51 +194,22 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.2</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
-            <groupId>io.fabric8</groupId>
-            <artifactId>kubernetes-client</artifactId>
-            <version>${fabric8.version}</version>
-            <type>jar</type>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>jul-to-slf4j</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-
-
-
-        <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-yaml</artifactId>
-            <version>2.3.0</version>
         </dependency>
 
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>3.9</version>
         </dependency>
 
         <dependency>
-            <groupId>org.entando.kubernetes</groupId>
+            <groupId>org.entando</groupId>
             <artifactId>entando-k8s-custom-model</artifactId>
-            <version>${entando.k8s.custom.model.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-jdk14</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>org.jboss.slf4j</groupId>
-                    <artifactId>slf4j-jboss-logging</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <dependency>
@@ -297,20 +220,16 @@
         <dependency>
             <groupId>org.atteo</groupId>
             <artifactId>evo-inflector</artifactId>
-            <version>1.2.2</version>
         </dependency>
 
         <dependency>
             <groupId>org.zalando</groupId>
             <artifactId>problem-spring-web-starter</artifactId>
-            <version>0.25.2</version>
         </dependency>
 
         <dependency>
             <groupId>io.fabric8</groupId>
             <artifactId>kubernetes-server-mock</artifactId>
-            <version>${fabric8.version}</version>
-            <scope>test</scope>
         </dependency>
 
         <dependency>
@@ -322,370 +241,32 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-test</artifactId>
-            <version>5.2.1.RELEASE</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
             <scope>test</scope>
-            <version>${junit.version}</version>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-migrationsupport</artifactId>
-            <version>${junit.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.junit.platform</groupId>
             <artifactId>junit-platform-launcher</artifactId>
-            <version>1.4.2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.12</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
 
-    <profiles>
-        <profile>
-            <!--
-            This profile is intended for build environments where we want the entire build to succeed, only to
-            inspect the build output afterwards to decided whether to fail or not
-            -->
-            <id>cicd</id>
-            <properties>
-                <verifyAllFailures>false</verifyAllFailures>
-                <ignoreAllFailures>true</ignoreAllFailures>
-            </properties>
-        </profile>
-        <profile>
-            <!--This profile is executed right in the beginning of the pipeline. For instance, this is the first step
-             that is executed to verify that the changes in the pull request comply to the coding standards in
-             Checkstyle, have test sufficient coverage and don't have any dependencies with known vulnerabilities.
-             No inter-process communication should take place during test execution, as no standard communication with
-             Kubernetes is configured at this point. Also, only in-process  tests should contribute towards code
-             coverage, as we need to keep the execution time of these tests as low as possible. Ultimately if
-             we increase the confidence in our in-process tests (e.g. coverage) whilst keeping their execution time
-             down, the chances of them being  executed regularly increases and our confidence increases.
-             -->
-            <id>in-process-verification</id>
-            <properties>
-                <skipInProcessTests>false</skipInProcessTests>
-            </properties>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.owasp</groupId>
-                        <artifactId>dependency-check-maven</artifactId>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.jacoco</groupId>
-                        <artifactId>jacoco-maven-plugin</artifactId>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-compiler-plugin</artifactId>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-jar-plugin</artifactId>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-checkstyle-plugin</artifactId>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-project-info-reports-plugin</artifactId>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-        <profile>
-            <!--This profile is executed right whenever a Maven artifact needs to be prepared and deployed to the
-            default, local Nexus in Entando's build environment. Note that this will not necessarily result in
-            a deployment to Maven Central, but the resulting artifact could potentially be deployed there if all the
-            necessary quality steps succeed. This profile will typically be invoked  before the integration tests
-            are executed, as these test may need to deploy the binary artifact (e.g. into a Docker image
-            and/or Kubernetes).
-            -->
-            <id>prepare-for-nexus</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-gpg-plugin</artifactId>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-compiler-plugin</artifactId>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-jar-plugin</artifactId>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-source-plugin</artifactId>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-javadoc-plugin</artifactId>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-project-info-reports-plugin</artifactId>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-        <profile>
-            <!--This profile is only executed once all Docker images have been built, and are ready for deployment
-            to Kubernetes. The assumption here is that there will be some form of inter-process communication with
-            the code that has been deployed to the Docker image. This is the ideal context from which to execute
-            end to end tests or integration tests that need to communicate with an external service. Standard
-            connectivity with Kubernetes will be provided by means of the entando.default.routing.suffix
-            system property. No code coverage will be done here, as the expectation is that the code owners
-            will ensure that these types of tests traverse inter-process points of failure rather than code
-            paths. This can not be done automatically.
-            -->
-            <id>inter-process-verification</id>
-            <properties>
-                <skipInterProcessTests>false</skipInterProcessTests>
-            </properties>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-failsafe-plugin</artifactId>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
-
     <build>
         <finalName>${project.artifactId}</finalName>
-        <pluginManagement>
-            <plugins>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-surefire-report-plugin</artifactId>
-                    <version>${maven-surefire-report-plugin.version}</version>
-                    <executions>
-                        <execution>
-                            <id>unit-tests</id>
-                            <goals>
-                                <goal>report-only</goal>
-                            </goals>
-                            <phase>verify</phase>
-                            <configuration>
-                                <outputDirectory>target/site/</outputDirectory>
-                            </configuration>
-                        </execution>
-                        <execution>
-                            <id>integration-tests</id>
-                            <goals>
-                                <goal>failsafe-report-only</goal>
-                            </goals>
-                            <phase>post-integration-test</phase>
-                            <configuration>
-                                <outputDirectory>target/site/</outputDirectory>
-                            </configuration>
-                        </execution>
-                    </executions>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-site-plugin</artifactId>
-                    <version>${maven-site-plugin.version}</version>
-                </plugin>
-                <plugin>
-                    <groupId>org.owasp</groupId>
-                    <artifactId>dependency-check-maven</artifactId>
-                    <version>${dependency-check-maven.version}</version>
-                    <executions>
-                        <execution>
-                            <goals>
-                                <goal>aggregate</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                    <configuration>
-                        <suppressionFile>${project.basedir}/config/owasp-dependency-check-suppression.xml
-                        </suppressionFile>
-                        <retireJsAnalyzerEnabled>false</retireJsAnalyzerEnabled>
-                        <failOnError>true</failOnError>
-                        <failBuildOnAnyVulnerability>${verifyAllFailures}</failBuildOnAnyVulnerability>
-                        <name>National Vulnerability Database Report</name>
-                        <formats>HTML,XML,JUNIT</formats>
-                        <outputDirectory>target/site</outputDirectory>
-                    </configuration>
-                    <dependencies>
-                        <dependency>
-                            <groupId>org.postgresql</groupId>
-                            <artifactId>postgresql</artifactId>
-                            <version>${postgresql.driver.version}</version>
-                        </dependency>
-                    </dependencies>
-                </plugin>
-                <plugin>
-                    <groupId>org.jacoco</groupId>
-                    <artifactId>jacoco-maven-plugin</artifactId>
-                    <version>${jacoco-maven-plugin.version}</version>
-                    <executions>
-                        <execution>
-                            <id>prepare-agent</id>
-                            <goals>
-                                <goal>prepare-agent</goal>
-                            </goals>
-                        </execution>
-                        <execution>
-                            <!--Bring it into core Maven build lifecycle for Sonar without needing the site phase-->
-                            <id>report</id>
-                            <goals>
-                                <goal>report</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                    <configuration>
-                        <excludes>
-                            <exclude>org/entando/kubernetes/config/*.*</exclude>
-                        </excludes>
-                    </configuration>
-                </plugin>
-                <plugin>
-                    <artifactId>maven-surefire-plugin</artifactId>
-                    <version>${maven-surefire-plugin.version}</version>
-                    <configuration>
-                        <skip>${skipInProcessTests}</skip>
-                        <forkCount>1</forkCount>
-                        <testFailureIgnore>${ignoreAllFailures}</testFailureIgnore>
-                        <groups>unit,component</groups>
-                    </configuration>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-failsafe-plugin</artifactId>
-                    <version>${maven-failsafe-plugin.version}</version>
-                    <configuration>
-                        <testFailureIgnore>${ignoreAllFailures}</testFailureIgnore>
-                        <skip>${skipInterProcessTests}</skip>
-                        <groups>integration,smoke</groups>
-                    </configuration>
-                    <executions>
-                        <execution>
-                            <id>run-tests</id>
-                            <goals>
-                                <goal>integration-test</goal>
-                                <goal>verify</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-checkstyle-plugin</artifactId>
-                    <version>${maven-checkstyle-plugin.version}</version>
-                    <configuration>
-                        <!--TODO don't skip -->
-                        <skip>true</skip>
-                        <configLocation>config/checkstyle/checkstyle.xml</configLocation>
-                        <encoding>UTF-8</encoding>
-                        <consoleOutput>true</consoleOutput>
-                        <failsOnError>true</failsOnError>
-                        <violationSeverity>warning</violationSeverity>
-                        <failOnViolation>${verifyAllFailures}</failOnViolation>
-                        <linkXRef>false</linkXRef>
-                        <includeTestSourceDirectory>true</includeTestSourceDirectory>
-                        <outputDirectory>target/site</outputDirectory>
-                    </configuration>
-                    <executions>
-                        <execution>
-                            <id>validate</id>
-                            <phase>validate</phase>
-                            <goals>
-                                <goal>check</goal>
-                                <goal>checkstyle</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-jar-plugin</artifactId>
-                    <version>${maven-jar-plugin.version}</version>
-                    <executions>
-                        <execution>
-                            <id>build-test-jar</id>
-                            <goals>
-                                <goal>test-jar</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-source-plugin</artifactId>
-                    <version>${maven-source-plugin.version}</version>
-                    <executions>
-                        <execution>
-                            <id>attach-sources</id>
-                            <goals>
-                                <goal>jar-no-fork</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-javadoc-plugin</artifactId>
-                    <version>${maven-javadoc-plugin.version}</version>
-                    <executions>
-                        <execution>
-                            <id>attach-javadocs</id>
-                            <goals>
-                                <goal>jar</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-gpg-plugin</artifactId>
-                    <version>${maven-gpg-plugin.version}</version>
-                    <executions>
-                        <execution>
-                            <id>sign-artifacts</id>
-                            <phase>verify</phase>
-                            <goals>
-                                <goal>sign</goal>
-                            </goals>
-                        </execution>
-                    </executions>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-deploy-plugin</artifactId>
-                    <version>${maven-deploy-plugin.version}</version>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-project-info-reports-plugin</artifactId>
-                    <version>${maven-project-info-reports-plugin.version}</version>
-                </plugin>
-            </plugins>
-        </pluginManagement>
-
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
