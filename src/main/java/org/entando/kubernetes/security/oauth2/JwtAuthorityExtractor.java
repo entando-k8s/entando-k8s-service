@@ -19,7 +19,8 @@ public class JwtAuthorityExtractor extends JwtAuthenticationConverter {
     @Value("${spring.security.oauth2.client.registration.oidc.client-id}")
     public String clientId;
 
-    public JwtAuthorityExtractor() {}
+    public JwtAuthorityExtractor() {
+    }
 
     @Override
     protected Collection<GrantedAuthority> extractAuthorities(Jwt jwt) {
@@ -28,14 +29,14 @@ public class JwtAuthorityExtractor extends JwtAuthenticationConverter {
 
     public List<GrantedAuthority> extractAuthorityFromClaims(Map<String, Object> claims) {
         return mapRolesToGrantedAuthorities(
-            getRolesFromClaims(claims));
+                getRolesFromClaims(claims));
     }
 
     @SuppressWarnings("unchecked")
     private Collection<String> getRolesFromClaims(Map<String, Object> claims) {
         Map<String, Object> resourceAccessClaim = (Map<String, Object>) claims.getOrDefault("resource_access", new HashMap<>());
         if (resourceAccessClaim.containsKey(clientId)) {
-            return (Collection<String>) ((Map)resourceAccessClaim.get(clientId)).getOrDefault("roles", new ArrayList<>());
+            return (Collection<String>) ((Map) resourceAccessClaim.get(clientId)).getOrDefault("roles", new ArrayList<>());
         } else {
             return new ArrayList<>();
         }

@@ -169,8 +169,8 @@ public class EntandoPluginServiceTest {
         EntandoPlugin testPlugin = EntandoPluginTestHelper.getTestEntandoPlugin();
         testPlugin.getMetadata().setNamespace("not-observed-namespace");
         Assertions.assertThrows(NotObservedNamespaceException.class, () -> {
-           entandoPluginService.deploy(testPlugin);
-       });
+            entandoPluginService.deploy(testPlugin);
+        });
     }
 
     @Test

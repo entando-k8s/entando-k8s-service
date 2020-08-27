@@ -136,9 +136,8 @@ public class EntandoAppControllerTest {
         mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(jsonPath("$._embedded.entandoApps").isNotEmpty())
-                .andExpect(jsonPath("$._embedded.entandoApps[0].metadata.name" ).value(TEST_APP_NAME))
+                .andExpect(jsonPath("$._embedded.entandoApps[0].metadata.name").value(TEST_APP_NAME))
                 .andExpect(jsonPath("$._embedded.entandoApps[0].metadata.namespace").value(TEST_APP_NAMESPACE));
-
 
         verify(entandoAppService, times(1)).getAllInNamespace(TEST_APP_NAMESPACE);
     }
@@ -152,15 +151,16 @@ public class EntandoAppControllerTest {
 
         EntandoApp tempApp = EntandoAppTestHelper.getTestEntandoApp();
         when(entandoAppService.getAllInNamespace(any(String.class))).thenReturn(Collections.singletonList(tempApp));
-        MvcResult result =mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
+        MvcResult result = mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().is2xxSuccessful())
                 .andReturn();
         CollectionModel<EntityModel<EntandoApp>> appCollection =
                 HalUtils.halMapper().readValue(
                         result.getResponse().getContentAsString(),
-                        new TypeReference<CollectionModel<EntityModel<EntandoApp>>>() {}
-                        );
+                        new TypeReference<CollectionModel<EntityModel<EntandoApp>>>() {
+                        }
+                );
         Links cl = appCollection.getLinks();
         assertThat(cl).isNotEmpty();
         assertThat(cl.stream().map(Link::getRel).map(LinkRelation::value).collect(Collectors.toList()))
@@ -188,7 +188,6 @@ public class EntandoAppControllerTest {
                 .build().toUri();
         EntandoApp ea = EntandoAppTestHelper.getTestEntandoApp();
         String entandoAppName = ea.getMetadata().getName();
-
 
         Ingress appIngress = IngressTestHelper.getIngressForEntandoResource(ea);
 
@@ -265,13 +264,12 @@ public class EntandoAppControllerTest {
         when(entandoPluginService.findByName(eq(ep.getMetadata().getName()))).thenReturn(Optional.of(ep));
         when(entandoLinkService.deploy(any(EntandoAppPluginLink.class))).thenReturn(el);
 
-
         mvc.perform(post(uri)
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .content(mapper.writeValueAsString(ep)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath( "$.metadata.name").value(el.getMetadata().getName()))
+                .andExpect(jsonPath("$.metadata.name").value(el.getMetadata().getName()))
                 .andExpect(jsonPath("$.spec").value(allOf(
                         hasEntry("entandoAppNamespace", TEST_APP_NAMESPACE),
                         hasEntry("entandoPluginNamespace", TEST_PLUGIN_NAMESPACE),
@@ -279,11 +277,10 @@ public class EntandoAppControllerTest {
                         hasEntry("entandoAppName", TEST_APP_NAME)
                 )))
                 .andExpect(jsonPath("$._links").exists())
-                .andExpect(jsonPath( "$._links.app.href").value(endsWith("apps/my-app")))
-                .andExpect(jsonPath( "$._links.plugin.href").value(endsWith("plugins/my-plugin")));
+                .andExpect(jsonPath("$._links.app.href").value(endsWith("apps/my-app")))
+                .andExpect(jsonPath("$._links.plugin.href").value(endsWith("plugins/my-plugin")));
 
     }
-
 
     @Test
     public void shouldDeployPluginIfNoneIsFoundWhileCreatingLink() throws Exception {
@@ -302,7 +299,6 @@ public class EntandoAppControllerTest {
         when(entandoAppService.findByName(anyString())).thenReturn(Optional.of(ea));
         when(entandoLinkService.deploy(any(EntandoAppPluginLink.class))).thenReturn(el);
         when(entandoPluginService.deploy(any(EntandoPlugin.class))).thenReturn(ep);
-
 
         mvc.perform(post(uri)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -334,7 +330,6 @@ public class EntandoAppControllerTest {
         when(entandoLinkService.deploy(any(EntandoAppPluginLink.class))).thenReturn(el);
         when(entandoPluginService.deploy(any(EntandoPlugin.class))).thenReturn(ep);
 
-
         mvc.perform(post(uri)
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
@@ -354,9 +349,9 @@ public class EntandoAppControllerTest {
                 .build().toUri();
         EntandoPlugin ep = EntandoPluginTestHelper.getTestEntandoPlugin();
         mvc.perform(post(uri)
-                    .accept(MediaType.APPLICATION_JSON)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(mapper.writeValueAsString(ep)))
+                .accept(MediaType.APPLICATION_JSON)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(mapper.writeValueAsString(ep)))
                 .andExpect(status().isNotFound());
 
         verify(entandoAppService, times(1)).findByName(TEST_APP_NAME);

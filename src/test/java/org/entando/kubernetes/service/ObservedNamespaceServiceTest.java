@@ -15,10 +15,10 @@ import org.junit.jupiter.api.Test;
 @Tag("unit")
 public class ObservedNamespaceServiceTest {
 
-    private final String APP_NAMESPACE = "app-namespace";
-    private final String PLUGIN_NAMESPACE = "plugin-namespace";
-    private final String BUNDLE_NAMESPACE = "bundle-namespace";
-    private final String NOT_OBSERVED_NAMESPACE = "an-external-namespace";
+    private static final String APP_NAMESPACE = "app-namespace";
+    private static final String PLUGIN_NAMESPACE = "plugin-namespace";
+    private static final String BUNDLE_NAMESPACE = "bundle-namespace";
+    private static final String NOT_OBSERVED_NAMESPACE = "an-external-namespace";
 
     ObservedNamespaces observedNamespaces;
 

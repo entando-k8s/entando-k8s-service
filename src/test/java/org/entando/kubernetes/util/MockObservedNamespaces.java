@@ -15,6 +15,7 @@ public class MockObservedNamespaces extends ObservedNamespaces {
     public MockObservedNamespaces(String... namespaces) {
         super(new KubernetesUtils(new StaticNamespaceProvider("test-namespace")), Arrays.asList(namespaces));
     }
+
     public MockObservedNamespaces(List<String> nsList) {
         super(new KubernetesUtils(new StaticNamespaceProvider("test-namespace")), nsList);
     }

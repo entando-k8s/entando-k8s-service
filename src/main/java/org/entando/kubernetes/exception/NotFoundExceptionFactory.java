@@ -40,16 +40,17 @@ public final class NotFoundExceptionFactory {
                 String.format("EntandoAppPluginLink with name %s "
                         + "not found in observed namespace", name));
     }
+
     public static ThrowableProblem observedNamespace(String name) {
         return Problem.valueOf(Status.NOT_FOUND,
                 String.format("Namespace %s is not part of the observed namespaces", name));
     }
 
-    public static ThrowableProblem ingress(EntandoBaseCustomResource r)  {
+    public static ThrowableProblem ingress(EntandoBaseCustomResource r) {
         return Problem.builder()
                 .withStatus(Status.NOT_FOUND)
-                .withDetail("Ingress not found for " + r.getKind() + " " + r.getMetadata().getName() +
-                        " in namespace " + r.getMetadata().getNamespace())
+                .withDetail("Ingress not found for " + r.getKind() + " " + r.getMetadata().getName()
+                        + " in namespace " + r.getMetadata().getNamespace())
                 .build();
 
     }

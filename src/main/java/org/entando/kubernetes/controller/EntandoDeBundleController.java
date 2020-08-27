@@ -59,7 +59,7 @@ public class EntandoDeBundleController {
     }
 
     private CollectionModel<EntityModel<EntandoDeBundle>> getCollectionWithLinks(List<EntandoDeBundle> deBundles) {
-        CollectionModel<EntityModel<EntandoDeBundle>> c =new CollectionModel<>(
+        CollectionModel<EntityModel<EntandoDeBundle>> c = new CollectionModel<>(
                 deBundles.stream()
                         .map(resourceAssembler::toModel)
                         .collect(Collectors.toList()));
@@ -74,11 +74,9 @@ public class EntandoDeBundleController {
         );
     }
 
-
     private EntandoDeBundle getBundleOrFail(String name) {
         Optional<EntandoDeBundle> ob = bundleService.findByName(name);
         return ob.orElseThrow(() -> NotFoundExceptionFactory.entandoDeBundle(name));
     }
-
 
 }

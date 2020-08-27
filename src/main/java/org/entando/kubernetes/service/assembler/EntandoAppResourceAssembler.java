@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 @Service
 public class EntandoAppResourceAssembler implements RepresentationModelAssembler<EntandoApp, EntityModel<EntandoApp>> {
 
-
     @Override
     public EntityModel<EntandoApp> toModel(EntandoApp entity) {
         EntityModel<EntandoApp> response = new EntityModel<>(entity);
@@ -30,12 +29,12 @@ public class EntandoAppResourceAssembler implements RepresentationModelAssembler
         String appName = app.getMetadata().getName();
         String appNamespace = app.getMetadata().getNamespace();
         return Links.of(
-            linkTo(methodOn(EntandoAppController.class).get(appName)) .withSelfRel(),
-            linkTo(methodOn(EntandoAppController.class).list()).withRel("apps"),
-            linkTo(methodOn(EntandoAppController.class).listInNamespace(appNamespace)).withRel("apps-in-namespace"),
-            linkTo(methodOn(EntandoAppController.class).getAppIngress(appName)).withRel("app-ingress"),
-            linkTo(methodOn(EntandoLinksController.class).listAppLinks(appName)).withRel("app-links"),
-            linkTo(methodOn(ObservedNamespaceController.class).getByName(appNamespace)) .withRel("namespace")
+                linkTo(methodOn(EntandoAppController.class).get(appName)).withSelfRel(),
+                linkTo(methodOn(EntandoAppController.class).list()).withRel("apps"),
+                linkTo(methodOn(EntandoAppController.class).listInNamespace(appNamespace)).withRel("apps-in-namespace"),
+                linkTo(methodOn(EntandoAppController.class).getAppIngress(appName)).withRel("app-ingress"),
+                linkTo(methodOn(EntandoLinksController.class).listAppLinks(appName)).withRel("app-links"),
+                linkTo(methodOn(ObservedNamespaceController.class).getByName(appNamespace)).withRel("namespace")
         );
     }
 }

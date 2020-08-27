@@ -12,7 +12,7 @@ public class KubernetesUtils {
     private String namespace = null;
 
     public KubernetesUtils(NamespaceProvider provider) {
-       this.provider = provider;
+        this.provider = provider;
     }
 
     public String getCurrentNamespace() {
