@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
-public class EntandoDeBundleService extends EntandoKubernetesResourceCollector<EntandoDeBundle>{
+public class EntandoDeBundleService extends EntandoKubernetesResourceCollector<EntandoDeBundle> {
 
     public EntandoDeBundleService(KubernetesClient client,
             ObservedNamespaces observedNamespaces) {
@@ -40,7 +40,8 @@ public class EntandoDeBundleService extends EntandoKubernetesResourceCollector<E
     }
 
     //CHECKSTYLE:OFF
-    private MixedOperation<EntandoDeBundle, EntandoDeBundleList, DoneableEntandoDeBundle, Resource<EntandoDeBundle, DoneableEntandoDeBundle>> getBundleOperations() {
+    private MixedOperation<EntandoDeBundle, EntandoDeBundleList, DoneableEntandoDeBundle, Resource<EntandoDeBundle,
+            DoneableEntandoDeBundle>> getBundleOperations() {
         //CHECKSTYLE:ON
         return EntandoDeBundleOperationFactory.produceAllEntandoDeBundles(client);
     }

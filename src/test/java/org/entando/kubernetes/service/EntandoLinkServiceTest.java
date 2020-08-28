@@ -52,9 +52,9 @@ public class EntandoLinkServiceTest {
 
     @Test
     public void shouldFindAllLinks() {
-       EntandoLinkTestHelper.createTestEntandoAppPluginLink(client);
-       List<EntandoAppPluginLink> links = linkService.getAll();
-       assertThat(links).hasSize(1);
+        EntandoLinkTestHelper.createTestEntandoAppPluginLink(client);
+        List<EntandoAppPluginLink> links = linkService.getAll();
+        assertThat(links).hasSize(1);
     }
 
     @Test
@@ -69,6 +69,7 @@ public class EntandoLinkServiceTest {
         EntandoApp testApp = EntandoAppTestHelper.getTestEntandoApp();
         assertTrue(linkService.getAppLinks(testApp).isEmpty());
     }
+
     @Test
     public void shouldNotFindAnyLinkIfAppHasNoLink() {
         EntandoApp testApp = EntandoAppTestHelper.getTestEntandoApp();
@@ -111,7 +112,7 @@ public class EntandoLinkServiceTest {
         assertEquals(TEST_PLUGIN_NAME, createdLink.getSpec().getEntandoPluginName());
         assertEquals(TEST_PLUGIN_NAMESPACE, createdLink.getSpec().getEntandoPluginNamespace());
 
-//        assertEquals(1, linkService.listEntandoAppLinks(TEST_APP_NAMESPACE, TEST_APP_NAME).size());
+        //        assertEquals(1, linkService.listEntandoAppLinks(TEST_APP_NAMESPACE, TEST_APP_NAME).size());
     }
 
     @Test

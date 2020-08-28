@@ -13,13 +13,13 @@ public class IngressTestHelper {
         String namespace = app.getMetadata().getNamespace();
         String name = app.getMetadata().getName();
         Ingress appIngress = new IngressBuilder()
-               .withNewMetadata()
-                   .withName(name + "-ingress")
-                   .withNamespace(namespace)
-                   .addToLabels(app.getKind(), name)
-               .endMetadata()
-               .build();
-       return client.extensions().ingresses().inNamespace(namespace).create(appIngress);
+                .withNewMetadata()
+                .withName(name + "-ingress")
+                .withNamespace(namespace)
+                .addToLabels(app.getKind(), name)
+                .endMetadata()
+                .build();
+        return client.extensions().ingresses().inNamespace(namespace).create(appIngress);
     }
 
     public static Ingress createPluginIngress(KubernetesClient client, EntandoPlugin plugin) {

@@ -86,7 +86,7 @@ public class EntandoAppServiceTest {
     public void shouldThrowExceptionIfSearchingAppInNotObservedNamespace() {
         EntandoAppTestHelper.createTestEntandoApp(client);
         Assertions.assertThrows(NotObservedNamespaceException.class, () -> {
-            entandoAppService.findByNameAndNamespace( TEST_APP_NAME, "any" );
+            entandoAppService.findByNameAndNamespace(TEST_APP_NAME, "any");
         });
     }
 

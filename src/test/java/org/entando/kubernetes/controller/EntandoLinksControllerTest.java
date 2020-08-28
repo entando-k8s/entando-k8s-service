@@ -112,7 +112,8 @@ public class EntandoLinksControllerTest {
         CollectionModel<EntityModel<EntandoAppPluginLink>> linkCollection =
                 HalUtils.halMapper().readValue(
                         result.getResponse().getContentAsString(),
-                        new TypeReference<CollectionModel<EntityModel<EntandoAppPluginLink>>>() {}
+                        new TypeReference<CollectionModel<EntityModel<EntandoAppPluginLink>>>() {
+                        }
                 );
         Links cl = linkCollection.getLinks();
         assertThat(cl).isNotEmpty();
@@ -132,7 +133,7 @@ public class EntandoLinksControllerTest {
         when(entandoLinkService.getAllInNamespace(el.getMetadata().getNamespace())).thenReturn(Collections.singletonList(el));
 
         mvc.perform(get("/app-plugin-links?namespace={namespace}", el.getMetadata().getNamespace())
-                        .accept(MediaTypes.HAL_JSON_VALUE))
+                .accept(MediaTypes.HAL_JSON_VALUE))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$._embedded.entandoAppPluginLinks.length()").value(1));
     }
@@ -143,7 +144,6 @@ public class EntandoLinksControllerTest {
         String name = el.getMetadata().getName();
         when(entandoLinkService.findByName(name)).thenReturn(Optional.of(el));
 
-
         MvcResult result = mvc.perform(get("/app-plugin-links/{name}", name)
                 .accept(MediaTypes.HAL_JSON_VALUE))
                 .andExpect(status().isOk())
@@ -152,7 +152,8 @@ public class EntandoLinksControllerTest {
         EntityModel<EntandoAppPluginLink> link =
                 HalUtils.halMapper().readValue(
                         result.getResponse().getContentAsString(),
-                        new TypeReference<EntityModel<EntandoAppPluginLink>>() {}
+                        new TypeReference<EntityModel<EntandoAppPluginLink>>() {
+                        }
                 );
         Links cl = link.getLinks();
         assertThat(cl).isNotEmpty();
@@ -175,13 +176,13 @@ public class EntandoLinksControllerTest {
 
         mvc.perform(get("/app-plugin-links?plugin={name}", pluginName).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is2xxSuccessful())
-                .andExpect(jsonPath(linkEntryJsonPath + ".spec.entandoPluginName" ).value(TEST_PLUGIN_NAME))
+                .andExpect(jsonPath(linkEntryJsonPath + ".spec.entandoPluginName").value(TEST_PLUGIN_NAME))
                 .andExpect(jsonPath(linkEntryJsonPath + ".spec.entandoPluginNamespace").value(TEST_PLUGIN_NAMESPACE))
                 .andExpect(jsonPath(linkHateoasLinksJsonPath).exists())
                 .andExpect(jsonPath(linkHateoasLinksJsonPath + ".app.href").value(endsWith("apps/my-app")))
                 .andExpect(jsonPath(linkHateoasLinksJsonPath + ".plugin.href").value(endsWith("plugins/my-plugin")))
-                .andExpect(jsonPath(linkHateoasLinksJsonPath + ".delete.href").value(endsWith("app-plugin-links/"+linkName)))
-                .andExpect(jsonPath(linkHateoasLinksJsonPath + ".namespace.href").value(endsWith("namespaces/"+linkNamespace)));
+                .andExpect(jsonPath(linkHateoasLinksJsonPath + ".delete.href").value(endsWith("app-plugin-links/" + linkName)))
+                .andExpect(jsonPath(linkHateoasLinksJsonPath + ".namespace.href").value(endsWith("namespaces/" + linkNamespace)));
 
     }
 
@@ -209,8 +210,9 @@ public class EntandoLinksControllerTest {
                 .andExpect(jsonPath(linkHateoasLinksJsonPath).exists())
                 .andExpect(jsonPath(linkHateoasLinksJsonPath + ".app.href").value(endsWith("apps/my-app")))
                 .andExpect(jsonPath(linkHateoasLinksJsonPath + ".plugin.href").value(endsWith("plugins/my-plugin")))
-                .andExpect(jsonPath(linkHateoasLinksJsonPath + ".delete.href").value(endsWith("app-plugin-links/"+el.getMetadata().getName())))
-                .andExpect(jsonPath(linkHateoasLinksJsonPath + ".namespace.href").value(endsWith("namespaces/"+linkNamespace)));
+                .andExpect(jsonPath(linkHateoasLinksJsonPath + ".delete.href")
+                        .value(endsWith("app-plugin-links/" + el.getMetadata().getName())))
+                .andExpect(jsonPath(linkHateoasLinksJsonPath + ".namespace.href").value(endsWith("namespaces/" + linkNamespace)));
     }
 
     @Test
@@ -229,10 +231,10 @@ public class EntandoLinksControllerTest {
         mvc.perform(
                 post("/app-plugin-links")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(HalUtils.halMapper().writeValueAsString(req)).
-                        accept(HAL_JSON_VALUE))
+                        .content(HalUtils.halMapper().writeValueAsString(req))
+                        .accept(HAL_JSON_VALUE))
                 .andExpect(status().isCreated())
-                .andExpect(header().string("Location", endsWith("/app-plugin-links/"  + el.getMetadata().getName())));
+                .andExpect(header().string("Location", endsWith("/app-plugin-links/" + el.getMetadata().getName())));
     }
 
     @Test

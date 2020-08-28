@@ -115,14 +115,13 @@ public class EntandoPluginControllerTest {
                 .queryParam("namespace", TEST_PLUGIN_NAMESPACE)
                 .build().toUri();
 
-
         EntandoPlugin tempPlugin = EntandoPluginTestHelper.getTestEntandoPlugin();
         when(entandoPluginService.getAllInNamespace(any(String.class))).thenReturn(Collections.singletonList(tempPlugin));
 
         mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(jsonPath("$._embedded.entandoPlugins").isNotEmpty())
-                .andExpect(jsonPath("$._embedded.entandoPlugins[0].metadata.name" ).value(TEST_PLUGIN_NAME))
+                .andExpect(jsonPath("$._embedded.entandoPlugins[0].metadata.name").value(TEST_PLUGIN_NAME))
                 .andExpect(jsonPath("$._embedded.entandoPlugins[0].metadata.namespace").value(TEST_PLUGIN_NAMESPACE));
 
         verify(entandoPluginService, times(1)).getAllInNamespace(TEST_PLUGIN_NAMESPACE);
@@ -135,17 +134,17 @@ public class EntandoPluginControllerTest {
                 .queryParam("namespace", TEST_PLUGIN_NAMESPACE)
                 .build().toUri();
 
-
         EntandoPlugin tempPlugin = EntandoPluginTestHelper.getTestEntandoPlugin();
         when(entandoPluginService.getAllInNamespace(any(String.class))).thenReturn(Collections.singletonList(tempPlugin));
-        MvcResult result =mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
+        MvcResult result = mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().is2xxSuccessful())
                 .andReturn();
         CollectionModel<EntityModel<EntandoPlugin>> appCollection =
                 HalUtils.halMapper().readValue(
                         result.getResponse().getContentAsString(),
-                        new TypeReference<CollectionModel<EntityModel<EntandoPlugin>>>() {}
+                        new TypeReference<CollectionModel<EntityModel<EntandoPlugin>>>() {
+                        }
                 );
         Links cl = appCollection.getLinks();
         assertThat(cl).isNotEmpty();
@@ -189,7 +188,6 @@ public class EntandoPluginControllerTest {
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(jsonPath("$.metadata.name").value(pluginName + "-ingress"))
                 .andExpect(jsonPath("$.metadata.labels.EntandoPlugin").value(pluginName));
-
 
     }
 

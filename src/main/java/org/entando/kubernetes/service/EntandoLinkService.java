@@ -52,8 +52,8 @@ public class EntandoLinkService extends EntandoKubernetesResourceCollector<Entan
 
     public Optional<EntandoAppPluginLink> findByAppNameAndPluginName(String appName, String pluginName) {
         return getAll().stream()
-                .filter(l -> l.getSpec().getEntandoAppName().equals(appName) &&
-                        l.getSpec().getEntandoPluginName().equals(pluginName))
+                .filter(l -> l.getSpec().getEntandoAppName().equals(appName)
+                        && l.getSpec().getEntandoPluginName().equals(pluginName))
                 .findFirst();
     }
 
@@ -63,10 +63,10 @@ public class EntandoLinkService extends EntandoKubernetesResourceCollector<Entan
     }
 
     public List<EntandoAppPluginLink> getPluginLinks(EntandoPlugin plugin) {
-       return getAll()
-               .stream()
-               .filter(l -> l.getSpec().getEntandoPluginName().equals(plugin.getMetadata().getName()))
-               .collect(Collectors.toList());
+        return getAll()
+                .stream()
+                .filter(l -> l.getSpec().getEntandoPluginName().equals(plugin.getMetadata().getName()))
+                .collect(Collectors.toList());
     }
 
     public EntandoAppPluginLink deploy(EntandoAppPluginLink newLink) {
@@ -103,7 +103,8 @@ public class EntandoLinkService extends EntandoKubernetesResourceCollector<Entan
     }
 
     //CHECKSTYLE:OFF
-    private MixedOperation<EntandoAppPluginLink, EntandoAppPluginLinkList, DoneableEntandoAppPluginLink, Resource<EntandoAppPluginLink, DoneableEntandoAppPluginLink>> getLinksOperations() {
+    private MixedOperation<EntandoAppPluginLink, EntandoAppPluginLinkList, DoneableEntandoAppPluginLink, Resource<EntandoAppPluginLink,
+            DoneableEntandoAppPluginLink>> getLinksOperations() {
         //CHECKSTYLE:ON
         return EntandoAppPluginLinkOperationFactory.produceAllEntandoAppPluginLinks(client);
     }

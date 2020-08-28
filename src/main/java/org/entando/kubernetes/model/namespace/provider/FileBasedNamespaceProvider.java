@@ -10,7 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class FileBasedNamespaceProvider implements NamespaceProvider {
-    private final Path DEFAULT_KUBERNETES_NAMESPACE_PATH =
+    private static final Path DEFAULT_KUBERNETES_NAMESPACE_PATH =
             Paths.get("/var/run/secrets/kubernetes.io/serviceaccount/namespace");
 
     private Path namespaceFilePath;
