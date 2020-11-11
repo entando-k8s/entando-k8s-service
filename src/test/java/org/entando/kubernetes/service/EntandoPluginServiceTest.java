@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.entando.kubernetes.util.EntandoPluginTestHelper.TEST_PLUGIN_NAME;
 import static org.entando.kubernetes.util.EntandoPluginTestHelper.TEST_PLUGIN_NAMESPACE;
 import static org.entando.kubernetes.util.EntandoPluginTestHelper.getTestEntandoPlugin;
+import static org.hamcrest.core.StringEndsWith.endsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -14,10 +15,13 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -33,6 +37,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
+import org.springframework.test.web.servlet.ResultActions;
 
 @Tag("component")
 @EnableRuleMigrationSupport
@@ -119,38 +124,45 @@ public class EntandoPluginServiceTest {
     }
 
     @Test
-    public void shouldDeployAPluginInProvidedNamespace() {
+    void shouldCreateAPluginInProvidedNamespace() {
         EntandoPlugin testPlugin = EntandoPluginTestHelper.getTestEntandoPlugin();
         entandoPluginService.deploy(testPlugin);
+
         List<EntandoPlugin> availablePlugins = EntandoPluginTestHelper.getEntandoPluginOperations(client)
                 .inNamespace(TEST_PLUGIN_NAMESPACE).list().getItems();
-        assertEquals(1, availablePlugins.size());
-        EntandoPlugin ep = availablePlugins.get(0);
-        assertEquals(TEST_PLUGIN_NAME, ep.getMetadata().getName());
-        assertEquals(testPlugin.getSpec().getImage(), ep.getSpec().getImage());
-        assertEquals(testPlugin.getSpec().getClusterInfrastructureSecretToUse(), ep.getSpec().getClusterInfrastructureSecretToUse());
-        assertEquals(testPlugin.getSpec().getHealthCheckPath(), ep.getSpec().getHealthCheckPath());
-        assertEquals(testPlugin.getSpec().getIngressPath(), ep.getSpec().getIngressPath());
-        assertEquals(testPlugin.getSpec().getKeycloakSecretToUse(), ep.getSpec().getKeycloakSecretToUse());
-        assertEquals(testPlugin.getSpec().getConnectionConfigNames(), ep.getSpec().getConnectionConfigNames());
-        assertEquals(testPlugin.getSpec().getParameters(), ep.getSpec().getParameters());
-        assertEquals(testPlugin.getSpec().getPermissions(), ep.getSpec().getPermissions());
-        assertEquals(testPlugin.getSpec().getRoles(), ep.getSpec().getRoles());
-        assertEquals(testPlugin.getSpec().getSecurityLevel(), ep.getSpec().getSecurityLevel());
-        assertEquals(testPlugin.getSpec().getDbms(), ep.getSpec().getDbms());
-        assertEquals(testPlugin.getSpec().getIngressHostName(), ep.getSpec().getIngressHostName());
-        assertEquals(testPlugin.getSpec().getReplicas(), ep.getSpec().getReplicas());
-        assertEquals(testPlugin.getSpec().getTlsSecretName(), ep.getSpec().getTlsSecretName());
+        assertOnEntandoPlugins(testPlugin, availablePlugins);
     }
 
     @Test
-    public void shouldDeployAPluginInAnotherObservedNamespace() {
+    void shouldCreateOrReplaceAPluginInProvidedNamespace() {
+        EntandoPlugin testPlugin = EntandoPluginTestHelper.getTestEntandoPlugin();
+        entandoPluginService.deploy(testPlugin, true);
+
+        List<EntandoPlugin> availablePlugins = EntandoPluginTestHelper.getEntandoPluginOperations(client)
+                .inNamespace(TEST_PLUGIN_NAMESPACE).list().getItems();
+        assertOnEntandoPlugins(testPlugin, availablePlugins);
+    }
+
+    @Test
+    void shouldCreateAPluginInAnotherObservedNamespace() {
         EntandoPlugin testPlugin = EntandoPluginTestHelper.getTestEntandoPlugin();
         testPlugin.getMetadata().setNamespace("my-namespace");
         entandoPluginService.deploy(testPlugin);
+
         List<EntandoPlugin> availablePlugins = EntandoPluginTestHelper.getEntandoPluginOperations(client)
                 .inNamespace("my-namespace").list().getItems();
-        assertEquals(1, availablePlugins.size());
+        assertOnEntandoPlugins(testPlugin, availablePlugins);
+    }
+
+    @Test
+    void shouldCreateOrReplaceAPluginInAnotherObservedNamespace() {
+        EntandoPlugin testPlugin = EntandoPluginTestHelper.getTestEntandoPlugin();
+        testPlugin.getMetadata().setNamespace("my-namespace");
+        entandoPluginService.deploy(testPlugin, true);
+
+        List<EntandoPlugin> availablePlugins = EntandoPluginTestHelper.getEntandoPluginOperations(client)
+                .inNamespace("my-namespace").list().getItems();
+        assertOnEntandoPlugins(testPlugin, availablePlugins);
     }
 
     @Test
@@ -199,5 +211,31 @@ public class EntandoPluginServiceTest {
                 .inNamespace(TEST_PLUGIN_NAMESPACE).list().getItems().size());
     }
 
+
+    /**
+     * forces the validation to expect the same response for a plugin create action and a plugin createOrReplace action.
+     * @param expected the expected EntandoPlugin
+     * @param availablePlugins the list of the available plugin in the current namespace
+     */
+    private void assertOnEntandoPlugins(EntandoPlugin expected, List<EntandoPlugin> availablePlugins) {
+
+        assertEquals(1, availablePlugins.size());
+        EntandoPlugin actual = availablePlugins.get(0);
+        assertEquals(TEST_PLUGIN_NAME, actual.getMetadata().getName());
+        assertEquals(expected.getSpec().getImage(), actual.getSpec().getImage());
+        assertEquals(expected.getSpec().getClusterInfrastructureSecretToUse(), actual.getSpec().getClusterInfrastructureSecretToUse());
+        assertEquals(expected.getSpec().getHealthCheckPath(), actual.getSpec().getHealthCheckPath());
+        assertEquals(expected.getSpec().getIngressPath(), actual.getSpec().getIngressPath());
+        assertEquals(expected.getSpec().getKeycloakSecretToUse(), actual.getSpec().getKeycloakSecretToUse());
+        assertEquals(expected.getSpec().getConnectionConfigNames(), actual.getSpec().getConnectionConfigNames());
+        assertEquals(expected.getSpec().getParameters(), actual.getSpec().getParameters());
+        assertEquals(expected.getSpec().getPermissions(), actual.getSpec().getPermissions());
+        assertEquals(expected.getSpec().getRoles(), actual.getSpec().getRoles());
+        assertEquals(expected.getSpec().getSecurityLevel(), actual.getSpec().getSecurityLevel());
+        assertEquals(expected.getSpec().getDbms(), actual.getSpec().getDbms());
+        assertEquals(expected.getSpec().getIngressHostName(), actual.getSpec().getIngressHostName());
+        assertEquals(expected.getSpec().getReplicas(), actual.getSpec().getReplicas());
+        assertEquals(expected.getSpec().getTlsSecretName(), actual.getSpec().getTlsSecretName());
+    }
 }
 
