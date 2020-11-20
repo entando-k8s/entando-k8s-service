@@ -15,6 +15,7 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -56,6 +57,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -149,8 +151,11 @@ public class EntandoPluginControllerTest {
         Links cl = appCollection.getLinks();
         assertThat(cl).isNotEmpty();
         assertThat(cl.stream().map(Link::getRel).map(LinkRelation::value).collect(Collectors.toList()))
-                .containsExactlyInAnyOrder("plugin", "plugins-in-namespace", "plugin-links");
-        assertThat(cl.stream().allMatch(Link::isTemplated)).isTrue();
+                .containsExactlyInAnyOrder("plugin", "plugins-in-namespace", "plugin-links",
+                        "create-or-replace-plugin");
+        assertThat(cl.stream().filter(link -> !link.getRel().value().equals("create-or-replace-plugin"))
+                .allMatch(Link::isTemplated)).isTrue();
+        assertThat(cl.getLink(LinkRelation.of("create-or-replace-plugin")).get().isTemplated()).isFalse();
     }
 
     @Test
@@ -246,17 +251,32 @@ public class EntandoPluginControllerTest {
 
         EntandoPlugin tempPlugin = EntandoPluginTestHelper.getTestEntandoPlugin();
 
-        when(entandoPluginService.deploy(any(EntandoPlugin.class))).thenReturn(tempPlugin);
+        when(entandoPluginService.deploy(any(EntandoPlugin.class), eq(false))).thenReturn(tempPlugin);
 
-        mvc.perform(post(uri)
+        ResultActions resultActions = mvc.perform(post(uri)
                 .content(mapper.writeValueAsString(tempPlugin))
                 .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$._links.self").exists())
-                .andExpect(jsonPath("$._links.self.href").value(endsWith(Paths.get("plugins", TEST_PLUGIN_NAME).toString())))
-                .andExpect(jsonPath("$._links.plugins").exists());
+                .accept(MediaType.APPLICATION_JSON));
 
+        this.assertOnDeployedPlugin(resultActions);
+    }
+
+    @Test
+    void shouldReturnCreatedForNewlyCreatedOrReplacedDeployedPlugin() throws Exception {
+        URI uri = UriComponentsBuilder
+                .fromUriString(BASE_PLUGIN_ENDPOINT)
+                .build().toUri();
+
+        EntandoPlugin tempPlugin = EntandoPluginTestHelper.getTestEntandoPlugin();
+
+        when(entandoPluginService.deploy(any(EntandoPlugin.class), eq(true))).thenReturn(tempPlugin);
+
+        ResultActions resultActions = mvc.perform(put(uri)
+                .content(mapper.writeValueAsString(tempPlugin))
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON));
+
+        this.assertOnDeployedPlugin(resultActions);
     }
 
     @Test
@@ -273,5 +293,17 @@ public class EntandoPluginControllerTest {
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isAccepted());
 
+    }
+
+    /**
+     * forces the validation to expect the same response for a plugin create action and a plugin createOrReplace action.
+     * @param resultActions the ResultActions on which assert
+     */
+    private void assertOnDeployedPlugin(ResultActions resultActions) throws Exception {
+
+        resultActions.andExpect(status().isCreated())
+                .andExpect(jsonPath("$._links.self").exists())
+                .andExpect(jsonPath("$._links.self.href").value(endsWith(Paths.get("plugins", TEST_PLUGIN_NAME).toString())))
+                .andExpect(jsonPath("$._links.plugins").exists());
     }
 }

@@ -23,6 +23,8 @@ import org.zalando.problem.Status;
 @Service
 public class EntandoPluginService extends EntandoKubernetesResourceCollector<EntandoPlugin> {
 
+    public static final boolean CREATE = false;
+    public static final boolean CREATE_OR_REPLACE = true;
 
     public EntandoPluginService(KubernetesClient client,
             ObservedNamespaces observedNamespaces) {
@@ -55,11 +57,22 @@ public class EntandoPluginService extends EntandoKubernetesResourceCollector<Ent
     }
 
     public EntandoPlugin deploy(EntandoPlugin plugin) {
-        log.info("Deploying plugin {} in namespace {}", plugin.getMetadata().getName(),
+        return deploy(plugin, CREATE);
+    }
+
+    public EntandoPlugin deploy(EntandoPlugin plugin, boolean createOrReplace) {
+        log.info("Deploying {} plugin {} in namespace {}",
+                (createOrReplace) ? "(createOrReplace)" : "(create)",
+                plugin.getMetadata().getName(),
                 plugin.getMetadata().getNamespace());
         EntandoPlugin cleanPlugin = pluginCleanUp(plugin);
-        observedNamespaces.failIfNotObserved(cleanPlugin.getMetadata().getNamespace());
-        return getPluginOperations().inNamespace(cleanPlugin.getMetadata().getNamespace()).create(cleanPlugin);
+        String namespace = cleanPlugin.getMetadata().getNamespace();
+        observedNamespaces.failIfNotObserved(namespace);
+        if (createOrReplace) {
+            return getPluginOperations().inNamespace(namespace).createOrReplace(cleanPlugin);
+        } else {
+            return getPluginOperations().inNamespace(namespace).create(cleanPlugin);
+        }
     }
 
     private EntandoPlugin pluginCleanUp(EntandoPlugin plugin) {
