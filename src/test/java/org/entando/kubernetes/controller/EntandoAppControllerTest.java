@@ -249,7 +249,7 @@ public class EntandoAppControllerTest {
     }
 
     @Test
-    public void shouldCreateLinkBetweenExistingAppAndPlugin() throws Exception {
+    void shouldCreateLinkBetweenExistingAppAndPlugin() throws Exception {
         when(entandoLinkService.buildBetweenAppAndPlugin(any(EntandoApp.class), any(EntandoPlugin.class))).thenCallRealMethod();
 
         URI uri = UriComponentsBuilder
@@ -261,7 +261,7 @@ public class EntandoAppControllerTest {
         EntandoAppPluginLink el = entandoLinkService.buildBetweenAppAndPlugin(ea, ep);
 
         when(entandoAppService.findByName(anyString())).thenReturn(Optional.of(ea));
-        when(entandoPluginService.findByName(eq(ep.getMetadata().getName()))).thenReturn(Optional.of(ep));
+        when(entandoPluginService.deploy(any(EntandoPlugin.class), eq(true))).thenReturn(ep);
         when(entandoLinkService.deploy(any(EntandoAppPluginLink.class))).thenReturn(el);
 
         mvc.perform(post(uri)
@@ -280,39 +280,14 @@ public class EntandoAppControllerTest {
                 .andExpect(jsonPath("$._links.app.href").value(endsWith("apps/my-app")))
                 .andExpect(jsonPath("$._links.plugin.href").value(endsWith("plugins/my-plugin")));
 
+        // ensure entandoPluginService is asked to deploy the plugin
+        ArgumentCaptor<EntandoPlugin> argCapt = ArgumentCaptor.forClass(EntandoPlugin.class);
+        verify(entandoPluginService, times(1)).deploy(argCapt.capture(), eq(true));
     }
 
-    @Test
-    public void shouldDeployPluginIfNoneIsFoundWhileCreatingLink() throws Exception {
-        when(entandoLinkService.buildBetweenAppAndPlugin(any(EntandoApp.class), any(EntandoPlugin.class))).thenCallRealMethod();
-
-        URI uri = UriComponentsBuilder
-                .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
-                .pathSegment(TEST_APP_NAME, "links")
-                .build().toUri();
-        EntandoApp ea = EntandoAppTestHelper.getTestEntandoApp();
-        EntandoPlugin ep = EntandoPluginTestHelper.getTestEntandoPlugin();
-
-        EntandoAppPluginLink el = entandoLinkService.buildBetweenAppAndPlugin(ea, ep);
-
-        ArgumentCaptor<EntandoPlugin> argumentCaptor = ArgumentCaptor.forClass(EntandoPlugin.class);
-        when(entandoAppService.findByName(anyString())).thenReturn(Optional.of(ea));
-        when(entandoLinkService.deploy(any(EntandoAppPluginLink.class))).thenReturn(el);
-        when(entandoPluginService.deploy(any(EntandoPlugin.class))).thenReturn(ep);
-
-        mvc.perform(post(uri)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .content(mapper.writeValueAsString(ep)))
-                .andExpect(status().isCreated());
-
-        verify(entandoPluginService, times(1)).deploy(argumentCaptor.capture());
-        EntandoPlugin passedPlugin = argumentCaptor.getValue();
-        assertEquals(ep.getMetadata().getNamespace(), passedPlugin.getMetadata().getNamespace());
-    }
 
     @Test
-    public void shouldDeployPluginOnFallbackNamespaceIfNoneIsFoundWhileCreatingLink() throws Exception {
+    void shouldDeployPluginOnFallbackNamespaceIfNoneIsFoundWhileCreatingLink() throws Exception {
         when(entandoLinkService.buildBetweenAppAndPlugin(any(EntandoApp.class), any(EntandoPlugin.class))).thenCallRealMethod();
 
         URI uri = UriComponentsBuilder
@@ -328,7 +303,7 @@ public class EntandoAppControllerTest {
         ArgumentCaptor<EntandoPlugin> argumentCaptor = ArgumentCaptor.forClass(EntandoPlugin.class);
         when(entandoAppService.findByName(anyString())).thenReturn(Optional.of(ea));
         when(entandoLinkService.deploy(any(EntandoAppPluginLink.class))).thenReturn(el);
-        when(entandoPluginService.deploy(any(EntandoPlugin.class))).thenReturn(ep);
+        when(entandoPluginService.deploy(any(EntandoPlugin.class), eq(true))).thenReturn(ep);
 
         mvc.perform(post(uri)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -336,7 +311,7 @@ public class EntandoAppControllerTest {
                 .content(mapper.writeValueAsString(ep)))
                 .andExpect(status().isCreated());
 
-        verify(entandoPluginService, times(1)).deploy(argumentCaptor.capture());
+        verify(entandoPluginService, times(1)).deploy(argumentCaptor.capture(), eq(true));
         EntandoPlugin passedPlugin = argumentCaptor.getValue();
         assertEquals(ea.getMetadata().getNamespace(), passedPlugin.getMetadata().getNamespace());
     }
