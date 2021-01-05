@@ -93,7 +93,7 @@ public class EntandoAppController {
             @PathVariable("name") String appName,
             @RequestBody EntandoPlugin entandoPlugin) {
         EntandoApp entandoApp = getEntandoAppOrFail(appName);
-        EntandoPlugin plugin = getOrCreatePlugin(entandoPlugin);
+        EntandoPlugin plugin = createPlugin(entandoPlugin);
         EntandoAppPluginLink newLink = linkService.buildBetweenAppAndPlugin(entandoApp, plugin);
         EntandoAppPluginLink deployedLink = linkService.deploy(newLink);
         return ResponseEntity.status(HttpStatus.CREATED).body(linkResourceAssembler.toModel(deployedLink));
@@ -115,17 +115,18 @@ public class EntandoAppController {
                 });
     }
 
-    private EntandoPlugin getOrCreatePlugin(EntandoPlugin plugin) {
-        String pluginName = plugin.getMetadata().getName();
-        Optional<EntandoPlugin> optionalPlugin = pluginService.findByName(pluginName);
-        return optionalPlugin.orElseGet(() -> {
-            String pluginNamespace = Optional.ofNullable(plugin.getMetadata().getNamespace())
-                    .filter(ns -> !ns.isEmpty())
-                    .orElse(k8sUtils.getCurrentNamespace());
-            plugin.getMetadata().setNamespace(pluginNamespace);
-            return pluginService.deploy(plugin);
-        });
+    private EntandoPlugin getOrCreatePlugin(EntandoPlugin newPlugin) {
+        String pluginName = newPlugin.getMetadata().getName();
+        return pluginService.findByName(pluginName)
+                .orElseGet(() -> createPlugin(newPlugin));
+    }
 
+    private EntandoPlugin createPlugin(EntandoPlugin newPlugin) {
+        String pluginNamespace = Optional.ofNullable(newPlugin.getMetadata().getNamespace())
+                .filter(ns -> !ns.isEmpty())
+                .orElse(k8sUtils.getCurrentNamespace());
+        newPlugin.getMetadata().setNamespace(pluginNamespace);
+        return pluginService.deploy(newPlugin, EntandoPluginService.CREATE_OR_REPLACE);
     }
 
     private void addAppCollectionLinks(CollectionModel<EntityModel<EntandoApp>> collection) {
