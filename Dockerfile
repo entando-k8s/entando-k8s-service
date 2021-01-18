@@ -1,4 +1,4 @@
-FROM openjdk:8-jdk-slim
+FROM registry.access.redhat.com/ubi8/openjdk-8
 ENV PORT 8080
 ENV CLASSPATH /opt/lib
 EXPOSE 8080

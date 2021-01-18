@@ -83,7 +83,7 @@ public class EntandoLinkServiceTest {
         EntandoApp testApp = new EntandoAppBuilder()
                 .withNewMetadata()
                 .withName(testLink.getSpec().getEntandoAppName())
-                .withNamespace(testLink.getSpec().getEntandoAppNamespace())
+                .withNamespace(testLink.getSpec().getEntandoAppNamespace().get())
                 .endMetadata()
                 .build();
         assertEquals(1, linkService.getAppLinks(testApp).size());

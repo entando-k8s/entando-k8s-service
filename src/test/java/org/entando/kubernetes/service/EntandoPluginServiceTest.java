@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.entando.kubernetes.util.EntandoPluginTestHelper.TEST_PLUGIN_NAME;
 import static org.entando.kubernetes.util.EntandoPluginTestHelper.TEST_PLUGIN_NAMESPACE;
 import static org.entando.kubernetes.util.EntandoPluginTestHelper.getTestEntandoPlugin;
-import static org.hamcrest.core.StringEndsWith.endsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -15,13 +14,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -37,7 +33,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
-import org.springframework.test.web.servlet.ResultActions;
 
 @Tag("component")
 @EnableRuleMigrationSupport
@@ -223,12 +218,12 @@ public class EntandoPluginServiceTest {
         EntandoPlugin actual = availablePlugins.get(0);
         assertEquals(TEST_PLUGIN_NAME, actual.getMetadata().getName());
         assertEquals(expected.getSpec().getImage(), actual.getSpec().getImage());
-        assertEquals(expected.getSpec().getClusterInfrastructureSecretToUse(), actual.getSpec().getClusterInfrastructureSecretToUse());
+        assertEquals(expected.getSpec().getClusterInfrastructureToUse().get(), actual.getSpec().getClusterInfrastructureToUse().get());
         assertEquals(expected.getSpec().getHealthCheckPath(), actual.getSpec().getHealthCheckPath());
         assertEquals(expected.getSpec().getIngressPath(), actual.getSpec().getIngressPath());
-        assertEquals(expected.getSpec().getKeycloakSecretToUse(), actual.getSpec().getKeycloakSecretToUse());
+        assertEquals(expected.getSpec().getKeycloakToUse(), actual.getSpec().getKeycloakToUse());
         assertEquals(expected.getSpec().getConnectionConfigNames(), actual.getSpec().getConnectionConfigNames());
-        assertEquals(expected.getSpec().getParameters(), actual.getSpec().getParameters());
+        assertEquals(expected.getSpec().getEnvironmentVariables(), actual.getSpec().getEnvironmentVariables());
         assertEquals(expected.getSpec().getPermissions(), actual.getSpec().getPermissions());
         assertEquals(expected.getSpec().getRoles(), actual.getSpec().getRoles());
         assertEquals(expected.getSpec().getSecurityLevel(), actual.getSpec().getSecurityLevel());
