@@ -108,9 +108,9 @@ public class EntandoLinkServiceTest {
         assertEquals(String.format("%s-to-%s-link", TEST_APP_NAME, TEST_PLUGIN_NAME), createdLink.getMetadata().getName());
         assertEquals(TEST_APP_NAMESPACE, createdLink.getMetadata().getNamespace());
         assertEquals(TEST_APP_NAME, createdLink.getSpec().getEntandoAppName());
-        assertEquals(TEST_APP_NAMESPACE, createdLink.getSpec().getEntandoAppNamespace());
+        assertEquals(TEST_APP_NAMESPACE, createdLink.getSpec().getEntandoAppNamespace().get());
         assertEquals(TEST_PLUGIN_NAME, createdLink.getSpec().getEntandoPluginName());
-        assertEquals(TEST_PLUGIN_NAMESPACE, createdLink.getSpec().getEntandoPluginNamespace());
+        assertEquals(TEST_PLUGIN_NAMESPACE, createdLink.getSpec().getEntandoPluginNamespace().get());
 
         //        assertEquals(1, linkService.listEntandoAppLinks(TEST_APP_NAMESPACE, TEST_APP_NAME).size());
     }
@@ -122,9 +122,9 @@ public class EntandoLinkServiceTest {
 
         EntandoAppPluginLink generatedLink = linkService.buildBetweenAppAndPlugin(ea, ep);
         assertEquals(ea.getMetadata().getName(), generatedLink.getSpec().getEntandoAppName());
-        assertEquals(ea.getMetadata().getNamespace(), generatedLink.getSpec().getEntandoAppNamespace());
+        assertEquals(ea.getMetadata().getNamespace(), generatedLink.getSpec().getEntandoAppNamespace().get());
         assertEquals(ep.getMetadata().getName(), generatedLink.getSpec().getEntandoPluginName());
-        assertEquals(ep.getMetadata().getNamespace(), generatedLink.getSpec().getEntandoPluginNamespace());
+        assertEquals(ep.getMetadata().getNamespace(), generatedLink.getSpec().getEntandoPluginNamespace().get());
 
         assertEquals(ea.getMetadata().getNamespace(), generatedLink.getMetadata().getNamespace());
         assertEquals(
