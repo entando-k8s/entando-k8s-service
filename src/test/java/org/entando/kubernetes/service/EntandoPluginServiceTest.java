@@ -218,7 +218,6 @@ public class EntandoPluginServiceTest {
         EntandoPlugin actual = availablePlugins.get(0);
         assertEquals(TEST_PLUGIN_NAME, actual.getMetadata().getName());
         assertEquals(expected.getSpec().getImage(), actual.getSpec().getImage());
-        assertEquals(expected.getSpec().getClusterInfrastructureToUse().get(), actual.getSpec().getClusterInfrastructureToUse().get());
         assertEquals(expected.getSpec().getHealthCheckPath(), actual.getSpec().getHealthCheckPath());
         assertEquals(expected.getSpec().getIngressPath(), actual.getSpec().getIngressPath());
         assertEquals(expected.getSpec().getKeycloakToUse(), actual.getSpec().getKeycloakToUse());
