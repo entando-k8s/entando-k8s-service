@@ -1,4 +1,16 @@
 FROM registry.access.redhat.com/ubi8/openjdk-8
+
+### Required OpenShift Labels
+LABEL name="Entando Kubernetes Service" \
+      maintainer="dev@entando.com" \
+      vendor="Entando Inc." \
+      version="6.3.0" \
+      release="6.3.0" \
+      summary="Entando infrastructure project for kubernetest APIs" \
+      description="Entando infrastructure project for kubernetest APIs"
+
+COPY target/generated-resources/licenses /licenses
+
 ENV PORT 8080
 ENV CLASSPATH /opt/lib
 EXPOSE 8080
