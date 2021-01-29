@@ -64,7 +64,6 @@ public class EntandoAppTestHelper {
         EntandoApp entandoApp = new EntandoAppBuilder().withNewSpec()
                 .withDbms(DbmsVendor.POSTGRESQL)
                 .withReplicas(1)
-                .withEntandoImageVersion("6.0.0-SNAPSHOT")
                 .withStandardServerImage(JeeServer.WILDFLY)
                 .endSpec()
                 .build();

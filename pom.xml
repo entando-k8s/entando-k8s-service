@@ -48,7 +48,7 @@
         <postDeploymentTestGroups></postDeploymentTestGroups>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <github.organization>entando-k8s</github.organization>
-        <entando.k8s.custom.model.version>6.2.0</entando.k8s.custom.model.version>
+        <entando.k8s.custom.model.version>6.2.7</entando.k8s.custom.model.version>
         <fabric8.version>4.7.0</fabric8.version>
     </properties>
     <dependencyManagement>
@@ -282,6 +282,19 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-deploy-plugin</artifactId>
                 <version>2.8.2</version>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>license-maven-plugin</artifactId>
+                <version>2.0.0</version>
+                <executions>
+                    <execution>
+                        <id>download-licenses</id>
+                        <goals>
+                            <goal>download-licenses</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
