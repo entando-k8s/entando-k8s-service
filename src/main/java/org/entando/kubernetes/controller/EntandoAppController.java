@@ -115,12 +115,6 @@ public class EntandoAppController {
                 });
     }
 
-    private EntandoPlugin getOrCreatePlugin(EntandoPlugin newPlugin) {
-        String pluginName = newPlugin.getMetadata().getName();
-        return pluginService.findByName(pluginName)
-                .orElseGet(() -> createPlugin(newPlugin));
-    }
-
     private EntandoPlugin createPlugin(EntandoPlugin newPlugin) {
         String pluginNamespace = Optional.ofNullable(newPlugin.getMetadata().getNamespace())
                 .filter(ns -> !ns.isEmpty())

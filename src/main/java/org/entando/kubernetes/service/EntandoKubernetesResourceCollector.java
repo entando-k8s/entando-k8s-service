@@ -31,6 +31,7 @@ public abstract class EntandoKubernetesResourceCollector<T extends HasMetadata> 
 
     protected abstract List<T> getInNamespaceWithoutChecking(String namespace);
 
+    @SuppressWarnings("unchecked")
     public List<T> collectFromNamespaces(List<String> namespaceList) {
         CompletableFuture<List<T>>[] allRequests = namespaceList.stream()
                 .map(ns -> CompletableFuture.supplyAsync(() -> getAllInNamespace(ns))

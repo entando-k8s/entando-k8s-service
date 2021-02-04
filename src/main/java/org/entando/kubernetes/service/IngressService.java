@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.entando.kubernetes.model.app.EntandoApp;
-import org.entando.kubernetes.model.namespace.ObservedNamespaces;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.springframework.stereotype.Service;
 
@@ -19,13 +18,9 @@ import org.springframework.stereotype.Service;
 public class IngressService {
 
     private KubernetesClient client;
-    private ObservedNamespaces observedNamespaces;
 
-    public IngressService(KubernetesClient client,
-            ObservedNamespaces observedNamespaces) {
-
+    public IngressService(KubernetesClient client) {
         this.client = client;
-        this.observedNamespaces = observedNamespaces;
     }
 
     public Optional<Ingress> findByEntandoApp(EntandoApp app) {

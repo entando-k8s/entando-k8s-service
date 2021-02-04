@@ -5,16 +5,21 @@ import static org.entando.kubernetes.util.EntandoAppTestHelper.TEST_APP_NAME;
 import static org.entando.kubernetes.util.EntandoAppTestHelper.TEST_APP_NAMESPACE;
 import static org.entando.kubernetes.util.EntandoPluginTestHelper.TEST_PLUGIN_NAME;
 import static org.entando.kubernetes.util.EntandoPluginTestHelper.TEST_PLUGIN_NAMESPACE;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.dsl.MixedOperation;
+import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import java.util.Collections;
 import java.util.List;
 import org.entando.kubernetes.model.app.EntandoApp;
 import org.entando.kubernetes.model.app.EntandoAppBuilder;
+import org.entando.kubernetes.model.link.DoneableEntandoAppPluginLink;
 import org.entando.kubernetes.model.link.EntandoAppPluginLink;
+import org.entando.kubernetes.model.link.EntandoAppPluginLinkList;
+import org.entando.kubernetes.model.link.EntandoAppPluginLinkOperationFactory;
 import org.entando.kubernetes.model.namespace.ObservedNamespaces;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.entando.kubernetes.model.plugin.EntandoPluginBuilder;
@@ -26,12 +31,13 @@ import org.junit.Rule;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Tags;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
 
-@Tag("component")
+@Tags({@Tag("component"), @Tag("in-process")})
 @EnableRuleMigrationSupport
-public class EntandoLinkServiceTest {
+class EntandoLinkServiceTest {
 
     @Rule
     public KubernetesServer server = new KubernetesServer(false, true);
@@ -41,44 +47,41 @@ public class EntandoLinkServiceTest {
     private KubernetesClient client;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         client = server.getClient();
         ObservedNamespaces ons = new MockObservedNamespaces(Collections.singletonList(TEST_APP_NAMESPACE));
         linkService = new EntandoLinkService(client, ons);
-        EntandoLinkTestHelper.createEntandoAppPluginLinkCrd(client);
-        EntandoAppTestHelper.createEntandoAppCrd(client);
-        EntandoPluginTestHelper.createEntandoPluginCrd(client);
     }
 
     @Test
-    public void shouldFindAllLinks() {
+    void shouldFindAllLinks() {
         EntandoLinkTestHelper.createTestEntandoAppPluginLink(client);
         List<EntandoAppPluginLink> links = linkService.getAll();
         assertThat(links).hasSize(1);
     }
 
     @Test
-    public void shouldFindAllLinksInNamespace() {
+    void shouldFindAllLinksInNamespace() {
         EntandoLinkTestHelper.createTestEntandoAppPluginLink(client);
         List<EntandoAppPluginLink> links = linkService.getAllInNamespace(TEST_APP_NAMESPACE);
         assertThat(links).hasSize(1);
     }
 
     @Test
-    public void shouldNotFindAnyLinkIfNoAppIsAvailable() {
+    void shouldNotFindAnyLinkIfNoAppIsAvailable() {
         EntandoApp testApp = EntandoAppTestHelper.getTestEntandoApp();
         assertTrue(linkService.getAppLinks(testApp).isEmpty());
     }
 
     @Test
-    public void shouldNotFindAnyLinkIfAppHasNoLink() {
+    void shouldNotFindAnyLinkIfAppHasNoLink() {
         EntandoApp testApp = EntandoAppTestHelper.getTestEntandoApp();
         EntandoAppTestHelper.createTestEntandoApp(client);
         assertTrue(linkService.getAppLinks(testApp).isEmpty());
     }
 
     @Test
-    public void shouldFindLinkAssociatedWithApp() {
+    void shouldFindLinkAssociatedWithApp() {
         EntandoAppPluginLink testLink = EntandoLinkTestHelper.createTestEntandoAppPluginLink(client);
         EntandoApp testApp = new EntandoAppBuilder()
                 .withNewMetadata()
@@ -90,7 +93,7 @@ public class EntandoLinkServiceTest {
     }
 
     @Test
-    public void shouldFindLinksAssociatedWithPlugin() {
+    void shouldFindLinksAssociatedWithPlugin() {
         EntandoAppPluginLink testLink = EntandoLinkTestHelper.createTestEntandoAppPluginLink(client);
         EntandoPlugin testPlugin = new EntandoPluginBuilder()
                 .withNewMetadata()
@@ -101,7 +104,7 @@ public class EntandoLinkServiceTest {
     }
 
     @Test
-    public void shouldCreateLinkBetweenAppAndPlugin() {
+    void shouldCreateLinkBetweenAppAndPlugin() {
         EntandoAppPluginLink testLink = EntandoLinkTestHelper.getTestLink();
 
         EntandoAppPluginLink createdLink = linkService.deploy(testLink);
@@ -116,7 +119,7 @@ public class EntandoLinkServiceTest {
     }
 
     @Test
-    public void shouldGenerateLinkWithAppropriateInfoFromAppAndPlugin() {
+    void shouldGenerateLinkWithAppropriateInfoFromAppAndPlugin() {
         EntandoApp ea = EntandoAppTestHelper.getTestEntandoApp();
         EntandoPlugin ep = EntandoPluginTestHelper.getTestEntandoPlugin();
 
@@ -133,18 +136,19 @@ public class EntandoLinkServiceTest {
     }
 
     @Test
-    public void shouldDeleteEntandoAppPluginLink() {
+    void shouldDeleteEntandoAppPluginLink() {
         EntandoAppPluginLink el = EntandoLinkTestHelper.createTestEntandoAppPluginLink(client);
         linkService.delete(el);
-        List<EntandoAppPluginLink> links = EntandoLinkTestHelper
-                .getEntandoAppPluginLinkOperations(client)
+        List<EntandoAppPluginLink> links = ((MixedOperation<EntandoAppPluginLink, EntandoAppPluginLinkList, DoneableEntandoAppPluginLink,
+                Resource<EntandoAppPluginLink, DoneableEntandoAppPluginLink>>) EntandoAppPluginLinkOperationFactory
+                .produceAllEntandoAppPluginLinks(client))
                 .inNamespace(el.getMetadata().getNamespace())
                 .list().getItems();
         assertTrue(links.isEmpty());
     }
 
     @Test
-    public void shouldNotThrowIfDeletingNonExistingPlugin() {
+    void shouldNotThrowIfDeletingNonExistingPlugin() {
         EntandoAppPluginLink el = EntandoLinkTestHelper.getTestLink();
         Assertions.assertDoesNotThrow(() -> linkService.delete(el));
     }

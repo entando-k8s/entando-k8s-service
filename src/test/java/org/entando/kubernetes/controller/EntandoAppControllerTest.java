@@ -231,7 +231,7 @@ public class EntandoAppControllerTest {
     }
 
     @Test
-    private void shouldReturnLinksInEntandoStructure() throws Exception {
+    void shouldReturnLinksInEntandoStructure() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
                 .pathSegment(TEST_APP_NAME)
