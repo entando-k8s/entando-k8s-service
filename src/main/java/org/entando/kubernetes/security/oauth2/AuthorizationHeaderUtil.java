@@ -37,6 +37,8 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 @Component
+//Excessive NullpointerException checking in Sonar
+@SuppressWarnings("java:S2259")
 public class AuthorizationHeaderUtil {
 
     private final OAuth2AuthorizedClientService clientService;
@@ -113,7 +115,7 @@ public class AuthorizationHeaderUtil {
         formParameters.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.REFRESH_TOKEN.getValue());
         formParameters.add(OAuth2ParameterNames.REFRESH_TOKEN, currentClient.getRefreshToken().getTokenValue());
         formParameters.add(OAuth2ParameterNames.CLIENT_ID, currentClient.getClientRegistration().getClientId());
-        RequestEntity requestEntity = RequestEntity
+        RequestEntity<?> requestEntity = RequestEntity
                 .post(URI.create(currentClient.getClientRegistration().getProviderDetails().getTokenUri()))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .body(formParameters);

@@ -8,23 +8,24 @@ import org.entando.kubernetes.model.namespace.provider.FileBasedNamespaceProvide
 import org.entando.kubernetes.model.namespace.provider.NamespaceProvider.NamespaceProviderException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Tags;
 import org.junit.jupiter.api.Test;
 
-@Tag("unit")
-public class FileBaseNamespaceProviderTest {
+@Tags({@Tag("unit"), @Tag("in-process")})
+class FileBaseNamespaceProviderTest {
 
     @Test
-    public void shouldReadNamespaceFromFile() {
+    void shouldReadNamespaceFromFile() {
         Path path = Paths.get(this.getClass().getResource("/test-namespace").getPath());
         KubernetesUtils ku = new KubernetesUtils(new FileBasedNamespaceProvider(path));
         assertThat(ku.getCurrentNamespace()).isEqualTo("test-namespace");
     }
 
     @Test
-    public void shouldThrowAnExceptionIfFileDoesNotExist() {
+    void shouldThrowAnExceptionIfFileDoesNotExist() {
         Path path = Paths.get("my", "fake", "file");
         Assertions.assertThrows(NamespaceProviderException.class, () -> {
-            new KubernetesUtils(new FileBasedNamespaceProvider(path));
+            new FileBasedNamespaceProvider(path);
         });
     }
 

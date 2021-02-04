@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 @Tag("unit")
-public class ObservedNamespaceServiceTest {
+class ObservedNamespaceServiceTest {
 
     private static final String APP_NAMESPACE = "app-namespace";
     private static final String PLUGIN_NAMESPACE = "plugin-namespace";
@@ -28,7 +28,7 @@ public class ObservedNamespaceServiceTest {
     }
 
     @Test
-    public void shouldReturnObservedNamespaces() {
+    void shouldReturnObservedNamespaces() {
         List<String> nsNames = observedNamespaces.getNames();
         assertThat(nsNames).hasSize(4);
         assertThat(nsNames).doesNotContain(NOT_OBSERVED_NAMESPACE);
@@ -41,7 +41,7 @@ public class ObservedNamespaceServiceTest {
     }
 
     @Test
-    public void shouldThrowAnExceptionIfNotObservedNamespace() {
+    void shouldThrowAnExceptionIfNotObservedNamespace() {
         Assertions.assertThrows(NotObservedNamespaceException.class, () -> {
             observedNamespaces.failIfNotObserved(NOT_OBSERVED_NAMESPACE);
         });

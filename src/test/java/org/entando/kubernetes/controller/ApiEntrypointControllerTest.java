@@ -35,7 +35,7 @@ import org.springframework.web.context.WebApplicationContext;
 @ActiveProfiles("test")
 @Tag("component")
 @WithMockUser
-public class ApiEntrypointControllerTest {
+ class ApiEntrypointControllerTest {
 
     @Autowired
     private WebApplicationContext context;
@@ -43,7 +43,7 @@ public class ApiEntrypointControllerTest {
     private MockMvc mvc;
 
     @BeforeEach
-    public void setup() {
+     void setup() {
         mvc = MockMvcBuilders
                 .webAppContextSetup(context)
                 .apply(springSecurity())
@@ -51,7 +51,7 @@ public class ApiEntrypointControllerTest {
     }
 
     @Test
-    public void shouldReturnRootLinks() throws Exception {
+     void shouldReturnRootLinks() throws Exception {
         mvc.perform(get("/").accept(MediaTypes.HAL_JSON_VALUE))
                 .andDo(print())
                 .andExpect(status().isOk())

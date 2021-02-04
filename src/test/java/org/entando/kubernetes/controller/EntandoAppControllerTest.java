@@ -48,6 +48,7 @@ import org.entando.kubernetes.util.HalUtils;
 import org.entando.kubernetes.util.IngressTestHelper;
 import org.hamcrest.core.StringContains;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -80,7 +81,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 @ActiveProfiles("test")
 @Tag("component")
 @WithMockUser
-public class EntandoAppControllerTest {
+ class EntandoAppControllerTest {
 
     private MockMvc mvc;
 
@@ -103,7 +104,7 @@ public class EntandoAppControllerTest {
     private IngressService ingressService;
 
     @BeforeEach
-    public void setup() {
+     void setup() {
         mvc = MockMvcBuilders
                 .webAppContextSetup(context)
                 .apply(springSecurity())
@@ -111,7 +112,7 @@ public class EntandoAppControllerTest {
     }
 
     @Test
-    public void shouldReturnEmptyListIfNotAppIsDeployed() throws Exception {
+     void shouldReturnEmptyListIfNotAppIsDeployed() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
                 .build().toUri();
@@ -124,7 +125,7 @@ public class EntandoAppControllerTest {
     }
 
     @Test
-    public void shouldReturnAListWithOneApp() throws Exception {
+     void shouldReturnAListWithOneApp() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
                 .queryParam("namespace", TEST_APP_NAMESPACE)
@@ -143,7 +144,7 @@ public class EntandoAppControllerTest {
     }
 
     @Test
-    public void shouldReturnCollectionLinks() throws Exception {
+     void shouldReturnCollectionLinks() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
                 .queryParam("namespace", TEST_APP_NAMESPACE)
@@ -169,7 +170,7 @@ public class EntandoAppControllerTest {
     }
 
     @Test
-    public void shouldReturn404IfAppNotFound() throws Exception {
+     void shouldReturn404IfAppNotFound() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
                 .pathSegment(TEST_APP_NAME)
@@ -181,7 +182,7 @@ public class EntandoAppControllerTest {
     }
 
     @Test
-    public void shouldGetPluginIngress() throws Exception {
+     void shouldGetPluginIngress() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
                 .pathSegment(TEST_APP_NAME, "ingress")
@@ -201,7 +202,7 @@ public class EntandoAppControllerTest {
     }
 
     @Test
-    public void shouldReturn404IfIngressNotFound() throws Exception {
+     void shouldReturn404IfIngressNotFound() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
                 .pathSegment(TEST_APP_NAME, "ingress")
@@ -218,7 +219,7 @@ public class EntandoAppControllerTest {
     }
 
     @Test
-    public void shouldReturn404WhenGettingLinksIfAppNotFound() throws Exception {
+     void shouldReturn404WhenGettingLinksIfAppNotFound() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
                 .pathSegment(TEST_APP_NAMESPACE, TEST_APP_NAME, "links")
@@ -228,24 +229,6 @@ public class EntandoAppControllerTest {
                 .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
 
-    }
-
-    @Test
-    private void shouldReturnLinksInEntandoStructure() throws Exception {
-        URI uri = UriComponentsBuilder
-                .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
-                .pathSegment(TEST_APP_NAME)
-                .build().toUri();
-        EntandoApp ea = EntandoAppTestHelper.getTestEntandoApp();
-
-        when(entandoAppService.findByName(TEST_APP_NAME)).thenReturn(Optional.of(ea));
-
-        String appLinksJsonPath = "$._links";
-
-        mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath(appLinksJsonPath).value(hasKey("links")))
-                .andExpect(jsonPath(appLinksJsonPath + ".app-links.href").value(endsWith("/links?app=my-app")));
     }
 
     @Test
@@ -317,7 +300,7 @@ public class EntandoAppControllerTest {
     }
 
     @Test
-    public void shouldThrowAnErrorWhenCreatingLinkButAppDoesntExist() throws Exception {
+     void shouldThrowAnErrorWhenCreatingLinkButAppDoesntExist() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
                 .pathSegment(TEST_APP_NAME, "links")

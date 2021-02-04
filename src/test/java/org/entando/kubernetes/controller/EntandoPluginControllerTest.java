@@ -73,7 +73,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 @ActiveProfiles("test")
 @Tag("component")
 @WithMockUser
-public class EntandoPluginControllerTest {
+ class EntandoPluginControllerTest {
 
     private MockMvc mvc;
 
@@ -90,7 +90,7 @@ public class EntandoPluginControllerTest {
     private WebApplicationContext context;
 
     @BeforeEach
-    public void setup() {
+     void setup() {
         mvc = MockMvcBuilders
                 .webAppContextSetup(context)
                 .apply(springSecurity())
@@ -98,7 +98,7 @@ public class EntandoPluginControllerTest {
     }
 
     @Test
-    public void shouldReturnEmptyListIfNotPluginIsDeployed() throws Exception {
+     void shouldReturnEmptyListIfNotPluginIsDeployed() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(BASE_PLUGIN_ENDPOINT)
                 .build().toUri();
@@ -111,7 +111,7 @@ public class EntandoPluginControllerTest {
     }
 
     @Test
-    public void shouldReturnAListWithOnePlugin() throws Exception {
+     void shouldReturnAListWithOnePlugin() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(BASE_PLUGIN_ENDPOINT)
                 .queryParam("namespace", TEST_PLUGIN_NAMESPACE)
@@ -130,7 +130,7 @@ public class EntandoPluginControllerTest {
     }
 
     @Test
-    public void shouldReturnCollectionLinks() throws Exception {
+     void shouldReturnCollectionLinks() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(BASE_PLUGIN_ENDPOINT)
                 .queryParam("namespace", TEST_PLUGIN_NAMESPACE)
@@ -159,7 +159,7 @@ public class EntandoPluginControllerTest {
     }
 
     @Test
-    public void shouldReturnPluginByName() throws Exception {
+     void shouldReturnPluginByName() throws Exception {
         EntandoPlugin tempPlugin = EntandoPluginTestHelper.getTestEntandoPlugin();
         String pluginName = tempPlugin.getMetadata().getName();
         URI uri = UriComponentsBuilder
@@ -176,7 +176,7 @@ public class EntandoPluginControllerTest {
     }
 
     @Test
-    public void shouldGetPluginIngress() throws Exception {
+     void shouldGetPluginIngress() throws Exception {
         EntandoPlugin tempPlugin = EntandoPluginTestHelper.getTestEntandoPlugin();
         String pluginName = tempPlugin.getMetadata().getName();
         URI uri = UriComponentsBuilder
@@ -197,7 +197,7 @@ public class EntandoPluginControllerTest {
     }
 
     @Test
-    public void shouldReturn404IfIngressNotFound() throws Exception {
+     void shouldReturn404IfIngressNotFound() throws Exception {
         EntandoPlugin tempPlugin = EntandoPluginTestHelper.getTestEntandoPlugin();
         String pluginName = tempPlugin.getMetadata().getName();
         URI uri = UriComponentsBuilder
@@ -214,7 +214,7 @@ public class EntandoPluginControllerTest {
     }
 
     @Test
-    public void shouldReturn404IfPluginNotFound() throws Exception {
+     void shouldReturn404IfPluginNotFound() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(BASE_PLUGIN_ENDPOINT)
                 .pathSegment(TEST_PLUGIN_NAMESPACE, TEST_PLUGIN_NAME)
@@ -226,7 +226,7 @@ public class EntandoPluginControllerTest {
     }
 
     @Test
-    public void shouldThrowBadRequestExceptionForAlreadyDeployedPlugin() throws Exception {
+     void shouldThrowBadRequestExceptionForAlreadyDeployedPlugin() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(BASE_PLUGIN_ENDPOINT)
                 .build().toUri();
@@ -244,7 +244,7 @@ public class EntandoPluginControllerTest {
     }
 
     @Test
-    public void shouldReturnCreatedForNewlyDeployedPlugin() throws Exception {
+     void shouldReturnCreatedForNewlyDeployedPlugin() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(BASE_PLUGIN_ENDPOINT)
                 .build().toUri();
@@ -280,7 +280,7 @@ public class EntandoPluginControllerTest {
     }
 
     @Test
-    public void shouldReturnAcceptedWhenDeletingAPlugin() throws Exception {
+     void shouldReturnAcceptedWhenDeletingAPlugin() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(BASE_PLUGIN_ENDPOINT)
                 .pathSegment(TEST_PLUGIN_NAME)

@@ -24,7 +24,7 @@ import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
 
 @Tag("component")
 @EnableRuleMigrationSupport
-public class IngressServiceTest {
+class IngressServiceTest {
 
     @Rule
     public KubernetesServer server = new KubernetesServer(false, true);
@@ -39,12 +39,11 @@ public class IngressServiceTest {
         ObservedNamespaces ons = new MockObservedNamespaces(
                 Arrays.asList(TEST_APP_NAMESPACE, TEST_PLUGIN_NAMESPACE)
         );
-        ingressService = new IngressService(client, ons);
-        EntandoAppTestHelper.createEntandoAppCrd(client);
+        ingressService = new IngressService(client);
     }
 
     @Test
-    public void shouldFindIngressForApp() {
+    void shouldFindIngressForApp() {
         EntandoApp app = EntandoAppTestHelper.getTestEntandoApp();
         IngressTestHelper.createAppIngress(this.client, app);
 
@@ -53,7 +52,7 @@ public class IngressServiceTest {
     }
 
     @Test
-    public void shouldFindIngressForPlugin() {
+    void shouldFindIngressForPlugin() {
         EntandoPlugin plugin = EntandoPluginTestHelper.getTestEntandoPlugin();
         IngressTestHelper.createPluginIngress(this.client, plugin);
 

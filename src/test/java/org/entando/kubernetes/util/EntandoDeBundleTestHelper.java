@@ -1,20 +1,16 @@
 package org.entando.kubernetes.util;
 
-import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.apiextensions.CustomResourceDefinition;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.internal.KubernetesDeserializer;
-import java.io.IOException;
-import java.util.List;
 import org.entando.kubernetes.model.debundle.DoneableEntandoDeBundle;
 import org.entando.kubernetes.model.debundle.EntandoDeBundle;
 import org.entando.kubernetes.model.debundle.EntandoDeBundleBuilder;
 import org.entando.kubernetes.model.debundle.EntandoDeBundleList;
+import org.entando.kubernetes.model.debundle.EntandoDeBundleOperationFactory;
 import org.entando.kubernetes.model.debundle.EntandoDeBundleSpec;
 import org.entando.kubernetes.model.debundle.EntandoDeBundleSpecBuilder;
-import org.springframework.core.io.ClassPathResource;
 
 public class EntandoDeBundleTestHelper {
 
@@ -28,7 +24,10 @@ public class EntandoDeBundleTestHelper {
         KubernetesDeserializer
                 .registerCustomKind(eb.getApiVersion(), eb.getKind(), EntandoDeBundle.class);
 
-        return getEntandoDeBundleOperations(client).inNamespace(eb.getMetadata().getNamespace()).createOrReplace(eb);
+        return ((MixedOperation<EntandoDeBundle, EntandoDeBundleList, DoneableEntandoDeBundle, Resource<EntandoDeBundle,
+                DoneableEntandoDeBundle>>) EntandoDeBundleOperationFactory
+                .produceAllEntandoDeBundles(client))
+                .inNamespace(eb.getMetadata().getNamespace()).createOrReplace(eb);
 
     }
 
@@ -39,37 +38,11 @@ public class EntandoDeBundleTestHelper {
         KubernetesDeserializer
                 .registerCustomKind(eb.getApiVersion(), eb.getKind(), EntandoDeBundle.class);
 
-        return getEntandoDeBundleOperations(client).inNamespace(namespace).createOrReplace(eb);
+        return ((MixedOperation<EntandoDeBundle, EntandoDeBundleList, DoneableEntandoDeBundle, Resource<EntandoDeBundle,
+                DoneableEntandoDeBundle>>) EntandoDeBundleOperationFactory
+                .produceAllEntandoDeBundles(client))
+                .inNamespace(namespace).createOrReplace(eb);
 
-    }
-
-    public static MixedOperation<EntandoDeBundle, EntandoDeBundleList, DoneableEntandoDeBundle,
-            Resource<EntandoDeBundle, DoneableEntandoDeBundle>> getEntandoDeBundleOperations(KubernetesClient client) {
-        CustomResourceDefinition entandoDeBundleCrd = createEntandoDeBundleCrd(client);
-
-        return client.customResources(entandoDeBundleCrd, EntandoDeBundle.class, EntandoDeBundleList.class,
-                DoneableEntandoDeBundle.class);
-    }
-
-    public static CustomResourceDefinition createEntandoDeBundleCrd(KubernetesClient client) {
-        String entandoDeBundleCrdResource = "crd/EntandoDeBundleCRD.yaml";
-        CustomResourceDefinition entandoDeBundleCrd = client.customResourceDefinitions().withName(EntandoDeBundle.CRD_NAME)
-                .get();
-        if (entandoDeBundleCrd == null) {
-            List<HasMetadata> list = null;
-            try {
-                list = client.load(new ClassPathResource(entandoDeBundleCrdResource).getInputStream())
-                        .get();
-            } catch (IOException e) {
-                System.out.println(e.getMessage());
-                throw new RuntimeException("An error occurred while reading resource " + entandoDeBundleCrdResource, e);
-            }
-            entandoDeBundleCrd = (CustomResourceDefinition) list.get(0);
-            // see issue https://github.com/fabric8io/kubernetes-client/issues/1486
-            entandoDeBundleCrd.getSpec().getValidation().getOpenAPIV3Schema().setDependencies(null);
-            return client.customResourceDefinitions().createOrReplace(entandoDeBundleCrd);
-        }
-        return entandoDeBundleCrd;
     }
 
     public static EntandoDeBundleSpec getTestEntandoDeBundleSpec() {
@@ -95,8 +68,8 @@ public class EntandoDeBundleTestHelper {
 
         EntandoDeBundle bundle = new EntandoDeBundleBuilder()
                 .withNewMetadata()
-                    .withName(TEST_BUNDLE_NAME)
-                    .withNamespace(TEST_BUNDLE_NAMESPACE)
+                .withName(TEST_BUNDLE_NAME)
+                .withNamespace(TEST_BUNDLE_NAMESPACE)
                 .endMetadata()
                 .withSpec(getTestEntandoDeBundleSpec())
                 .build();
