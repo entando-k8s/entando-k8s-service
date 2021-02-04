@@ -81,7 +81,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 @ActiveProfiles("test")
 @Tag("component")
 @WithMockUser
-public class EntandoAppControllerTest {
+ class EntandoAppControllerTest {
 
     private MockMvc mvc;
 
@@ -104,7 +104,7 @@ public class EntandoAppControllerTest {
     private IngressService ingressService;
 
     @BeforeEach
-    public void setup() {
+     void setup() {
         mvc = MockMvcBuilders
                 .webAppContextSetup(context)
                 .apply(springSecurity())
@@ -112,7 +112,7 @@ public class EntandoAppControllerTest {
     }
 
     @Test
-    public void shouldReturnEmptyListIfNotAppIsDeployed() throws Exception {
+     void shouldReturnEmptyListIfNotAppIsDeployed() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
                 .build().toUri();
@@ -125,7 +125,7 @@ public class EntandoAppControllerTest {
     }
 
     @Test
-    public void shouldReturnAListWithOneApp() throws Exception {
+     void shouldReturnAListWithOneApp() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
                 .queryParam("namespace", TEST_APP_NAMESPACE)
@@ -144,7 +144,7 @@ public class EntandoAppControllerTest {
     }
 
     @Test
-    public void shouldReturnCollectionLinks() throws Exception {
+     void shouldReturnCollectionLinks() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
                 .queryParam("namespace", TEST_APP_NAMESPACE)
@@ -170,7 +170,7 @@ public class EntandoAppControllerTest {
     }
 
     @Test
-    public void shouldReturn404IfAppNotFound() throws Exception {
+     void shouldReturn404IfAppNotFound() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
                 .pathSegment(TEST_APP_NAME)
@@ -182,7 +182,7 @@ public class EntandoAppControllerTest {
     }
 
     @Test
-    public void shouldGetPluginIngress() throws Exception {
+     void shouldGetPluginIngress() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
                 .pathSegment(TEST_APP_NAME, "ingress")
@@ -202,7 +202,7 @@ public class EntandoAppControllerTest {
     }
 
     @Test
-    public void shouldReturn404IfIngressNotFound() throws Exception {
+     void shouldReturn404IfIngressNotFound() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
                 .pathSegment(TEST_APP_NAME, "ingress")
@@ -219,7 +219,7 @@ public class EntandoAppControllerTest {
     }
 
     @Test
-    public void shouldReturn404WhenGettingLinksIfAppNotFound() throws Exception {
+     void shouldReturn404WhenGettingLinksIfAppNotFound() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
                 .pathSegment(TEST_APP_NAMESPACE, TEST_APP_NAME, "links")
@@ -319,7 +319,7 @@ public class EntandoAppControllerTest {
     }
 
     @Test
-    public void shouldThrowAnErrorWhenCreatingLinkButAppDoesntExist() throws Exception {
+     void shouldThrowAnErrorWhenCreatingLinkButAppDoesntExist() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
                 .pathSegment(TEST_APP_NAME, "links")

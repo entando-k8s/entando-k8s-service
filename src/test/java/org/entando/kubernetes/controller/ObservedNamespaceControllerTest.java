@@ -40,7 +40,7 @@ import org.springframework.web.context.WebApplicationContext;
 @ActiveProfiles("test")
 @Tag("component")
 @WithMockUser
-public class ObservedNamespaceControllerTest {
+ class ObservedNamespaceControllerTest {
 
     private MockMvc mvc;
 
@@ -50,7 +50,7 @@ public class ObservedNamespaceControllerTest {
     private WebApplicationContext context;
 
     @BeforeEach
-    public void setup() {
+     void setup() {
         observedNamespaces = new ObservedNamespaces(mock(KubernetesUtils.class), Collections.singletonList(TEST_PLUGIN_NAMESPACE));
         mvc = MockMvcBuilders
                 .webAppContextSetup(context)
@@ -59,7 +59,7 @@ public class ObservedNamespaceControllerTest {
     }
 
     @Test
-    public void shouldReturnOkResponseAndLinks() throws Exception {
+     void shouldReturnOkResponseAndLinks() throws Exception {
         mvc.perform(get(URI.create("/namespaces")).accept(HAL_JSON_VALUE))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$._embedded.observedNamespaces").exists())
@@ -70,13 +70,13 @@ public class ObservedNamespaceControllerTest {
     }
 
     @Test
-    public void shouldThrowAnExceptionWhenAskingForNotObservedNamespace() throws Exception {
+     void shouldThrowAnExceptionWhenAskingForNotObservedNamespace() throws Exception {
         mvc.perform(get(URI.create("/namespaces/not-checked")).accept(HAL_JSON_VALUE))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    public void shouldReturnSelfLink() throws Exception {
+     void shouldReturnSelfLink() throws Exception {
         mvc.perform(get("/namespaces/{name}", TEST_PLUGIN_NAMESPACE).accept(HAL_JSON_VALUE))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value(TEST_PLUGIN_NAMESPACE))
@@ -84,7 +84,7 @@ public class ObservedNamespaceControllerTest {
     }
 
     @Test
-    public void shouldReturnLinksToEntandoCustomResourceInNamespace() throws Exception {
+     void shouldReturnLinksToEntandoCustomResourceInNamespace() throws Exception {
         mvc.perform(get(URI.create("/namespaces/" + TEST_PLUGIN_NAMESPACE)).accept(HAL_JSON_VALUE))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$._links.plugins-in-namespace.href").value(endsWith("/plugins?namespace=" + TEST_PLUGIN_NAMESPACE)))
@@ -96,7 +96,7 @@ public class ObservedNamespaceControllerTest {
     }
 
     @Test
-    public void shouldThrowExceptionForInvalidNamespaceName() throws Exception {
+     void shouldThrowExceptionForInvalidNamespaceName() throws Exception {
 
         String invalidNamespace = "Access-Control-Allow-Origin: *";
         mvc.perform(get("/namespaces/{name}", invalidNamespace).accept(HAL_JSON_VALUE))

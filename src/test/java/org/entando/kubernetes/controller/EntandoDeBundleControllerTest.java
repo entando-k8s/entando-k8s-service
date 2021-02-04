@@ -49,7 +49,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 @ActiveProfiles("test")
 @Tag("component")
 @WithMockUser
-public class EntandoDeBundleControllerTest {
+ class EntandoDeBundleControllerTest {
 
     private MockMvc mvc;
 
@@ -60,7 +60,7 @@ public class EntandoDeBundleControllerTest {
     private WebApplicationContext context;
 
     @BeforeEach
-    public void setup() {
+     void setup() {
         mvc = MockMvcBuilders
                 .webAppContextSetup(context)
                 .apply(springSecurity())
@@ -68,7 +68,7 @@ public class EntandoDeBundleControllerTest {
     }
 
     @Test
-    public void shouldReturnEmptyListIfNotBundleIsDeployed() throws Exception {
+     void shouldReturnEmptyListIfNotBundleIsDeployed() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoDeBundleTestHelper.BASE_BUNDLES_ENDPOINT)
                 .build().toUri();
@@ -82,7 +82,7 @@ public class EntandoDeBundleControllerTest {
     }
 
     @Test
-    public void shouldReturnAListWithOneBundle() throws Exception {
+     void shouldReturnAListWithOneBundle() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoDeBundleTestHelper.BASE_BUNDLES_ENDPOINT)
                 .build().toUri();
@@ -102,7 +102,7 @@ public class EntandoDeBundleControllerTest {
     }
 
     @Test
-    public void shouldReturnAListWithOneBundleWhenSearchingInANamespace() throws Exception {
+     void shouldReturnAListWithOneBundleWhenSearchingInANamespace() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoDeBundleTestHelper.BASE_BUNDLES_ENDPOINT)
                 .queryParam("namespace", TEST_BUNDLE_NAMESPACE)
@@ -120,7 +120,7 @@ public class EntandoDeBundleControllerTest {
         verify(entandoDeBundleService, times(1)).getAllInNamespace(TEST_BUNDLE_NAMESPACE);
     }
 
-    //    public void shouldReturnAListWithOneBundleWhenFilteringByName() throws Exception {
+    //     void shouldReturnAListWithOneBundleWhenFilteringByName() throws Exception {
     //        URI uri = UriComponentsBuilder
     //                .fromUriString(EntandoDeBundleTestHelper.BASE_BUNDLES_ENDPOINT)
     //                .build().toUri();
@@ -140,7 +140,7 @@ public class EntandoDeBundleControllerTest {
     //    }
 
     @Test
-    public void shouldReturnAListWithOneBundleWhenFilteringByNameAndNamespace() throws Exception {
+     void shouldReturnAListWithOneBundleWhenFilteringByNameAndNamespace() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoDeBundleTestHelper.BASE_BUNDLES_ENDPOINT)
                 .pathSegment(TEST_BUNDLE_NAME)
