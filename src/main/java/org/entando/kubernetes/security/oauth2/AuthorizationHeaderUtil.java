@@ -23,6 +23,7 @@ import org.springframework.security.oauth2.client.authentication.OAuth2Authentic
 import org.springframework.security.oauth2.client.http.OAuth2ErrorResponseErrorHandler;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.OAuth2AccessToken;
+import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
 import org.springframework.security.oauth2.core.OAuth2AuthorizationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.core.OAuth2RefreshToken;
@@ -114,7 +115,7 @@ public class AuthorizationHeaderUtil {
         formParameters.add(OAuth2ParameterNames.GRANT_TYPE, AuthorizationGrantType.REFRESH_TOKEN.getValue());
         formParameters.add(OAuth2ParameterNames.REFRESH_TOKEN, currentClient.getRefreshToken().getTokenValue());
         formParameters.add(OAuth2ParameterNames.CLIENT_ID, currentClient.getClientRegistration().getClientId());
-        RequestEntity<?> requestEntity = RequestEntity
+        RequestEntity requestEntity = RequestEntity
                 .post(URI.create(currentClient.getClientRegistration().getProviderDetails().getTokenUri()))
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .body(formParameters);
@@ -125,7 +126,7 @@ public class AuthorizationHeaderUtil {
             return toOAuth2AccessTokenResponse(responseEntity.getBody());
         } catch (OAuth2AuthorizationException e) {
             log.error("Unable to refresh token", e);
-            throw new OAuth2AuthorizationException(e.getError(), e);
+            throw new OAuth2AuthenticationException(e.getError(), e);
         }
     }
 
