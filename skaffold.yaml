@@ -17,7 +17,9 @@ profiles:
     artifacts:
     - image: entando/entando-k8s-service
       context: .
-      docker: {}
+      docker:
+        buildArgs:
+          VERSION: "{{ .VERSION}}"
     tagPolicy:
       envTemplate:
         template: '{{.DOCKER_REGISTRY}}/{{.IMAGE_NAME}}:{{.VERSION}}'

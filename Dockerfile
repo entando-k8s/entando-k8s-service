@@ -1,10 +1,10 @@
 FROM registry.access.redhat.com/ubi8/openjdk-8
-
+ARG VERSION
 ### Required OpenShift Labels
 LABEL name="Entando Kubernetes Service" \
       maintainer="dev@entando.com" \
       vendor="Entando Inc." \
-      version="6.3.0" \
+      version="v${VERSION}" \
       release="6.3.0" \
       summary="Entando infrastructure project for kubernetest APIs" \
       description="Entando infrastructure project for kubernetest APIs"

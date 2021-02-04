@@ -241,7 +241,7 @@ public class EntandoLinksControllerTest {
     public void shouldDeleteLinkAndFailingPlugin() throws Exception {
         EntandoAppPluginLink el = EntandoLinkTestHelper.getTestLink();
         EntandoPlugin plugin = EntandoPluginTestHelper.getTestEntandoPlugin();
-        plugin.getStatus().setEntandoDeploymentPhase(EntandoDeploymentPhase.FAILED);
+        plugin.getStatus().updateDeploymentPhase(EntandoDeploymentPhase.FAILED, 1L);
         when(entandoLinkService.findByName(eq(el.getMetadata().getName())))
                 .thenReturn(Optional.of(el));
         when(entandoPluginService.findByName(eq(plugin.getMetadata().getName())))
@@ -256,7 +256,7 @@ public class EntandoLinksControllerTest {
         assertThat(argCapt.getValue().getStatus().getEntandoDeploymentPhase()).isEqualTo(EntandoDeploymentPhase.FAILED);
 
         plugin = EntandoPluginTestHelper.getTestEntandoPlugin();
-        plugin.getStatus().setEntandoDeploymentPhase(EntandoDeploymentPhase.STARTED);
+        plugin.getStatus().updateDeploymentPhase(EntandoDeploymentPhase.STARTED, 1L);
         when(entandoPluginService.findByName(eq(plugin.getMetadata().getName())))
                 .thenReturn(Optional.of(plugin));
         mvc.perform(delete("/app-plugin-links/{name}", el.getMetadata().getName()))
@@ -269,7 +269,7 @@ public class EntandoLinksControllerTest {
     public void shouldDeleteLinkButKeepWorkingPlugin() throws Exception {
         EntandoAppPluginLink el = EntandoLinkTestHelper.getTestLink();
         EntandoPlugin plugin = EntandoPluginTestHelper.getTestEntandoPlugin();
-        plugin.getStatus().setEntandoDeploymentPhase(EntandoDeploymentPhase.SUCCESSFUL);
+        plugin.getStatus().updateDeploymentPhase(EntandoDeploymentPhase.SUCCESSFUL, 1L);
         when(entandoLinkService.findByName(eq(el.getMetadata().getName())))
                 .thenReturn(Optional.of(el));
         when(entandoPluginService.findByName(eq(plugin.getMetadata().getName())))
