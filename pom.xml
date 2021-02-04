@@ -16,7 +16,7 @@
     <parent>
         <groupId>org.entando</groupId>
         <artifactId>entando-spring-boot-parent</artifactId>
-        <version>6.3.0-SNAPSHOT</version>
+        <version>6.3.1</version>
     </parent>
     <url>http://www.entando.com/</url>
     <licenses>
@@ -46,11 +46,9 @@
     <properties>
         <preDeploymentTestGroups>unit,component,in-process</preDeploymentTestGroups>
         <postDeploymentTestGroups></postDeploymentTestGroups>
-        <owaspSuppressionFileLocation>/home/ampie/Code/entando/entando-spring-boot-parent/owasp-dependency-check-suppression.xml</owaspSuppressionFileLocation>
-        <checkstyleConfigLocation>/home/ampie/Code/entando/entando-spring-boot-parent/checkstyle.xml</checkstyleConfigLocation>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <github.organization>entando-k8s</github.organization>
-        <entando.k8s.custom.model.version>6.3.0</entando.k8s.custom.model.version>
+        <entando-k8s-custom-model.version>6.3.0</entando-k8s-custom-model.version>
         <fabric8.version>4.7.0</fabric8.version>
     </properties>
     <dependencyManagement>
@@ -58,7 +56,7 @@
             <dependency>
                 <groupId>org.entando</groupId>
                 <artifactId>entando-k8s-custom-model</artifactId>
-                <version>${entando.k8s.custom.model.version}</version>
+                <version>${entando-k8s-custom-model.version}</version>
                 <exclusions>
                     <exclusion>
                         <groupId>org.slf4j</groupId>
