@@ -232,25 +232,6 @@ import org.springframework.web.util.UriComponentsBuilder;
     }
 
     @Test
-    @Disabled
-    void shouldReturnLinksInEntandoStructure() throws Exception {
-        URI uri = UriComponentsBuilder
-                .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
-                .pathSegment(TEST_APP_NAME)
-                .build().toUri();
-        EntandoApp ea = EntandoAppTestHelper.getTestEntandoApp();
-
-        when(entandoAppService.findByName(TEST_APP_NAME)).thenReturn(Optional.of(ea));
-
-        String appLinksJsonPath = "$._links";
-
-        mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath(appLinksJsonPath).value(hasKey("links")))
-                .andExpect(jsonPath(appLinksJsonPath + ".app-links.href").value(endsWith("/links?app=my-app")));
-    }
-
-    @Test
     void shouldCreateLinkBetweenExistingAppAndPlugin() throws Exception {
         when(entandoLinkService.buildBetweenAppAndPlugin(any(EntandoApp.class), any(EntandoPlugin.class))).thenCallRealMethod();
 
