@@ -16,7 +16,7 @@
     <parent>
         <groupId>org.entando</groupId>
         <artifactId>entando-spring-boot-parent</artifactId>
-        <version>6.3.1</version>
+        <version>6.3.2</version>
     </parent>
     <url>http://www.entando.com/</url>
     <licenses>
@@ -48,30 +48,11 @@
         <postDeploymentTestGroups></postDeploymentTestGroups>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <github.organization>entando-k8s</github.organization>
-        <entando-k8s-custom-model.version>6.3.0</entando-k8s-custom-model.version>
+        <entando-k8s-custom-model.version>6.3.1</entando-k8s-custom-model.version>
         <fabric8.version>4.7.0</fabric8.version>
     </properties>
     <dependencyManagement>
         <dependencies>
-            <dependency>
-                <groupId>org.entando</groupId>
-                <artifactId>entando-k8s-custom-model</artifactId>
-                <version>${entando-k8s-custom-model.version}</version>
-                <exclusions>
-                    <exclusion>
-                        <groupId>org.slf4j</groupId>
-                        <artifactId>slf4j-jdk14</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.jboss.slf4j</groupId>
-                        <artifactId>slf4j-jboss-logging</artifactId>
-                    </exclusion>
-                    <exclusion>
-                        <groupId>org.slf4j</groupId>
-                        <artifactId>jul-to-slf4j</artifactId>
-                    </exclusion>
-                </exclusions>
-            </dependency>
             <dependency>
                 <groupId>io.fabric8</groupId>
                 <artifactId>kubernetes-server-mock</artifactId>
