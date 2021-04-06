@@ -14,6 +14,9 @@ COPY target/generated-resources/licenses /licenses
 ENV PORT 8080
 ENV CLASSPATH /opt/lib
 EXPOSE 8080
+USER root
+RUN microdnf -y update
+USER jboss
 
 # copy pom.xml and wildcards to avoid this command failing if there's no target/lib directory
 COPY pom.xml target/lib* /opt/lib/
