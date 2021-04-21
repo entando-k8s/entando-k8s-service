@@ -6,7 +6,6 @@ import java.util.Arrays;
 import java.util.List;
 import org.entando.kubernetes.exception.NotObservedNamespaceException;
 import org.entando.kubernetes.model.namespace.ObservedNamespaces;
-import org.entando.kubernetes.util.MockObservedNamespaces;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -24,7 +23,12 @@ class ObservedNamespaceServiceTest {
 
     @BeforeEach
     public void setUp() {
-        observedNamespaces = new MockObservedNamespaces(Arrays.asList(APP_NAMESPACE, PLUGIN_NAMESPACE, BUNDLE_NAMESPACE));
+        observedNamespaces = new ObservedNamespaces(new KubernetesUtils(null) {
+            @Override
+            public String getCurrentNamespace() {
+                return "test-namespace";
+            }
+        }, Arrays.asList(APP_NAMESPACE, PLUGIN_NAMESPACE, BUNDLE_NAMESPACE), OperatorDeploymentType.HELM);
     }
 
     @Test

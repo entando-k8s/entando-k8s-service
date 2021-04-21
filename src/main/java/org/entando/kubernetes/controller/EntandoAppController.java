@@ -14,12 +14,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.entando.kubernetes.exception.NotFoundExceptionFactory;
 import org.entando.kubernetes.model.app.EntandoApp;
 import org.entando.kubernetes.model.link.EntandoAppPluginLink;
+import org.entando.kubernetes.model.namespace.ObservedNamespaces;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.entando.kubernetes.service.EntandoAppService;
 import org.entando.kubernetes.service.EntandoLinkService;
 import org.entando.kubernetes.service.EntandoPluginService;
 import org.entando.kubernetes.service.IngressService;
-import org.entando.kubernetes.service.KubernetesUtils;
 import org.entando.kubernetes.service.assembler.EntandoAppPluginLinkResourceAssembler;
 import org.entando.kubernetes.service.assembler.EntandoAppResourceAssembler;
 import org.springframework.hateoas.CollectionModel;
@@ -46,7 +46,7 @@ public class EntandoAppController {
     private final EntandoAppService appService;
     private final EntandoAppResourceAssembler appResourceAssembler;
     private final EntandoAppPluginLinkResourceAssembler linkResourceAssembler;
-    private final KubernetesUtils k8sUtils;
+    private final ObservedNamespaces observedNamespaces;
     private final EntandoLinkService linkService;
     private final IngressService ingressService;
     private final EntandoPluginService pluginService;
@@ -118,7 +118,7 @@ public class EntandoAppController {
     private EntandoPlugin createPlugin(EntandoPlugin newPlugin) {
         String pluginNamespace = Optional.ofNullable(newPlugin.getMetadata().getNamespace())
                 .filter(ns -> !ns.isEmpty())
-                .orElse(k8sUtils.getCurrentNamespace());
+                .orElse(observedNamespaces.getCurrentNamespace());
         newPlugin.getMetadata().setNamespace(pluginNamespace);
         return pluginService.deploy(newPlugin, EntandoPluginService.CREATE_OR_REPLACE);
     }

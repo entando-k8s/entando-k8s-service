@@ -1,6 +1,5 @@
 package org.entando.kubernetes.service;
 
-import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import java.util.List;
@@ -17,9 +16,14 @@ import org.springframework.stereotype.Service;
 @Service
 public class EntandoDeBundleService extends EntandoKubernetesResourceCollector<EntandoDeBundle> {
 
-    public EntandoDeBundleService(KubernetesClient client,
+    public EntandoDeBundleService(KubernetesUtils kubernetesUtils,
             ObservedNamespaces observedNamespaces) {
-        super(client, observedNamespaces);
+        super(kubernetesUtils, observedNamespaces);
+    }
+
+    @Override
+    protected List<EntandoDeBundle> getInAnyNamespace() {
+        return getBundleOperations().inAnyNamespace().list().getItems();
     }
 
     @Override
@@ -43,7 +47,7 @@ public class EntandoDeBundleService extends EntandoKubernetesResourceCollector<E
     private MixedOperation<EntandoDeBundle, EntandoDeBundleList, DoneableEntandoDeBundle, Resource<EntandoDeBundle,
             DoneableEntandoDeBundle>> getBundleOperations() {
         //CHECKSTYLE:ON
-        return EntandoDeBundleOperationFactory.produceAllEntandoDeBundles(client);
+        return EntandoDeBundleOperationFactory.produceAllEntandoDeBundles(kubernetesUtils.getCurrentKubernetesClient());
     }
 
 }

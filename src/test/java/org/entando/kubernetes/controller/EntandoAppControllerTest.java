@@ -8,7 +8,6 @@ import static org.entando.kubernetes.util.EntandoPluginTestHelper.TEST_PLUGIN_NA
 import static org.hamcrest.CoreMatchers.endsWith;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.hasEntry;
-import static org.hamcrest.Matchers.hasKey;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -32,7 +31,6 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.entando.kubernetes.EntandoKubernetesJavaApplication;
-import org.entando.kubernetes.config.TestJwtDecoderConfig;
 import org.entando.kubernetes.config.TestKubernetesConfig;
 import org.entando.kubernetes.config.TestSecurityConfiguration;
 import org.entando.kubernetes.model.app.EntandoApp;
@@ -48,7 +46,6 @@ import org.entando.kubernetes.util.HalUtils;
 import org.entando.kubernetes.util.IngressTestHelper;
 import org.hamcrest.core.StringContains;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -75,13 +72,12 @@ import org.springframework.web.util.UriComponentsBuilder;
         classes = {
                 EntandoKubernetesJavaApplication.class,
                 TestSecurityConfiguration.class,
-                TestKubernetesConfig.class,
-                TestJwtDecoderConfig.class
+                TestKubernetesConfig.class
         })
 @ActiveProfiles("test")
 @Tag("component")
 @WithMockUser
- class EntandoAppControllerTest {
+class EntandoAppControllerTest {
 
     private MockMvc mvc;
 
@@ -104,7 +100,7 @@ import org.springframework.web.util.UriComponentsBuilder;
     private IngressService ingressService;
 
     @BeforeEach
-     void setup() {
+    void setup() {
         mvc = MockMvcBuilders
                 .webAppContextSetup(context)
                 .apply(springSecurity())
@@ -112,7 +108,7 @@ import org.springframework.web.util.UriComponentsBuilder;
     }
 
     @Test
-     void shouldReturnEmptyListIfNotAppIsDeployed() throws Exception {
+    void shouldReturnEmptyListIfNotAppIsDeployed() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
                 .build().toUri();
@@ -125,7 +121,7 @@ import org.springframework.web.util.UriComponentsBuilder;
     }
 
     @Test
-     void shouldReturnAListWithOneApp() throws Exception {
+    void shouldReturnAListWithOneApp() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
                 .queryParam("namespace", TEST_APP_NAMESPACE)
@@ -144,7 +140,7 @@ import org.springframework.web.util.UriComponentsBuilder;
     }
 
     @Test
-     void shouldReturnCollectionLinks() throws Exception {
+    void shouldReturnCollectionLinks() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
                 .queryParam("namespace", TEST_APP_NAMESPACE)
@@ -170,7 +166,7 @@ import org.springframework.web.util.UriComponentsBuilder;
     }
 
     @Test
-     void shouldReturn404IfAppNotFound() throws Exception {
+    void shouldReturn404IfAppNotFound() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
                 .pathSegment(TEST_APP_NAME)
@@ -182,7 +178,7 @@ import org.springframework.web.util.UriComponentsBuilder;
     }
 
     @Test
-     void shouldGetPluginIngress() throws Exception {
+    void shouldGetPluginIngress() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
                 .pathSegment(TEST_APP_NAME, "ingress")
@@ -202,7 +198,7 @@ import org.springframework.web.util.UriComponentsBuilder;
     }
 
     @Test
-     void shouldReturn404IfIngressNotFound() throws Exception {
+    void shouldReturn404IfIngressNotFound() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
                 .pathSegment(TEST_APP_NAME, "ingress")
@@ -219,7 +215,7 @@ import org.springframework.web.util.UriComponentsBuilder;
     }
 
     @Test
-     void shouldReturn404WhenGettingLinksIfAppNotFound() throws Exception {
+    void shouldReturn404WhenGettingLinksIfAppNotFound() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
                 .pathSegment(TEST_APP_NAMESPACE, TEST_APP_NAME, "links")
@@ -268,7 +264,6 @@ import org.springframework.web.util.UriComponentsBuilder;
         verify(entandoPluginService, times(1)).deploy(argCapt.capture(), eq(true));
     }
 
-
     @Test
     void shouldDeployPluginOnFallbackNamespaceIfNoneIsFoundWhileCreatingLink() throws Exception {
         when(entandoLinkService.buildBetweenAppAndPlugin(any(EntandoApp.class), any(EntandoPlugin.class))).thenCallRealMethod();
@@ -300,7 +295,7 @@ import org.springframework.web.util.UriComponentsBuilder;
     }
 
     @Test
-     void shouldThrowAnErrorWhenCreatingLinkButAppDoesntExist() throws Exception {
+    void shouldThrowAnErrorWhenCreatingLinkButAppDoesntExist() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
                 .pathSegment(TEST_APP_NAME, "links")

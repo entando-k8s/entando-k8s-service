@@ -17,7 +17,6 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.Optional;
 import org.entando.kubernetes.EntandoKubernetesJavaApplication;
-import org.entando.kubernetes.config.TestJwtDecoderConfig;
 import org.entando.kubernetes.config.TestKubernetesConfig;
 import org.entando.kubernetes.config.TestSecurityConfiguration;
 import org.entando.kubernetes.model.debundle.EntandoDeBundle;
@@ -43,13 +42,12 @@ import org.springframework.web.util.UriComponentsBuilder;
         classes = {
                 EntandoKubernetesJavaApplication.class,
                 TestSecurityConfiguration.class,
-                TestKubernetesConfig.class,
-                TestJwtDecoderConfig.class
+                TestKubernetesConfig.class
         })
 @ActiveProfiles("test")
 @Tag("component")
 @WithMockUser
- class EntandoDeBundleControllerTest {
+class EntandoDeBundleControllerTest {
 
     private MockMvc mvc;
 
@@ -60,7 +58,7 @@ import org.springframework.web.util.UriComponentsBuilder;
     private WebApplicationContext context;
 
     @BeforeEach
-     void setup() {
+    void setup() {
         mvc = MockMvcBuilders
                 .webAppContextSetup(context)
                 .apply(springSecurity())
@@ -68,7 +66,7 @@ import org.springframework.web.util.UriComponentsBuilder;
     }
 
     @Test
-     void shouldReturnEmptyListIfNotBundleIsDeployed() throws Exception {
+    void shouldReturnEmptyListIfNotBundleIsDeployed() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoDeBundleTestHelper.BASE_BUNDLES_ENDPOINT)
                 .build().toUri();
@@ -82,7 +80,7 @@ import org.springframework.web.util.UriComponentsBuilder;
     }
 
     @Test
-     void shouldReturnAListWithOneBundle() throws Exception {
+    void shouldReturnAListWithOneBundle() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoDeBundleTestHelper.BASE_BUNDLES_ENDPOINT)
                 .build().toUri();
@@ -102,7 +100,7 @@ import org.springframework.web.util.UriComponentsBuilder;
     }
 
     @Test
-     void shouldReturnAListWithOneBundleWhenSearchingInANamespace() throws Exception {
+    void shouldReturnAListWithOneBundleWhenSearchingInANamespace() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoDeBundleTestHelper.BASE_BUNDLES_ENDPOINT)
                 .queryParam("namespace", TEST_BUNDLE_NAMESPACE)
@@ -140,7 +138,7 @@ import org.springframework.web.util.UriComponentsBuilder;
     //    }
 
     @Test
-     void shouldReturnAListWithOneBundleWhenFilteringByNameAndNamespace() throws Exception {
+    void shouldReturnAListWithOneBundleWhenFilteringByNameAndNamespace() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoDeBundleTestHelper.BASE_BUNDLES_ENDPOINT)
                 .pathSegment(TEST_BUNDLE_NAME)

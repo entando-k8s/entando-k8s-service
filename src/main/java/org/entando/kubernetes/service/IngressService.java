@@ -3,7 +3,6 @@ package org.entando.kubernetes.service;
 import io.fabric8.kubernetes.api.model.extensions.DoneableIngress;
 import io.fabric8.kubernetes.api.model.extensions.Ingress;
 import io.fabric8.kubernetes.api.model.extensions.IngressList;
-import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import java.util.List;
@@ -17,10 +16,10 @@ import org.springframework.stereotype.Service;
 @Service
 public class IngressService {
 
-    private KubernetesClient client;
+    private KubernetesUtils kubernetesUtils;
 
-    public IngressService(KubernetesClient client) {
-        this.client = client;
+    public IngressService(KubernetesUtils kubernetesUtils) {
+        this.kubernetesUtils = kubernetesUtils;
     }
 
     public Optional<Ingress> findByEntandoApp(EntandoApp app) {
@@ -42,7 +41,7 @@ public class IngressService {
     //CHECKSTYLE:OFF
     private MixedOperation<Ingress, IngressList, DoneableIngress, Resource<Ingress, DoneableIngress>> getIngressOperations() {
         //CHECKSTYLE:ON
-        return client.extensions().ingresses();
+        return kubernetesUtils.getCurrentKubernetesClient().extensions().ingresses();
     }
 
 }

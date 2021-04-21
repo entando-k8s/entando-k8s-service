@@ -8,8 +8,8 @@ import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.entando.kubernetes.exception.NotObservedNamespaceException;
-import org.entando.kubernetes.model.namespace.provider.FileBasedNamespaceProvider;
 import org.entando.kubernetes.service.KubernetesUtils;
+import org.entando.kubernetes.service.OperatorDeploymentType;
 
 @Slf4j
 @Getter
@@ -18,17 +18,11 @@ public class ObservedNamespaces {
     private final List<ObservedNamespace> list;
     private final KubernetesUtils kubernetesUtils;
     private final List<String> names;
+    private final boolean clusterScoped;
 
-    public ObservedNamespaces(List<String> list) {
-        this(new KubernetesUtils(new FileBasedNamespaceProvider()), list);
-    }
-
-    public ObservedNamespaces(KubernetesUtils kubernetesUtils) {
-        this(kubernetesUtils, new ArrayList<>());
-    }
-
-    public ObservedNamespaces(KubernetesUtils kubernetesUtils, List<String> list) {
+    public ObservedNamespaces(KubernetesUtils kubernetesUtils, List<String> list, OperatorDeploymentType operatorDeploymentType) {
         this.kubernetesUtils = kubernetesUtils;
+        clusterScoped = operatorDeploymentType.isClusterScoped(list);
         Set<String> finalList = new HashSet<>();
         if (list != null) {
             finalList.addAll(list);
@@ -46,7 +40,7 @@ public class ObservedNamespaces {
     }
 
     public boolean isObservedNamespace(String namespace) {
-        return getList().stream().anyMatch(ns -> ns.getName().equals(namespace));
+        return isClusterScoped() || getList().stream().anyMatch(ns -> ns.getName().equals(namespace));
     }
 
     public void failIfNotObserved(String namespace) {
@@ -54,5 +48,8 @@ public class ObservedNamespaces {
             throw new NotObservedNamespaceException(namespace);
         }
     }
-    
+
+    public boolean isClusterScoped() {
+        return this.clusterScoped;
+    }
 }

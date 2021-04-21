@@ -28,7 +28,6 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.entando.kubernetes.EntandoKubernetesJavaApplication;
-import org.entando.kubernetes.config.TestJwtDecoderConfig;
 import org.entando.kubernetes.config.TestKubernetesConfig;
 import org.entando.kubernetes.config.TestSecurityConfiguration;
 import org.entando.kubernetes.model.EntandoDeploymentPhase;
@@ -71,13 +70,12 @@ import org.springframework.web.context.WebApplicationContext;
         classes = {
                 EntandoKubernetesJavaApplication.class,
                 TestSecurityConfiguration.class,
-                TestKubernetesConfig.class,
-                TestJwtDecoderConfig.class
+                TestKubernetesConfig.class
         })
 @ActiveProfiles("test")
 @Tag("component")
 @WithMockUser
- class EntandoLinksControllerTest {
+class EntandoLinksControllerTest {
 
     private MockMvc mvc;
 
@@ -94,7 +92,7 @@ import org.springframework.web.context.WebApplicationContext;
     private WebApplicationContext context;
 
     @BeforeEach
-     void setup() {
+    void setup() {
         mvc = MockMvcBuilders
                 .webAppContextSetup(context)
                 .apply(springSecurity())
@@ -102,7 +100,7 @@ import org.springframework.web.context.WebApplicationContext;
     }
 
     @Test
-     void shouldReturnListOfLinks() throws Exception {
+    void shouldReturnListOfLinks() throws Exception {
         when(entandoLinkService.getAll()).thenReturn(Collections.singletonList(EntandoLinkTestHelper.getTestLink()));
 
         MvcResult result = mvc.perform(get("/app-plugin-links").accept(MediaTypes.HAL_JSON_VALUE))
@@ -128,7 +126,7 @@ import org.springframework.web.context.WebApplicationContext;
     }
 
     @Test
-     void shouldReturnLinksFromNamespace() throws Exception {
+    void shouldReturnLinksFromNamespace() throws Exception {
         EntandoAppPluginLink el = EntandoLinkTestHelper.getTestLink();
         when(entandoLinkService.getAllInNamespace(el.getMetadata().getNamespace())).thenReturn(Collections.singletonList(el));
 
@@ -139,7 +137,7 @@ import org.springframework.web.context.WebApplicationContext;
     }
 
     @Test
-     void shouldReturnLinkByName() throws Exception {
+    void shouldReturnLinkByName() throws Exception {
         EntandoAppPluginLink el = EntandoLinkTestHelper.getTestLink();
         String name = el.getMetadata().getName();
         when(entandoLinkService.findByName(name)).thenReturn(Optional.of(el));
@@ -162,7 +160,7 @@ import org.springframework.web.context.WebApplicationContext;
     }
 
     @Test
-     void shouldReturnLinksByPluginName() throws Exception {
+    void shouldReturnLinksByPluginName() throws Exception {
         EntandoPlugin tempPlugin = EntandoPluginTestHelper.getTestEntandoPlugin();
         EntandoAppPluginLink tempLink = EntandoLinkTestHelper.getTestLink();
         String linkName = tempLink.getMetadata().getName();
@@ -187,7 +185,7 @@ import org.springframework.web.context.WebApplicationContext;
     }
 
     @Test
-     void shouldReturnLinksByAppName() throws Exception {
+    void shouldReturnLinksByAppName() throws Exception {
         EntandoAppPluginLink el = EntandoLinkTestHelper.getTestLink();
         EntandoApp ea = EntandoAppTestHelper.getTestEntandoApp();
         String appName = ea.getMetadata().getName();
@@ -216,7 +214,7 @@ import org.springframework.web.context.WebApplicationContext;
     }
 
     @Test
-     void shouldCreatedLinkBetweenAppAndPlugin() throws Exception {
+    void shouldCreatedLinkBetweenAppAndPlugin() throws Exception {
         EntandoApp ea = EntandoAppTestHelper.getTestEntandoApp();
         EntandoPlugin ep = EntandoPluginTestHelper.getTestEntandoPlugin();
         EntandoAppPluginLink el = EntandoLinkTestHelper.getTestLink();
@@ -238,7 +236,7 @@ import org.springframework.web.context.WebApplicationContext;
     }
 
     @Test
-     void shouldDeleteLinkAndFailingPlugin() throws Exception {
+    void shouldDeleteLinkAndFailingPlugin() throws Exception {
         EntandoAppPluginLink el = EntandoLinkTestHelper.getTestLink();
         EntandoPlugin plugin = EntandoPluginTestHelper.getTestEntandoPlugin();
         plugin.getStatus().updateDeploymentPhase(EntandoDeploymentPhase.FAILED, 1L);
@@ -266,7 +264,7 @@ import org.springframework.web.context.WebApplicationContext;
     }
 
     @Test
-     void shouldDeleteLinkButKeepWorkingPlugin() throws Exception {
+    void shouldDeleteLinkButKeepWorkingPlugin() throws Exception {
         EntandoAppPluginLink el = EntandoLinkTestHelper.getTestLink();
         EntandoPlugin plugin = EntandoPluginTestHelper.getTestEntandoPlugin();
         plugin.getStatus().updateDeploymentPhase(EntandoDeploymentPhase.SUCCESSFUL, 1L);
@@ -283,7 +281,7 @@ import org.springframework.web.context.WebApplicationContext;
     }
 
     @Test
-     void shouldReturnNotFound() throws Exception {
+    void shouldReturnNotFound() throws Exception {
         when(entandoLinkService.findByName(anyString())).thenReturn(Optional.empty());
 
         mvc.perform(get("/app-plugin-links/any-name")
