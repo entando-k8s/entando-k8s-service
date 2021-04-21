@@ -7,12 +7,14 @@ import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
+@SuppressWarnings("java:S2160")
+//because this class should never be checked for equality. It is conceptually a singleton
 public class KubernetesClientCache extends ConcurrentHashMap<String, KubernetesClient> {
 
-    final Timer timer = new Timer();
-    final ConcurrentHashMap<String, Instant> creationTimes = new ConcurrentHashMap<>();
+    final transient Timer timer = new Timer();
+    final transient ConcurrentHashMap<String, Instant> creationTimes = new ConcurrentHashMap<>();
     private final int maximumAgeSeconds;
-    private Function<String, KubernetesClient> kubernetesClientSupplier;
+    private transient Function<String, KubernetesClient> kubernetesClientSupplier;
 
     //For tests
     public KubernetesClientCache(Function<String, KubernetesClient> kubernetesClientSupplier, int maximumAgeSeconds, long scanInterval) {
@@ -43,13 +45,7 @@ public class KubernetesClientCache extends ConcurrentHashMap<String, KubernetesC
     @Override
     public KubernetesClient get(Object tokenAsObject) {
         final String token = (String) tokenAsObject;
-        KubernetesClient kubernetesClient = super.get(token);
-        if (kubernetesClient == null) {
-            kubernetesClient = kubernetesClientSupplier.apply(token);
-            creationTimes.put(token, Instant.now());
-            super.put(token, kubernetesClient);
-        }
-        return kubernetesClient;
+        return super.computeIfAbsent(token, this.kubernetesClientSupplier);
     }
 
     private void removeOldEntries() {

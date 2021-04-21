@@ -11,6 +11,8 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 
 @Tag("unit")
+@SuppressWarnings("java:S5786")
+//because we are using this class from other tests.
 public class KubernetesUtilsTest {
 
     public static final String NON_K8S_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
@@ -29,17 +31,7 @@ public class KubernetesUtilsTest {
     @Test
     void shouldHavePredefinedRoles() {
         final JwtDecoder jwtDecoder = new KubernetesConfiguration().k8sUtils();
-        final Jwt decode = jwtDecoder
-                .decode("eyJhbGciOiJSUzI1NiIsImtpZCI6InloSmE0VVFLcDhkRkx4cXduT284ME5OUnFOX1VYdnZncFdaMDdDb2VfdmcifQ"
-                        +
-                        ".eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJxZS1"
-                        + "0d28iLCJrdWJlcm5ldGVzLmlvL3NlcnZpY2VhY2NvdW50L3NlY3JldC5uYW1lIjoidGVzdC1hY2NvdW50LXRva2VuLTJubnY3Iiwia3ViZ"
-                        + "XJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9zZXJ2aWNlLWFjY291bnQubmFtZSI6InRlc3QtYWNjb3VudCIsImt1YmVybmV0ZXMuaW8vc2V"
-                        + "ydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6ImQ5MzJjYmFhLWI0NGQtNDE5YS04ZGExLTA3ZmY2MDQ5NjQ5OCIsInN1YiI6I"
-                        + "nN5c3RlbTpzZXJ2aWNlYWNjb3VudDpxZS10d286dGVzdC1hY2NvdW50In0.Ds0JFtX7VcAteczE9YHxIxsqYfN210UcqR_RnXs-1aTlDtA"
-                        + "sZ5SJlrW9GuYUb6pDkR6f78NviUYCx6V4oUZbZUCYMfEo7t02h-x3k0GB2Ed4Sa1cbhh9ilyKpA4H2AYHx-p-hqeb4CQnJrhCrV6cm3vxg"
-                        + "NsQZifAAcSkbVo8DyiVY14cf4JhfaXwRCzSyO8Og-rXNVnLQw8ZvIH3OrIIaX7DGKIR-6eWWO8rgpzCW-f61jbZG-GcFa6nfT68FknqgRf"
-                        + "SIFkBgpl7rZZ6iO0vyr3SR-atZnbf3azbpM2OMTHmoCQWUihxNduVvfTkLEviEiDpSLXsMzbuuLOpAdaYgg");
+        final Jwt decode = jwtDecoder.decode(K8S_TOKEN);
         List<GrantedAuthority> grantedAuthorities = decode.getClaim("roles");
         assertThat(grantedAuthorities.get(0).getAuthority()).isEqualTo("ROLE_ADMIN");
     }

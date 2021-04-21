@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 @Tag("unit")
-public class OperatorDeploymentTypeTest {
+class OperatorDeploymentTypeTest {
 
     @Test
     void shouldSupportOlmAndHelm() {

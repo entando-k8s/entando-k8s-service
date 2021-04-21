@@ -19,6 +19,9 @@ public class KubernetesUtils implements JwtDecoder {
 
     public static final String ROLES = "roles";
     private final KubernetesClientCache kubernetesClients;
+    @SuppressWarnings("java:S5164")
+    //Because a single string per active thread cannot cause a memory leak.
+    //This is exactly why we do not cache the KubernetesClient instance here.
     private final ThreadLocal<String> currentToken = new ThreadLocal<>();
 
     public KubernetesUtils() {
