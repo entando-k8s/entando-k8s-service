@@ -8,7 +8,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import org.entando.kubernetes.EntandoKubernetesJavaApplication;
-import org.entando.kubernetes.config.TestJwtDecoderConfig;
 import org.entando.kubernetes.config.TestKubernetesConfig;
 import org.entando.kubernetes.config.TestSecurityConfiguration;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,8 +28,7 @@ import org.springframework.web.context.WebApplicationContext;
         classes = {
                 EntandoKubernetesJavaApplication.class,
                 TestSecurityConfiguration.class,
-                TestKubernetesConfig.class,
-                TestJwtDecoderConfig.class
+                TestKubernetesConfig.class
         })
 @ActiveProfiles("test")
 @Tag("component")

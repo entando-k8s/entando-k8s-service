@@ -12,11 +12,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.net.URI;
 import java.util.Collections;
 import org.entando.kubernetes.EntandoKubernetesJavaApplication;
-import org.entando.kubernetes.config.TestJwtDecoderConfig;
 import org.entando.kubernetes.config.TestKubernetesConfig;
 import org.entando.kubernetes.config.TestSecurityConfiguration;
 import org.entando.kubernetes.model.namespace.ObservedNamespaces;
 import org.entando.kubernetes.service.KubernetesUtils;
+import org.entando.kubernetes.service.OperatorDeploymentType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -34,13 +34,12 @@ import org.springframework.web.context.WebApplicationContext;
         classes = {
                 EntandoKubernetesJavaApplication.class,
                 TestSecurityConfiguration.class,
-                TestKubernetesConfig.class,
-                TestJwtDecoderConfig.class
+                TestKubernetesConfig.class
         })
 @ActiveProfiles("test")
 @Tag("component")
 @WithMockUser
- class ObservedNamespaceControllerTest {
+class ObservedNamespaceControllerTest {
 
     private MockMvc mvc;
 
@@ -50,8 +49,9 @@ import org.springframework.web.context.WebApplicationContext;
     private WebApplicationContext context;
 
     @BeforeEach
-     void setup() {
-        observedNamespaces = new ObservedNamespaces(mock(KubernetesUtils.class), Collections.singletonList(TEST_PLUGIN_NAMESPACE));
+    void setup() {
+        observedNamespaces = new ObservedNamespaces(mock(KubernetesUtils.class), Collections.singletonList(TEST_PLUGIN_NAMESPACE),
+                OperatorDeploymentType.HELM);
         mvc = MockMvcBuilders
                 .webAppContextSetup(context)
                 .apply(springSecurity())
@@ -59,7 +59,7 @@ import org.springframework.web.context.WebApplicationContext;
     }
 
     @Test
-     void shouldReturnOkResponseAndLinks() throws Exception {
+    void shouldReturnOkResponseAndLinks() throws Exception {
         mvc.perform(get(URI.create("/namespaces")).accept(HAL_JSON_VALUE))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$._embedded.observedNamespaces").exists())
@@ -70,13 +70,13 @@ import org.springframework.web.context.WebApplicationContext;
     }
 
     @Test
-     void shouldThrowAnExceptionWhenAskingForNotObservedNamespace() throws Exception {
+    void shouldThrowAnExceptionWhenAskingForNotObservedNamespace() throws Exception {
         mvc.perform(get(URI.create("/namespaces/not-checked")).accept(HAL_JSON_VALUE))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-     void shouldReturnSelfLink() throws Exception {
+    void shouldReturnSelfLink() throws Exception {
         mvc.perform(get("/namespaces/{name}", TEST_PLUGIN_NAMESPACE).accept(HAL_JSON_VALUE))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value(TEST_PLUGIN_NAMESPACE))
@@ -84,7 +84,7 @@ import org.springframework.web.context.WebApplicationContext;
     }
 
     @Test
-     void shouldReturnLinksToEntandoCustomResourceInNamespace() throws Exception {
+    void shouldReturnLinksToEntandoCustomResourceInNamespace() throws Exception {
         mvc.perform(get(URI.create("/namespaces/" + TEST_PLUGIN_NAMESPACE)).accept(HAL_JSON_VALUE))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$._links.plugins-in-namespace.href").value(endsWith("/plugins?namespace=" + TEST_PLUGIN_NAMESPACE)))
@@ -96,7 +96,7 @@ import org.springframework.web.context.WebApplicationContext;
     }
 
     @Test
-     void shouldThrowExceptionForInvalidNamespaceName() throws Exception {
+    void shouldThrowExceptionForInvalidNamespaceName() throws Exception {
 
         String invalidNamespace = "Access-Control-Allow-Origin: *";
         mvc.perform(get("/namespaces/{name}", invalidNamespace).accept(HAL_JSON_VALUE))

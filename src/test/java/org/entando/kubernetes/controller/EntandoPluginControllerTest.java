@@ -30,7 +30,6 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import org.entando.kubernetes.EntandoKubernetesJavaApplication;
-import org.entando.kubernetes.config.TestJwtDecoderConfig;
 import org.entando.kubernetes.config.TestKubernetesConfig;
 import org.entando.kubernetes.config.TestSecurityConfiguration;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
@@ -67,13 +66,12 @@ import org.springframework.web.util.UriComponentsBuilder;
         classes = {
                 EntandoKubernetesJavaApplication.class,
                 TestSecurityConfiguration.class,
-                TestKubernetesConfig.class,
-                TestJwtDecoderConfig.class
+                TestKubernetesConfig.class
         })
 @ActiveProfiles("test")
 @Tag("component")
 @WithMockUser
- class EntandoPluginControllerTest {
+class EntandoPluginControllerTest {
 
     private MockMvc mvc;
 
@@ -90,7 +88,7 @@ import org.springframework.web.util.UriComponentsBuilder;
     private WebApplicationContext context;
 
     @BeforeEach
-     void setup() {
+    void setup() {
         mvc = MockMvcBuilders
                 .webAppContextSetup(context)
                 .apply(springSecurity())
@@ -98,7 +96,7 @@ import org.springframework.web.util.UriComponentsBuilder;
     }
 
     @Test
-     void shouldReturnEmptyListIfNotPluginIsDeployed() throws Exception {
+    void shouldReturnEmptyListIfNotPluginIsDeployed() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(BASE_PLUGIN_ENDPOINT)
                 .build().toUri();
@@ -111,7 +109,7 @@ import org.springframework.web.util.UriComponentsBuilder;
     }
 
     @Test
-     void shouldReturnAListWithOnePlugin() throws Exception {
+    void shouldReturnAListWithOnePlugin() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(BASE_PLUGIN_ENDPOINT)
                 .queryParam("namespace", TEST_PLUGIN_NAMESPACE)
@@ -130,7 +128,7 @@ import org.springframework.web.util.UriComponentsBuilder;
     }
 
     @Test
-     void shouldReturnCollectionLinks() throws Exception {
+    void shouldReturnCollectionLinks() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(BASE_PLUGIN_ENDPOINT)
                 .queryParam("namespace", TEST_PLUGIN_NAMESPACE)
@@ -159,7 +157,7 @@ import org.springframework.web.util.UriComponentsBuilder;
     }
 
     @Test
-     void shouldReturnPluginByName() throws Exception {
+    void shouldReturnPluginByName() throws Exception {
         EntandoPlugin tempPlugin = EntandoPluginTestHelper.getTestEntandoPlugin();
         String pluginName = tempPlugin.getMetadata().getName();
         URI uri = UriComponentsBuilder
@@ -176,7 +174,7 @@ import org.springframework.web.util.UriComponentsBuilder;
     }
 
     @Test
-     void shouldGetPluginIngress() throws Exception {
+    void shouldGetPluginIngress() throws Exception {
         EntandoPlugin tempPlugin = EntandoPluginTestHelper.getTestEntandoPlugin();
         String pluginName = tempPlugin.getMetadata().getName();
         URI uri = UriComponentsBuilder
@@ -197,7 +195,7 @@ import org.springframework.web.util.UriComponentsBuilder;
     }
 
     @Test
-     void shouldReturn404IfIngressNotFound() throws Exception {
+    void shouldReturn404IfIngressNotFound() throws Exception {
         EntandoPlugin tempPlugin = EntandoPluginTestHelper.getTestEntandoPlugin();
         String pluginName = tempPlugin.getMetadata().getName();
         URI uri = UriComponentsBuilder
@@ -214,7 +212,7 @@ import org.springframework.web.util.UriComponentsBuilder;
     }
 
     @Test
-     void shouldReturn404IfPluginNotFound() throws Exception {
+    void shouldReturn404IfPluginNotFound() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(BASE_PLUGIN_ENDPOINT)
                 .pathSegment(TEST_PLUGIN_NAMESPACE, TEST_PLUGIN_NAME)
@@ -226,7 +224,7 @@ import org.springframework.web.util.UriComponentsBuilder;
     }
 
     @Test
-     void shouldThrowBadRequestExceptionForAlreadyDeployedPlugin() throws Exception {
+    void shouldThrowBadRequestExceptionForAlreadyDeployedPlugin() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(BASE_PLUGIN_ENDPOINT)
                 .build().toUri();
@@ -244,7 +242,7 @@ import org.springframework.web.util.UriComponentsBuilder;
     }
 
     @Test
-     void shouldReturnCreatedForNewlyDeployedPlugin() throws Exception {
+    void shouldReturnCreatedForNewlyDeployedPlugin() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(BASE_PLUGIN_ENDPOINT)
                 .build().toUri();
@@ -280,7 +278,7 @@ import org.springframework.web.util.UriComponentsBuilder;
     }
 
     @Test
-     void shouldReturnAcceptedWhenDeletingAPlugin() throws Exception {
+    void shouldReturnAcceptedWhenDeletingAPlugin() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(BASE_PLUGIN_ENDPOINT)
                 .pathSegment(TEST_PLUGIN_NAME)
@@ -297,6 +295,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
     /**
      * forces the validation to expect the same response for a plugin create action and a plugin createOrReplace action.
+     *
      * @param resultActions the ResultActions on which assert
      */
     private void assertOnDeployedPlugin(ResultActions resultActions) throws Exception {

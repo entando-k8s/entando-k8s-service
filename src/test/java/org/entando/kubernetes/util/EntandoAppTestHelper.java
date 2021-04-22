@@ -24,8 +24,8 @@ public class EntandoAppTestHelper {
 
         KubernetesDeserializer.registerCustomKind(ea.getApiVersion(), ea.getKind(), EntandoApp.class);
 
-        return ((MixedOperation<EntandoApp, EntandoAppList, DoneableEntandoApp, Resource<EntandoApp, DoneableEntandoApp>>) EntandoAppOperationFactory
-                .produceAllEntandoApps(client))
+        return EntandoAppOperationFactory
+                .produceAllEntandoApps(client)
                 .inNamespace(ea.getMetadata().getNamespace()).createOrReplace(ea);
     }
 

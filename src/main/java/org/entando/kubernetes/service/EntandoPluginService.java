@@ -2,7 +2,6 @@ package org.entando.kubernetes.service;
 
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
-import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.zjsonpatch.internal.guava.Strings;
@@ -26,9 +25,14 @@ public class EntandoPluginService extends EntandoKubernetesResourceCollector<Ent
     public static final boolean CREATE = false;
     public static final boolean CREATE_OR_REPLACE = true;
 
-    public EntandoPluginService(KubernetesClient client,
+    public EntandoPluginService(KubernetesUtils kubernetesUtils,
             ObservedNamespaces observedNamespaces) {
-        super(client, observedNamespaces);
+        super(kubernetesUtils, observedNamespaces);
+    }
+
+    @Override
+    protected List<EntandoPlugin> getInAnyNamespace() {
+        return getPluginOperations().inAnyNamespace().list().getItems();
     }
 
     @Override
@@ -97,7 +101,7 @@ public class EntandoPluginService extends EntandoKubernetesResourceCollector<Ent
     //CHECKSTYLE:OFF
     private MixedOperation<EntandoPlugin, EntandoPluginList, DoneableEntandoPlugin, Resource<EntandoPlugin, DoneableEntandoPlugin>> getPluginOperations() {
         //CHECKSTYLE:ON
-        return EntandoPluginOperationFactory.produceAllEntandoPlugins(client);
+        return EntandoPluginOperationFactory.produceAllEntandoPlugins(kubernetesUtils.getCurrentKubernetesClient());
     }
 
 }

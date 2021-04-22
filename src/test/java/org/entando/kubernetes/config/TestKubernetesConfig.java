@@ -1,13 +1,9 @@
 package org.entando.kubernetes.config;
 
-import io.fabric8.kubernetes.client.KubernetesClient;
 import java.util.List;
 import org.entando.kubernetes.model.namespace.ObservedNamespaces;
-import org.entando.kubernetes.model.namespace.provider.NamespaceProvider;
-import org.entando.kubernetes.model.namespace.provider.StaticNamespaceProvider;
 import org.entando.kubernetes.service.KubernetesUtils;
-import org.entando.kubernetes.util.MockObservedNamespaces;
-import org.mockito.Mockito;
+import org.entando.kubernetes.service.OperatorDeploymentType;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
@@ -19,24 +15,19 @@ public class TestKubernetesConfig {
     public List<String> namespacesToObserve;
 
     @Bean
-    public NamespaceProvider namespaceProvider() {
-        return new StaticNamespaceProvider("test-namespace");
-    }
-
-    @Bean
-    public KubernetesClient kubernetesClient() {
-        return Mockito.mock(KubernetesClient.class);
-    }
-
-    @Bean
     public ObservedNamespaces observedNamespaces() {
-        return new MockObservedNamespaces(namespacesToObserve);
+        return new ObservedNamespaces(k8sUtils(), namespacesToObserve, OperatorDeploymentType.HELM);
     }
 
     @Bean
     public KubernetesUtils k8sUtils() {
-        return new KubernetesUtils(namespaceProvider());
+        final KubernetesUtils kubernetesUtils = new KubernetesUtils() {
+            @Override
+            public String getCurrentNamespace() {
+                return "test-namespace";
+            }
+        };
+        return kubernetesUtils;
     }
-
 
 }

@@ -5,6 +5,8 @@ pipelineConfig:
       value: eks
     - name: TEST_DEPLOYMENT
       value: "false"
+    - name: SKIP_OWASP
+      value: "true"
     - name: ENTANDO_DOCKER_IMAGE_INFO_CONFIGMAP
       value: "entando-docker-image-info-v6.3"
     - name: EXECUTABLE_TYPE
