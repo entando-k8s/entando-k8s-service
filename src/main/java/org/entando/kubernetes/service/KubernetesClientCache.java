@@ -27,7 +27,7 @@ public class KubernetesClientCache extends ConcurrentHashMap<String, KubernetesC
     public KubernetesClientCache(Function<String, KubernetesClient> kubernetesClientSupplier) {
         //Remove after 1 hour
         //Scan every minute
-        this(kubernetesClientSupplier, 3600, 60 * 100L);
+        this(kubernetesClientSupplier, 3600, 60 * 1000L);
     }
 
     private KubernetesClientCache(int maximumAgeSeconds, long scanInterval) {
