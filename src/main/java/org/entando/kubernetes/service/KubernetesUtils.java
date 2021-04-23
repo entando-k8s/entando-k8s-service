@@ -29,6 +29,7 @@ public class KubernetesUtils implements JwtDecoder {
     }
 
     public KubernetesUtils(Function<String, KubernetesClient> defaultKubernetesClientSupplier) {
+        this.currentToken.set(DefaultKubernetesClientBuilder.NOT_K8S_TOKEN);
         this.kubernetesClients = new KubernetesClientCache(defaultKubernetesClientSupplier);
     }
 
