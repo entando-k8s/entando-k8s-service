@@ -12,7 +12,7 @@ import java.util.function.Function;
 public class KubernetesClientCache extends ConcurrentHashMap<String, KubernetesClient> {
 
     final transient Timer timer = new Timer();
-    final transient ConcurrentHashMap<String, Instant> creationTimes = new ConcurrentHashMap<>();
+    final transient ConcurrentHashMap<String, Instant> accessTimes = new ConcurrentHashMap<>();
     private final int maximumAgeSeconds;
     private transient Function<String, KubernetesClient> kubernetesClientSupplier;
 
@@ -36,7 +36,7 @@ public class KubernetesClientCache extends ConcurrentHashMap<String, KubernetesC
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                removeOldEntries();
+                removeStaleEntries();
             }
 
         }, 0, scanInterval);
@@ -45,14 +45,15 @@ public class KubernetesClientCache extends ConcurrentHashMap<String, KubernetesC
     @Override
     public KubernetesClient get(Object tokenAsObject) {
         final String token = (String) tokenAsObject;
+        accessTimes.put(token,Instant.now());
         return super.computeIfAbsent(token, this.kubernetesClientSupplier);
     }
 
-    private void removeOldEntries() {
+    private void removeStaleEntries() {
         Instant cutoffInstant = Instant.now().minusSeconds(maximumAgeSeconds);
-        keySet().stream().filter(s -> creationTimes.get(s).isBefore(cutoffInstant)).forEach(token -> {
+        keySet().stream().filter(s -> accessTimes.get(s).isBefore(cutoffInstant)).forEach(token -> {
             //Synchronization risk here is minimal
-            creationTimes.remove(token);
+            accessTimes.remove(token);
             remove(token).close();
         });
     }
