@@ -59,7 +59,6 @@ public class KubernetesUtils implements JwtDecoder {
                 //TODO once component-manager has been migrated, throw an exception here. We only support K8S tokens
                 this.currentToken.set(DefaultKubernetesClientBuilder.NOT_K8S_TOKEN);
             }
-            Map<String, Object> headers = new LinkedHashMap<>(parsedJwt.getHeader().toJSONObject());
             Map<String, Object> claims = new LinkedHashMap<>(parsedJwt.getJWTClaimsSet().getClaims());
             claims.put(ROLES,
                     //For now, everyone is an admin
@@ -71,7 +70,7 @@ public class KubernetesUtils implements JwtDecoder {
             if (claims.get(JwtClaimNames.EXP) instanceof Date) {
                 claims.put(JwtClaimNames.EXP, ((Date) claims.get(JwtClaimNames.IAT)).toInstant());
             }
-            final JWTClaimsSet jwtClaimsSet = parsedJwt.getJWTClaimsSet();
+            Map<String, Object> headers = new LinkedHashMap<>(parsedJwt.getHeader().toJSONObject());
             return Jwt.withTokenValue(token)
                     .headers(h -> h.putAll(headers))
                     .claims(c -> {
