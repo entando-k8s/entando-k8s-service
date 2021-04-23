@@ -75,7 +75,7 @@ public class KubernetesUtils implements JwtDecoder {
             return Jwt.withTokenValue(token)
                     .headers(h -> h.putAll(headers))
                     .claims(c -> {
-                        c.putAll(jwtClaimsSet.getClaims());
+                        c.putAll(claims);
                     }).build();
         } catch (ParseException e) {
             throw new JwtException("Malformed payload", e);
