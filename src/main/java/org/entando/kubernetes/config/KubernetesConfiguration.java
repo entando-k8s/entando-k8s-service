@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import org.entando.kubernetes.model.namespace.ObservedNamespaces;
+import org.entando.kubernetes.service.DefaultKubernetesClientBuilder;
 import org.entando.kubernetes.service.KubernetesUtils;
 import org.entando.kubernetes.service.OperatorDeploymentType;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,7 +21,7 @@ public class KubernetesConfiguration {
 
     @Value("${entando.k8s.operator.deployment.type:helm}")
     public String deploymentType;
-    private final KubernetesUtils kubernetesUtils = new KubernetesUtils();
+    private final KubernetesUtils kubernetesUtils = new KubernetesUtils(new DefaultKubernetesClientBuilder());
 
     @Bean
     public KubernetesUtils k8sUtils() {
