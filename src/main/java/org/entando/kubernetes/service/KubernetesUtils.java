@@ -7,11 +7,15 @@ import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.text.ParseException;
 import java.util.Collections;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtClaimNames;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtException;
 
@@ -56,18 +60,30 @@ public class KubernetesUtils implements JwtDecoder {
                 this.currentToken.set(DefaultKubernetesClientBuilder.NOT_K8S_TOKEN);
             }
             Map<String, Object> headers = new LinkedHashMap<>(parsedJwt.getHeader().toJSONObject());
+            Map<String, Object> claims = new LinkedHashMap<>(parsedJwt.getJWTClaimsSet().getClaims());
+            claims.put(ROLES,
+                    //For now, everyone is an admin
+                    Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN")));
+            //TODO take this out once migration is complete
+            if (claims.get(JwtClaimNames.IAT) instanceof Date) {
+                claims.put(JwtClaimNames.IAT, ((Date) claims.get(JwtClaimNames.IAT)).toInstant());
+            }
+            if (claims.get(JwtClaimNames.EXP) instanceof Date) {
+                claims.put(JwtClaimNames.EXP, ((Date) claims.get(JwtClaimNames.IAT)).toInstant());
+            }
             final JWTClaimsSet jwtClaimsSet = parsedJwt.getJWTClaimsSet();
             return Jwt.withTokenValue(token)
                     .headers(h -> h.putAll(headers))
                     .claims(c -> {
-                        c.put(ROLES,
-                                //For now, everyone is an admin
-                                Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN")));
                         c.putAll(jwtClaimsSet.getClaims());
                     }).build();
-
         } catch (ParseException e) {
             throw new JwtException("Malformed payload", e);
+        } catch (Exception e) {
+            //TODO in future this can be taken out.
+            Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Could not process JWT token.", e);
+            Logger.getLogger(getClass().getName()).log(Level.SEVERE, "Token:" + token);
+            throw new IllegalArgumentException(e);
         }
     }
 }
