@@ -68,7 +68,7 @@ public class KubernetesUtils implements JwtDecoder {
                 claims.put(JwtClaimNames.IAT, ((Date) claims.get(JwtClaimNames.IAT)).toInstant());
             }
             if (claims.get(JwtClaimNames.EXP) instanceof Date) {
-                claims.put(JwtClaimNames.EXP, ((Date) claims.get(JwtClaimNames.IAT)).toInstant());
+                claims.put(JwtClaimNames.EXP, ((Date) claims.get(JwtClaimNames.EXP)).toInstant());
             }
             Map<String, Object> headers = new LinkedHashMap<>(parsedJwt.getHeader().toJSONObject());
             return Jwt.withTokenValue(token)
