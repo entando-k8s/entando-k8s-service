@@ -56,17 +56,13 @@ public class KubernetesUtils implements JwtDecoder {
                 //kubernetes.io/serviceaccount/service-account.name
                 //kubernetes.io/serviceaccount/service-account.uid
             } else {
-                //TODO once component-manager has been migrated, throw an exception here. We only support K8S tokens
-                this.currentToken.set(DefaultKubernetesClientBuilder.NOT_K8S_TOKEN);
+                throw new JwtException("Client credentials flow token detected but not supported anymore. Please use K8S tokens");
             }
             Map<String, Object> claims = new LinkedHashMap<>(parsedJwt.getJWTClaimsSet().getClaims());
             claims.put(ROLES,
                     //For now, everyone is an admin
                     Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN")));
-            //TODO take this out once migration is complete
-            if (claims.get(JwtClaimNames.IAT) instanceof Date) {
-                claims.put(JwtClaimNames.IAT, ((Date) claims.get(JwtClaimNames.IAT)).toInstant());
-            }
+            // TODO the K8S token hasn't exp anymore => delete check this too?
             if (claims.get(JwtClaimNames.EXP) instanceof Date) {
                 claims.put(JwtClaimNames.EXP, ((Date) claims.get(JwtClaimNames.EXP)).toInstant());
             }

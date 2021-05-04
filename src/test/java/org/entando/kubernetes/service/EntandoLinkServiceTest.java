@@ -53,7 +53,7 @@ class EntandoLinkServiceTest {
 
     private void initializeService(String... namespaces) {
         KubernetesUtils kubernetesUtils = new KubernetesUtils(token -> server.getClient());
-        kubernetesUtils.decode(KubernetesUtilsTest.NON_K8S_TOKEN);
+        kubernetesUtils.decode(KubernetesUtilsTest.K8S_TOKEN);
         ObservedNamespaces ons = new ObservedNamespaces(kubernetesUtils, Arrays.asList(namespaces), OperatorDeploymentType.HELM);
         linkService = new EntandoLinkService(kubernetesUtils, ons);
     }

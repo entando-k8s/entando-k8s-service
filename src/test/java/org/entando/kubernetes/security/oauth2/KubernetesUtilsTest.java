@@ -15,9 +15,6 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 //because we are using this class from other tests.
 public class KubernetesUtilsTest {
 
-    public static final String NON_K8S_TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
-            + ".eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWV9.dyt0CoTl4WoVjAHI9Q_CwSKhl6d_9rhM3NrXuJttkao";
-
     public static final String K8S_TOKEN = "eyJhbGciOiJSUzI1NiIsImtpZCI6InloSmE0VVFLcDhkRkx4cXduT284ME5OUnFOX1VYdnZncFdaMDdDb2VfdmcifQ"
             +
             ".eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJxZS10d28iLCJrdWJ"

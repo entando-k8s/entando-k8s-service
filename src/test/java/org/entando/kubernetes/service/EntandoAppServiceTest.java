@@ -42,7 +42,7 @@ class EntandoAppServiceTest {
 
     private void initalizeService(String... namespaces) {
         KubernetesUtils kubernetesUtils = new KubernetesUtils(token -> server.getClient().inNamespace(TEST_APP_NAMESPACE));
-        kubernetesUtils.decode(KubernetesUtilsTest.NON_K8S_TOKEN);
+        kubernetesUtils.decode(KubernetesUtilsTest.K8S_TOKEN);
         ObservedNamespaces ons = new ObservedNamespaces(kubernetesUtils, Arrays.asList(namespaces), OperatorDeploymentType.HELM);
         entandoAppService = new EntandoAppService(kubernetesUtils, ons);
     }
