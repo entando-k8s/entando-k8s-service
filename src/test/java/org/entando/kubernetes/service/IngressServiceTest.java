@@ -34,7 +34,7 @@ class IngressServiceTest {
     public void setUp() {
         client = server.getClient();
         final KubernetesUtils ku = new KubernetesUtils(token -> server.getClient());
-        ku.decode(KubernetesUtilsTest.NON_K8S_TOKEN);
+        ku.decode(KubernetesUtilsTest.K8S_TOKEN);
         ingressService = new IngressService(ku);
     }
 

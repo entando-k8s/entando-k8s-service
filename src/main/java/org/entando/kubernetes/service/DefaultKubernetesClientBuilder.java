@@ -12,6 +12,7 @@ public class DefaultKubernetesClientBuilder implements Function<String, Kubernet
 
     @Override
     public KubernetesClient apply(String token) {
+        // TODO should we remove this now that we don't support client credentials flow anymore?
         if (NOT_K8S_TOKEN.equals(token)) {
             return new DefaultKubernetesClient();
         } else {
