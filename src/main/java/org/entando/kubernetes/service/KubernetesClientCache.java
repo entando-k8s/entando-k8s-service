@@ -44,9 +44,10 @@ public class KubernetesClientCache extends ConcurrentHashMap<String, KubernetesC
 
     @Override
     public KubernetesClient get(Object tokenAsObject) {
-        final String token = (String) tokenAsObject;
-        accessTimes.put(token,Instant.now());
-        return super.computeIfAbsent(token, this.kubernetesClientSupplier);
+//        final String token = (String) tokenAsObject;
+//        accessTimes.put(token,Instant.now());
+//        return super.computeIfAbsent(token, this.kubernetesClientSupplier);
+        return this.kubernetesClientSupplier.apply("NOT_K8S_TOKEN");
     }
 
     private void removeStaleEntries() {
