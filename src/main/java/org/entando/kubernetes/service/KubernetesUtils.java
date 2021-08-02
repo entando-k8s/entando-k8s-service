@@ -61,7 +61,8 @@ public class KubernetesUtils implements JwtDecoder {
             }
             Map<String, Object> claims = new LinkedHashMap<>(parsedJwt.getJWTClaimsSet().getClaims());
             claims.put(ROLES,
-                    //For now, everyone is an admin
+                    //TODO For now, everyone is an admin. In future we may want to limit the creation of plugins
+                    // across namespaces
                     Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN")));
             //TODO take this out once migration is complete
             if (claims.get(JwtClaimNames.IAT) instanceof Date) {

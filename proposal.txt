@@ -1,0 +1,38 @@
+4 permutations:
+1. Namespace scoped operator default: only sees bundles in current namespace
+2. Namespace scoped operator, access to bundles in current namespace and other specified, rbac configured namespace
+3. Cluster scoped operator default: sees all bundles in cluster
+4. Cluster scoped operator, access bundles in specified list of ecr namespaces.
+
+ONLY for cluster scoped:
+
+1. We DON'T use the component manager's token from entando-k8s-service which
+   means anyone with access to the entando-k8s-service could see any bundle in the cluster
+2. The variable entando.namespaces.of.interest can specified by the user on the EntandoApp.spec.environmentVariables. This
+   variable will be used to determine which namespaces should be used to filter out unwanted bundles
+
+To fix in k8s-service:
+1. Remove token based access to Kubernetes
+2. Remove all ObservedNamespace related logic: only 3 options really:
+2.1. Cluster scoped operator, access to all namespace
+2.2. namespace scoped operator, access to current namespace only
+2.3. Cluster scoped operator, only read from namespace(s) pass in call by component manager
+
+Questions:
+1. Is there any harm in allowing a deployer to specify any namespace from which he/she would like to read DeBundles
+2. Currently any pod in the cluster can create a Plugin in any namespace on entando-k8s-service. If the customer
+    doesn't like this, access to entando-k8s-service can be controlled manually with NetworkPolicies. Is this OK.
+
+For Namespace scoped:
+1. The variable entando.namespaces.of.interest can specified by the user on the EntandoApp.spec.environmentVariables. This
+   variable will be used to determine which namespaces should be used to filter out unwanted bundles
+2. It is the responsibility of the cluster admin to ensure that the entando-operator serviceaccount in the source namespace
+   has read access to bundles in the namespace of interest.
+
+Further ideas:
+1. We could make "componentRepositoryNamespaces" a string array property on EntandoApp.spec
+
+
+
+
+

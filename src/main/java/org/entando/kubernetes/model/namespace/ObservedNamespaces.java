@@ -35,6 +35,10 @@ public class ObservedNamespaces {
         log.info("ObservedNamespaces are {}", String.join(", ", this.names));
     }
 
+    public List<ObservedNamespace> getList() {
+        return list;
+    }
+
     public String getCurrentNamespace() {
         return kubernetesUtils.getCurrentNamespace();
     }

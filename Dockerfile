@@ -1,4 +1,4 @@
-FROM registry.access.redhat.com/ubi8/openjdk-8
+FROM registry.access.redhat.com/ubi8/openjdk-11
 ARG VERSION
 ### Required OpenShift Labels
 LABEL name="Entando Kubernetes Service" \
@@ -14,8 +14,6 @@ COPY target/generated-resources/licenses /licenses
 ENV PORT 8080
 ENV CLASSPATH /opt/lib
 EXPOSE 8080
-USER root
-RUN microdnf -y update
 USER jboss
 
 # copy pom.xml and wildcards to avoid this command failing if there's no target/lib directory
@@ -26,4 +24,4 @@ COPY pom.xml target/lib* /opt/lib/
 # we could do with a better way to know the name - or to always create an app.jar or something
 COPY target/entando-k8s-service.jar /opt/app.jar
 WORKDIR /opt
-CMD ["java", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseCGroupMemoryLimitForHeap", "-jar", "app.jar"]
+CMD ["java", "-XX:+UnlockExperimentalVMOptions", "-jar", "app.jar"]
