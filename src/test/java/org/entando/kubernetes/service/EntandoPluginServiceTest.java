@@ -21,13 +21,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import org.entando.kubernetes.exception.NotObservedNamespaceException;
 import org.entando.kubernetes.model.namespace.ObservedNamespaces;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.entando.kubernetes.security.oauth2.KubernetesUtilsTest;
 import org.entando.kubernetes.util.EntandoPluginTestHelper;
 import org.junit.Rule;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Tags;
@@ -115,15 +113,6 @@ class EntandoPluginServiceTest {
     }
 
     @Test
-    void shouldThrowExceptionWhenSearchingPluginInNotObservedNamespace() {
-        initializeService(TEST_PLUGIN_NAMESPACE);
-        EntandoPluginTestHelper.createTestEntandoPlugin(client);
-        Assertions.assertThrows(NotObservedNamespaceException.class, () -> {
-            entandoPluginService.findByNameAndNamespace(TEST_PLUGIN_NAME, "some-other-namespace");
-        });
-    }
-
-    @Test
     void shouldReturnEmptyOptionalForNotFoundPlugin() {
         initializeService(TEST_PLUGIN_NAMESPACE);
         assertFalse(entandoPluginService.findByName("some-plugin").isPresent());
@@ -185,16 +174,6 @@ class EntandoPluginServiceTest {
         List<EntandoPlugin> availablePlugins = EntandoPluginTestHelper.getEntandoPluginOperations(client)
                 .inNamespace(k8sUtils.getCurrentNamespace()).list().getItems();
         assertEquals(1, availablePlugins.size());
-    }
-
-    @Test
-    void shouldThrowAnExceptionWhenDeployingInNotObservedNamespace() {
-        initializeService(TEST_PLUGIN_NAMESPACE);
-        EntandoPlugin testPlugin = EntandoPluginTestHelper.getTestEntandoPlugin();
-        testPlugin.getMetadata().setNamespace("not-observed-namespace");
-        Assertions.assertThrows(NotObservedNamespaceException.class, () -> {
-            entandoPluginService.deploy(testPlugin);
-        });
     }
 
     @Test

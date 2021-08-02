@@ -7,7 +7,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.entando.kubernetes.exception.NotObservedNamespaceException;
 import org.entando.kubernetes.service.KubernetesUtils;
 import org.entando.kubernetes.service.OperatorDeploymentType;
 
