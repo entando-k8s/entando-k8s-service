@@ -50,13 +50,14 @@ public class KubernetesUtils implements JwtDecoder {
         try {
             final JWT parsedJwt = JWTParser.parse(token);
             if (parsedJwt.getJWTClaimsSet().getClaims().get("kubernetes.io/serviceaccount/namespace") != null) {
+                //Leaving this here for now. We may still want to use the consumer's K8S token, but for now
+                // none of our consumers are passing the K8S token
                 this.currentToken.set(token);
                 //Some possible fields to use:
                 //iss
                 //kubernetes.io/serviceaccount/service-account.name
                 //kubernetes.io/serviceaccount/service-account.uid
             } else {
-                //TODO once component-manager has been migrated, throw an exception here. We only support K8S tokens
                 this.currentToken.set(DefaultKubernetesClientBuilder.NOT_K8S_TOKEN);
             }
             Map<String, Object> claims = new LinkedHashMap<>(parsedJwt.getJWTClaimsSet().getClaims());
@@ -64,7 +65,6 @@ public class KubernetesUtils implements JwtDecoder {
                     //TODO For now, everyone is an admin. In future we may want to limit the creation of plugins
                     // across namespaces
                     Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN")));
-            //TODO take this out once migration is complete
             if (claims.get(JwtClaimNames.IAT) instanceof Date) {
                 claims.put(JwtClaimNames.IAT, ((Date) claims.get(JwtClaimNames.IAT)).toInstant());
             }

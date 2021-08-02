@@ -70,12 +70,6 @@ class ObservedNamespaceControllerTest {
     }
 
     @Test
-    void shouldThrowAnExceptionWhenAskingForNotObservedNamespace() throws Exception {
-        mvc.perform(get(URI.create("/namespaces/not-checked")).accept(HAL_JSON_VALUE))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
     void shouldReturnSelfLink() throws Exception {
         mvc.perform(get("/namespaces/{name}", TEST_PLUGIN_NAMESPACE).accept(HAL_JSON_VALUE))
                 .andExpect(status().isOk())

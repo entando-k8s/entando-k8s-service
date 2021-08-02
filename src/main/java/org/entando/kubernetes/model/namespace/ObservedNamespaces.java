@@ -43,16 +43,6 @@ public class ObservedNamespaces {
         return kubernetesUtils.getCurrentNamespace();
     }
 
-    public boolean isObservedNamespace(String namespace) {
-        return isClusterScoped() || getList().stream().anyMatch(ns -> ns.getName().equals(namespace));
-    }
-
-    public void failIfNotObserved(String namespace) {
-        if (namespace == null || !isObservedNamespace(namespace)) {
-            throw new NotObservedNamespaceException(namespace);
-        }
-    }
-
     public boolean isClusterScoped() {
         return this.clusterScoped;
     }

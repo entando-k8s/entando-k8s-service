@@ -24,7 +24,6 @@ public abstract class EntandoKubernetesResourceCollector<T extends HasMetadata> 
     }
 
     public List<T> getAllInNamespace(String namespace) {
-        observedNamespaces.failIfNotObserved(namespace);
         return getInNamespaceWithoutChecking(namespace);
     }
 

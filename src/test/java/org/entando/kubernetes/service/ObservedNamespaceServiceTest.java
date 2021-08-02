@@ -44,11 +44,5 @@ class ObservedNamespaceServiceTest {
 
     }
 
-    @Test
-    void shouldThrowAnExceptionIfNotObservedNamespace() {
-        Assertions.assertThrows(NotObservedNamespaceException.class, () -> {
-            observedNamespaces.failIfNotObserved(NOT_OBSERVED_NAMESPACE);
-        });
-    }
 
 }

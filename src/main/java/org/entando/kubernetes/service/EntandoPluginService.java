@@ -52,7 +52,6 @@ public class EntandoPluginService extends EntandoKubernetesResourceCollector<Ent
     }
 
     public void deletePluginInNamespace(String pluginId, String namespace) {
-        observedNamespaces.failIfNotObserved(namespace);
         log.info("Delete plugin {} from namespace {}", pluginId, namespace);
         EntandoPlugin pluginToRemove = new EntandoPlugin();
         ObjectMeta pluginMeta = new ObjectMetaBuilder().withName(pluginId).withNamespace(namespace).build();
@@ -71,7 +70,6 @@ public class EntandoPluginService extends EntandoKubernetesResourceCollector<Ent
                 plugin.getMetadata().getNamespace());
         EntandoPlugin cleanPlugin = pluginCleanUp(plugin);
         String namespace = cleanPlugin.getMetadata().getNamespace();
-        observedNamespaces.failIfNotObserved(namespace);
         if (createOrReplace) {
             return getPluginOperations().inNamespace(namespace).createOrReplace(cleanPlugin);
         } else {

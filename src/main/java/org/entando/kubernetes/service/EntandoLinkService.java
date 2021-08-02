@@ -47,7 +47,7 @@ public class EntandoLinkService extends EntandoKubernetesResourceCollector<Entan
     }
 
     public List<EntandoAppPluginLink> getAppLinks(EntandoApp app) {
-        observedNamespaces.failIfNotObserved(app.getMetadata().getNamespace());
+        app.getMetadata().getNamespace();
         return getLinksOperations().inNamespace(app.getMetadata().getNamespace()).list().getItems();
     }
 
@@ -59,7 +59,7 @@ public class EntandoLinkService extends EntandoKubernetesResourceCollector<Entan
     }
 
     public EntandoAppPluginLink deploy(EntandoAppPluginLink newLink) {
-        observedNamespaces.failIfNotObserved(newLink.getMetadata().getNamespace());
+        newLink.getMetadata().getNamespace();
         log.info("Link creation between EntandoApp {} on namespace {} and EntandoPlugin {} on namespace {}",
                 newLink.getSpec().getEntandoAppName(), newLink.getSpec().getEntandoAppNamespace(),
                 newLink.getSpec().getEntandoPluginName(), newLink.getSpec().getEntandoPluginNamespace());
@@ -67,7 +67,7 @@ public class EntandoLinkService extends EntandoKubernetesResourceCollector<Entan
     }
 
     public void delete(EntandoAppPluginLink l) {
-        observedNamespaces.failIfNotObserved(l.getMetadata().getNamespace());
+        l.getMetadata().getNamespace();
         log.info("Deleting link between EntandoApp {} on namespace {} and EntandoPlugin {} on namespace {}",
                 l.getSpec().getEntandoAppName(), l.getSpec().getEntandoAppNamespace(),
                 l.getSpec().getEntandoPluginName(), l.getSpec().getEntandoPluginNamespace());
