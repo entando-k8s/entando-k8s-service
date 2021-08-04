@@ -26,7 +26,7 @@ public class EntandoDeBundleResourceAssembler implements
         String bundleName = bundle.getMetadata().getName();
         String bundleNamespace = bundle.getMetadata().getNamespace();
         return Links.of(
-            linkTo(methodOn(EntandoDeBundleController.class).get(bundleName)).withSelfRel(),
+            linkTo(methodOn(EntandoDeBundleController.class).get(bundleName,bundleNamespace)).withSelfRel(),
             linkTo(methodOn(EntandoDeBundleController.class).list()).withRel("bundles"),
             linkTo(methodOn(EntandoDeBundleController.class).listInNamespace(bundleNamespace)).withRel("bundles-in-namespace"),
             linkTo(methodOn(ObservedNamespaceController.class).getByName(bundleNamespace)).withRel("namespace")
