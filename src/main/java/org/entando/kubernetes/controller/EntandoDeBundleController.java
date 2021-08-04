@@ -1,12 +1,12 @@
 package org.entando.kubernetes.controller;
 
+import static java.util.Optional.ofNullable;
 import static org.springframework.hateoas.MediaTypes.HAL_JSON_VALUE;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -52,31 +52,28 @@ public class EntandoDeBundleController {
     }
 
     @GetMapping(path = "/{name}", produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
-    public ResponseEntity<EntityModel<EntandoDeBundle>> get(@PathVariable String name) {
+    public ResponseEntity<EntityModel<EntandoDeBundle>> get(@PathVariable String name,
+            @RequestParam(value = "namespace", required = false) String namespace) {
         log.info("Getting entando-de-bundle with name {} in observed namespaces", name);
-        EntandoDeBundle bundle = getBundleOrFail(name);
+        EntandoDeBundle bundle = ofNullable(namespace)
+                .flatMap(ns -> bundleService.findByNameAndNamespace(name, ns))
+                .or(() -> bundleService.findByName(name))
+                .orElseThrow(() -> NotFoundExceptionFactory.entandoDeBundle(name));
         return ResponseEntity.ok(resourceAssembler.toModel(bundle));
     }
 
     private CollectionModel<EntityModel<EntandoDeBundle>> getCollectionWithLinks(List<EntandoDeBundle> deBundles) {
-        CollectionModel<EntityModel<EntandoDeBundle>> c = new CollectionModel<>(
+        return CollectionModel.of(
                 deBundles.stream()
                         .map(resourceAssembler::toModel)
-                        .collect(Collectors.toList()));
-        c.add(getCollectionLinks());
-        return c;
+                        .collect(Collectors.toList()), getCollectionLinks());
     }
 
     private Links getCollectionLinks() {
         return Links.of(
-                linkTo(methodOn(EntandoDeBundleController.class).get(null)).withRel("bundle"),
+                linkTo(methodOn(EntandoDeBundleController.class).get(null, null)).withRel("bundle"),
                 linkTo(methodOn(EntandoDeBundleController.class).listInNamespace(null)).withRel("bundles-in-namespace")
         );
-    }
-
-    private EntandoDeBundle getBundleOrFail(String name) {
-        Optional<EntandoDeBundle> ob = bundleService.findByName(name);
-        return ob.orElseThrow(() -> NotFoundExceptionFactory.entandoDeBundle(name));
     }
 
 }
