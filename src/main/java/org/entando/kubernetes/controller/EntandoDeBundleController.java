@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.entando.kubernetes.exception.NotFoundExceptionFactory;
 import org.entando.kubernetes.model.debundle.EntandoDeBundle;
 import org.entando.kubernetes.service.EntandoDeBundleService;
@@ -54,7 +55,13 @@ public class EntandoDeBundleController {
     @GetMapping(path = "/{name}", produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
     public ResponseEntity<EntityModel<EntandoDeBundle>> get(@PathVariable String name,
             @RequestParam(value = "namespace", required = false) String namespace) {
-        log.info("Getting entando-de-bundle with name {} in observed namespaces", name);
+
+        if (StringUtils.isEmpty(namespace)) {
+            log.info("Getting entando-de-bundle with name {} in observed namespaces", name);
+        } else {
+            log.info("Getting entando-de-bundle with name {} in namespace {}", name, namespace);
+        }
+
         EntandoDeBundle bundle = ofNullable(namespace)
                 .flatMap(ns -> bundleService.findByNameAndNamespace(name, ns))
                 .or(() -> bundleService.findByName(name))
