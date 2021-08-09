@@ -69,7 +69,9 @@ public class EntandoPluginService extends EntandoKubernetesResourceCollector<Ent
                 plugin.getMetadata().getName(),
                 plugin.getMetadata().getNamespace());
         EntandoPlugin cleanPlugin = pluginCleanUp(plugin);
-        String namespace = cleanPlugin.getMetadata().getNamespace();
+        String namespace = kubernetesUtils.getCurrentNamespace();
+        log.info("CREATING OR REPLACING PLUGIN {} IN NAMESPACE {}", plugin.getDefinitionName(), namespace);
+//        String namespace = cleanPlugin.getMetadata().getNamespace();
         if (createOrReplace) {
             return getPluginOperations().inNamespace(namespace).createOrReplace(cleanPlugin);
         } else {

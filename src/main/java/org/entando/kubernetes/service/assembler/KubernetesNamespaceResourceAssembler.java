@@ -26,7 +26,7 @@ public class KubernetesNamespaceResourceAssembler implements
         em.add(linkTo(methodOn(ObservedNamespaceController.class).getByName(ns)).withSelfRel());
         em.add(linkTo(methodOn(EntandoPluginController.class).listInNamespace(ns)).withRel("plugins-in-namespace"));
         em.add(linkTo(methodOn(EntandoAppController.class).listInNamespace(ns)).withRel("apps-in-namespace"));
-        em.add(linkTo(methodOn(EntandoDeBundleController.class).listInNamespace(ns)).withRel("bundles-in-namespace"));
+        em.add(linkTo(methodOn(EntandoDeBundleController.class).list(ns)).withRel("bundles-in-namespace"));
         em.add(linkTo(methodOn(EntandoLinksController.class).listInNamespace(ns)).withRel("app-plugin-links-in-namespace"));
         return em;
     }
