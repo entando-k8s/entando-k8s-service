@@ -94,7 +94,7 @@ class EntandoDeBundleControllerTest {
                 .andExpect(jsonPath("$._embedded.entandoDeBundles[0].metadata.name").value(TEST_BUNDLE_NAME))
                 .andExpect(jsonPath("$._embedded.entandoDeBundles[0].metadata.namespace").value(TEST_BUNDLE_NAMESPACE))
                 .andExpect(jsonPath("$._links", hasKey("bundle")))
-                .andExpect(jsonPath("$._links", hasKey("bundles-in-namespace")));
+                .andExpect(jsonPath("$._links", hasKey("bundles-list")));
 
         verify(entandoDeBundleService, times(1)).getAll();
     }

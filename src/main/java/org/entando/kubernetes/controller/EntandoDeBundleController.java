@@ -35,7 +35,7 @@ public class EntandoDeBundleController {
     private final EntandoDeBundleResourceAssembler resourceAssembler;
     private final EntandoDeBundleService bundleService;
 
-    @GetMapping(path = "", produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
+    @GetMapping(produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
     public ResponseEntity<CollectionModel<EntityModel<EntandoDeBundle>>> list(
             @RequestParam(value = "namespace", required = false) String namespace) {
 

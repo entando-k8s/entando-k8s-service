@@ -6,6 +6,7 @@ import static org.mockito.Mockito.mock;
 import static org.springframework.hateoas.MediaTypes.HAL_JSON_VALUE;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -61,6 +62,7 @@ class ObservedNamespaceControllerTest {
     @Test
     void shouldReturnOkResponseAndLinks() throws Exception {
         mvc.perform(get(URI.create("/namespaces")).accept(HAL_JSON_VALUE))
+                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$._embedded.observedNamespaces").exists())
                 .andExpect(jsonPath("$._links.plugins-in-namespace").exists())

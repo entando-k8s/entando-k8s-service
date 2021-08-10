@@ -25,6 +25,7 @@ import org.entando.kubernetes.model.namespace.ObservedNamespaces;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.entando.kubernetes.security.oauth2.KubernetesUtilsTest;
 import org.entando.kubernetes.util.EntandoPluginTestHelper;
+import org.entando.kubernetes.util.JWTTestUtils;
 import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -119,36 +120,38 @@ class EntandoPluginServiceTest {
     }
 
     @Test
-    void shouldCreateAPluginInProvidedNamespace() {
+    void shouldOverrideProvidedNamespaceAndCreateAPluginInTheNamespaceReadByJWT() {
         initializeService(TEST_PLUGIN_NAMESPACE);
+        JWTTestUtils.decodeFakeJWT(entandoPluginService.observedNamespaces.getKubernetesUtils());
         EntandoPlugin testPlugin = EntandoPluginTestHelper.getTestEntandoPlugin();
         entandoPluginService.deploy(testPlugin);
 
         List<EntandoPlugin> availablePlugins = EntandoPluginTestHelper.getEntandoPluginOperations(client)
-                .inNamespace(TEST_PLUGIN_NAMESPACE).list().getItems();
+                .inNamespace("fireone").list().getItems();
         assertOnEntandoPlugins(testPlugin, availablePlugins);
     }
 
     @Test
-    void shouldCreateOrReplaceAPluginInProvidedNamespace() {
+    void shouldOverrideProvidedNamespaceAndCreateOrReplaceAPluginInTheNamespaceReadByJWT() {
         initializeService(TEST_PLUGIN_NAMESPACE);
+        JWTTestUtils.decodeFakeJWT(entandoPluginService.observedNamespaces.getKubernetesUtils());
         EntandoPlugin testPlugin = EntandoPluginTestHelper.getTestEntandoPlugin();
         entandoPluginService.deploy(testPlugin, true);
 
         List<EntandoPlugin> availablePlugins = EntandoPluginTestHelper.getEntandoPluginOperations(client)
-                .inNamespace(TEST_PLUGIN_NAMESPACE).list().getItems();
+                .inNamespace("fireone").list().getItems();
         assertOnEntandoPlugins(testPlugin, availablePlugins);
     }
 
     @Test
-    void shouldCreateAPluginInAnotherObservedNamespace() {
+    void shouldCreateAPluginInTheNamespaceSuppliedByKubernetesClientIfJWTHasNotBeenSupplied() {
         initializeService(TEST_PLUGIN_NAMESPACE, "my-namespace");
         EntandoPlugin testPlugin = EntandoPluginTestHelper.getTestEntandoPlugin();
         testPlugin.getMetadata().setNamespace("my-namespace");
         entandoPluginService.deploy(testPlugin);
 
         List<EntandoPlugin> availablePlugins = EntandoPluginTestHelper.getEntandoPluginOperations(client)
-                .inNamespace("my-namespace").list().getItems();
+                .inNamespace("test").list().getItems();
         assertOnEntandoPlugins(testPlugin, availablePlugins);
     }
 
@@ -160,7 +163,7 @@ class EntandoPluginServiceTest {
         entandoPluginService.deploy(testPlugin, true);
 
         List<EntandoPlugin> availablePlugins = EntandoPluginTestHelper.getEntandoPluginOperations(client)
-                .inNamespace("my-namespace").list().getItems();
+                .inNamespace("test").list().getItems();
         assertOnEntandoPlugins(testPlugin, availablePlugins);
     }
 

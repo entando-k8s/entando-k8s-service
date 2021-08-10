@@ -28,7 +28,6 @@ public class EntandoDeBundleResourceAssembler implements
         return Links.of(
             linkTo(methodOn(EntandoDeBundleController.class).get(bundleName,bundleNamespace)).withSelfRel(),
             linkTo(methodOn(EntandoDeBundleController.class).list(bundleNamespace)).withRel("bundles"),
-//            linkTo(methodOn(EntandoDeBundleController.class).listInNamespace(bundleNamespace)).withRel("bundles-in-namespace"),
             linkTo(methodOn(ObservedNamespaceController.class).getByName(bundleNamespace)).withRel("namespace")
         );
     }
