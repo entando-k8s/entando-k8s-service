@@ -45,4 +45,13 @@ public abstract class EntandoKubernetesResourceCollector<T extends HasMetadata> 
                 .filter(r -> r.getMetadata().getName().equals(name))
                 .findFirst();
     }
+
+    public Optional<T> findByNameAndDefaultNamespace(String name) {
+
+        final String namespace = kubernetesUtils.getDefaultPluginNamespace();
+        return getAllInNamespace(namespace)
+                .stream()
+                .filter(r -> r.getMetadata().getName().equals(name))
+                .findFirst();
+    }
 }

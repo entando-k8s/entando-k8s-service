@@ -135,6 +135,8 @@ class EntandoLinkServiceTest {
         initializeService(TEST_APP_NAMESPACE);
         EntandoApp ea = EntandoAppTestHelper.getTestEntandoApp();
         EntandoPlugin ep = EntandoPluginTestHelper.getTestEntandoPlugin();
+        // overriding plugin namespace because it is read by the fake decoded JWT
+        ep.getMetadata().setNamespace("test");
 
         EntandoAppPluginLink generatedLink = linkService.buildBetweenAppAndPlugin(ea, ep);
         assertEquals(ea.getMetadata().getName(), generatedLink.getSpec().getEntandoAppName());

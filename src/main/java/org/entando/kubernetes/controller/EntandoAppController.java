@@ -108,8 +108,9 @@ public class EntandoAppController {
     }
 
     private EntandoApp getEntandoAppOrFail(String appName) {
+
         return appService
-                .findByName(appName)
+                .findByNameAndDefaultNamespace(appName)
                 .<ThrowableProblem>orElseThrow(() -> {
                     throw NotFoundExceptionFactory.entandoApp(appName);
                 });
