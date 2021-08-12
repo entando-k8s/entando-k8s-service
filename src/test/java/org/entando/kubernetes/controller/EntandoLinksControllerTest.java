@@ -178,7 +178,8 @@ class EntandoLinksControllerTest {
                 .andExpect(jsonPath(linkEntryJsonPath + ".spec.entandoPluginNamespace").value(TEST_PLUGIN_NAMESPACE))
                 .andExpect(jsonPath(linkHateoasLinksJsonPath).exists())
                 .andExpect(jsonPath(linkHateoasLinksJsonPath + ".app.href").value(endsWith("apps/my-app")))
-                .andExpect(jsonPath(linkHateoasLinksJsonPath + ".plugin.href").value(endsWith("plugins/my-plugin")))
+                .andExpect(jsonPath(linkHateoasLinksJsonPath + ".plugin.href").value(
+                        endsWith("plugins/" + TEST_PLUGIN_NAME + "?namespace=" + TEST_PLUGIN_NAMESPACE)))
                 .andExpect(jsonPath(linkHateoasLinksJsonPath + ".delete.href").value(endsWith("app-plugin-links/" + linkName)))
                 .andExpect(jsonPath(linkHateoasLinksJsonPath + ".namespace.href").value(endsWith("namespaces/" + linkNamespace)));
 
@@ -207,7 +208,8 @@ class EntandoLinksControllerTest {
                 )))
                 .andExpect(jsonPath(linkHateoasLinksJsonPath).exists())
                 .andExpect(jsonPath(linkHateoasLinksJsonPath + ".app.href").value(endsWith("apps/my-app")))
-                .andExpect(jsonPath(linkHateoasLinksJsonPath + ".plugin.href").value(endsWith("plugins/my-plugin")))
+                .andExpect(jsonPath(linkHateoasLinksJsonPath + ".plugin.href").value(
+                        endsWith("plugins/" + TEST_PLUGIN_NAME + "?namespace=" + TEST_PLUGIN_NAMESPACE)))
                 .andExpect(jsonPath(linkHateoasLinksJsonPath + ".delete.href")
                         .value(endsWith("app-plugin-links/" + el.getMetadata().getName())))
                 .andExpect(jsonPath(linkHateoasLinksJsonPath + ".namespace.href").value(endsWith("namespaces/" + linkNamespace)));

@@ -25,7 +25,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.api.model.extensions.Ingress;
 import java.net.URI;
-import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -302,7 +301,8 @@ class EntandoPluginControllerTest {
 
         resultActions.andExpect(status().isCreated())
                 .andExpect(jsonPath("$._links.self").exists())
-                .andExpect(jsonPath("$._links.self.href").value(endsWith(Paths.get("plugins", TEST_PLUGIN_NAME).toString())))
+                .andExpect(jsonPath("$._links.self.href").value(endsWith(
+                        "plugins/" + TEST_PLUGIN_NAME + "?namespace=" + TEST_PLUGIN_NAMESPACE)))
                 .andExpect(jsonPath("$._links.plugins").exists());
     }
 }

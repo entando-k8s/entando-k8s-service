@@ -258,7 +258,8 @@ class EntandoAppControllerTest {
                 )))
                 .andExpect(jsonPath("$._links").exists())
                 .andExpect(jsonPath("$._links.app.href").value(endsWith("apps/my-app")))
-                .andExpect(jsonPath("$._links.plugin.href").value(endsWith("plugins/my-plugin")));
+                .andExpect(jsonPath("$._links.plugin.href").value(
+                        endsWith("plugins/" + TEST_PLUGIN_NAME + "?namespace=" + TEST_PLUGIN_NAMESPACE)));
 
         // ensure entandoPluginService is asked to deploy the plugin
         ArgumentCaptor<EntandoPlugin> argCapt = ArgumentCaptor.forClass(EntandoPlugin.class);

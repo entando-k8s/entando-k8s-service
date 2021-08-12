@@ -31,11 +31,12 @@ public class EntandoAppPluginLinkResourceAssembler implements
     private Links getLinks(EntandoAppPluginLink link) {
         String pluginName = link.getSpec().getEntandoPluginName();
         String appName = link.getSpec().getEntandoAppName();
+        String appNamespace = link.getSpec().getEntandoAppNamespace().orElse(null);
         String linkName = link.getMetadata().getName();
         return Links.of(
             linkTo(methodOn(EntandoLinksController.class).get(linkName)).withSelfRel(),
             linkTo(methodOn(EntandoAppController.class).get(appName)).withRel("app"),
-            linkTo(methodOn(EntandoPluginController.class).get(pluginName)).withRel("plugin"),
+            linkTo(methodOn(EntandoPluginController.class).get(pluginName, appNamespace)).withRel("plugin"),
             linkTo(methodOn(EntandoLinksController.class).delete(linkName)).withRel("delete"),
             linkTo(methodOn(ObservedNamespaceController.class).getByName(link.getMetadata().getNamespace())).withRel("namespace")
         );
