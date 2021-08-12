@@ -187,7 +187,7 @@ class EntandoAppControllerTest {
 
         Ingress appIngress = IngressTestHelper.getIngressForEntandoResource(ea);
 
-        when(entandoAppService.findByNameAndDefaultNamespace(eq(entandoAppName))).thenReturn(Optional.of(ea));
+        when(entandoAppService.findByNameAndDefaultNamespace(entandoAppName)).thenReturn(Optional.of(ea));
         when(ingressService.findByEntandoApp(any(EntandoApp.class))).thenReturn(Optional.of(appIngress));
 
         mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
@@ -205,7 +205,7 @@ class EntandoAppControllerTest {
         EntandoApp ea = EntandoAppTestHelper.getTestEntandoApp();
         String entandoAppName = ea.getMetadata().getName();
 
-        when(entandoAppService.findByNameAndDefaultNamespace(eq(entandoAppName))).thenReturn(Optional.of(ea));
+        when(entandoAppService.findByNameAndDefaultNamespace(entandoAppName)).thenReturn(Optional.of(ea));
         when(ingressService.findByEntandoApp(any(EntandoApp.class))).thenReturn(Optional.empty());
 
         mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
