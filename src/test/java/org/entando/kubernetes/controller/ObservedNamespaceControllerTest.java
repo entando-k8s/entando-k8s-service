@@ -14,7 +14,6 @@ import java.net.URI;
 import java.util.Collections;
 import org.entando.kubernetes.EntandoKubernetesJavaApplication;
 import org.entando.kubernetes.config.TestKubernetesConfig;
-import org.entando.kubernetes.config.TestSecurityConfiguration;
 import org.entando.kubernetes.model.namespace.ObservedNamespaces;
 import org.entando.kubernetes.service.KubernetesUtils;
 import org.entando.kubernetes.service.OperatorDeploymentType;
@@ -34,7 +33,6 @@ import org.springframework.web.context.WebApplicationContext;
         webEnvironment = WebEnvironment.RANDOM_PORT,
         classes = {
                 EntandoKubernetesJavaApplication.class,
-                TestSecurityConfiguration.class,
                 TestKubernetesConfig.class
         })
 @ActiveProfiles("test")

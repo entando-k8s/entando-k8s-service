@@ -30,7 +30,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import org.entando.kubernetes.EntandoKubernetesJavaApplication;
 import org.entando.kubernetes.config.TestKubernetesConfig;
-import org.entando.kubernetes.config.TestSecurityConfiguration;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.entando.kubernetes.service.EntandoPluginService;
 import org.entando.kubernetes.service.IngressService;
@@ -64,7 +63,6 @@ import org.springframework.web.util.UriComponentsBuilder;
         webEnvironment = WebEnvironment.RANDOM_PORT,
         classes = {
                 EntandoKubernetesJavaApplication.class,
-                TestSecurityConfiguration.class,
                 TestKubernetesConfig.class
         })
 @ActiveProfiles("test")

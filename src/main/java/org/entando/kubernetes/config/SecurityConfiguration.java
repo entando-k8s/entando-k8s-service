@@ -61,8 +61,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 .and()
                 .oauth2ResourceServer()
                 .jwt()
-                .jwtAuthenticationConverter(jwtAuthorityExtractor)
-                .and();
+                .jwtAuthenticationConverter(jwtAuthorityExtractor);
         // @formatter:on
     }
 
