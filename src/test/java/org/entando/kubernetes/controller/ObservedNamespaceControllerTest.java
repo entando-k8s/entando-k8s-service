@@ -6,6 +6,7 @@ import static org.mockito.Mockito.mock;
 import static org.springframework.hateoas.MediaTypes.HAL_JSON_VALUE;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -13,7 +14,6 @@ import java.net.URI;
 import java.util.Collections;
 import org.entando.kubernetes.EntandoKubernetesJavaApplication;
 import org.entando.kubernetes.config.TestKubernetesConfig;
-import org.entando.kubernetes.config.TestSecurityConfiguration;
 import org.entando.kubernetes.model.namespace.ObservedNamespaces;
 import org.entando.kubernetes.service.KubernetesUtils;
 import org.entando.kubernetes.service.OperatorDeploymentType;
@@ -33,7 +33,6 @@ import org.springframework.web.context.WebApplicationContext;
         webEnvironment = WebEnvironment.RANDOM_PORT,
         classes = {
                 EntandoKubernetesJavaApplication.class,
-                TestSecurityConfiguration.class,
                 TestKubernetesConfig.class
         })
 @ActiveProfiles("test")
@@ -61,18 +60,13 @@ class ObservedNamespaceControllerTest {
     @Test
     void shouldReturnOkResponseAndLinks() throws Exception {
         mvc.perform(get(URI.create("/namespaces")).accept(HAL_JSON_VALUE))
+                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$._embedded.observedNamespaces").exists())
                 .andExpect(jsonPath("$._links.plugins-in-namespace").exists())
                 .andExpect(jsonPath("$._links.apps-in-namespace").exists())
                 .andExpect(jsonPath("$._links.bundles-in-namespace").exists())
                 .andExpect(jsonPath("$._links.app-plugin-links-in-namespace").exists());
-    }
-
-    @Test
-    void shouldThrowAnExceptionWhenAskingForNotObservedNamespace() throws Exception {
-        mvc.perform(get(URI.create("/namespaces/not-checked")).accept(HAL_JSON_VALUE))
-                .andExpect(status().isBadRequest());
     }
 
     @Test

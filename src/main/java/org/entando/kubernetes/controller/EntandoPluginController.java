@@ -1,5 +1,6 @@
 package org.entando.kubernetes.controller;
 
+import static java.util.Optional.ofNullable;
 import static org.springframework.hateoas.MediaTypes.HAL_JSON_VALUE;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -12,6 +13,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.entando.kubernetes.exception.BadRequestExceptionFactory;
 import org.entando.kubernetes.exception.NotFoundExceptionFactory;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
@@ -39,7 +41,7 @@ import org.zalando.problem.ThrowableProblem;
 @RequiredArgsConstructor
 public class EntandoPluginController {
 
-    private final EntandoPluginService pluginService;   
+    private final EntandoPluginService pluginService;
     private final EntandoPluginResourceAssembler resourceAssembler;
     private final IngressService ingressService;
 
@@ -63,24 +65,46 @@ public class EntandoPluginController {
     }
 
     @GetMapping(path = "/{name}", produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
-    public ResponseEntity<EntityModel<EntandoPlugin>> get(@PathVariable("name") final String pluginName) {
+    public ResponseEntity<EntityModel<EntandoPlugin>> get(@PathVariable("name") final String pluginName,
+            @RequestParam(value = "namespace", required = false) String namespace) {
         log.info("Searching plugin with name {} in observed namespaces", pluginName);
-        EntandoPlugin plugin = getEntandoPluginOrFail(pluginName);
+
+        if (StringUtils.isEmpty(namespace)) {
+            log.info("Searching plugin with name {} in observed namespaces", pluginName);
+        } else {
+            log.info("Searching plugin with name {} in namespace {}", pluginName, namespace);
+        }
+
+        EntandoPlugin plugin = getEntandoPluginOrFail(pluginName, namespace);
         return ResponseEntity.ok(resourceAssembler.toModel(plugin));
     }
 
     @GetMapping(path = "/{name}/ingress", produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
-    public ResponseEntity<EntityModel<Ingress>> getPluginIngress(@PathVariable("name") final String pluginName) {
-        log.info("Searching plugin with name {} in observed namespaces", pluginName);
-        EntandoPlugin plugin = getEntandoPluginOrFail(pluginName);
+    public ResponseEntity<EntityModel<Ingress>> getPluginIngress(@PathVariable("name") final String pluginName,
+            @RequestParam(value = "namespace", required = false) String namespace) {
+
+        if (StringUtils.isEmpty(namespace)) {
+            log.info("Searching plugin ingress with name {} in observed namespaces", pluginName);
+        } else {
+            log.info("Searching plugin ingress with name {} in namespace {}", pluginName, namespace);
+        }
+
+        EntandoPlugin plugin = getEntandoPluginOrFail(pluginName, namespace);
         Ingress pluginIngress = getEntandoPluginIngressOrFail(plugin);
         return ResponseEntity.ok(new EntityModel<>(pluginIngress));
     }
 
     @DeleteMapping(path = "/{name}", produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
-    public ResponseEntity<Void> delete(@PathVariable("name") String pluginName) {
-        log.info("Deleting plugin with identifier {} from observed namespaces", pluginName);
-        EntandoPlugin plugin = getEntandoPluginOrFail(pluginName);
+    public ResponseEntity<Void> delete(@PathVariable("name") String pluginName,
+            @RequestParam(value = "namespace", required = false) String namespace) {
+
+        if (StringUtils.isEmpty(namespace)) {
+            log.info("Deleting plugin with identifier {} from observed namespaces", pluginName);
+        } else {
+            log.info("Deleting plugin with identifier {} from namespace {}", pluginName, namespace);
+        }
+
+        EntandoPlugin plugin = getEntandoPluginOrFail(pluginName, namespace);
         pluginService.deletePlugin(plugin);
         return ResponseEntity.accepted().build();
     }
@@ -104,16 +128,17 @@ public class EntandoPluginController {
             boolean createOrReplace) {
 
         EntandoPlugin deployedPlugin = pluginService.deploy(entandoPlugin, createOrReplace);
-        URI resourceLink = linkTo(methodOn(getClass()).get(deployedPlugin.getMetadata().getName())).toUri();
+        URI resourceLink = linkTo(methodOn(getClass()).get(deployedPlugin.getMetadata().getName(),
+                deployedPlugin.getMetadata().getNamespace())).toUri();
         return ResponseEntity.created(resourceLink).body(resourceAssembler.toModel(deployedPlugin));
     }
 
-    private EntandoPlugin getEntandoPluginOrFail(String pluginName) {
-        return pluginService
-                .findByName(pluginName)
-                .<ThrowableProblem>orElseThrow(() -> {
-                    throw NotFoundExceptionFactory.entandoPlugin(pluginName);
-                });
+    private EntandoPlugin getEntandoPluginOrFail(String pluginName, String namespace) {
+
+        return ofNullable(namespace)
+                .flatMap(ns -> pluginService.findByNameAndNamespace(pluginName, ns))
+                .or(() -> pluginService.findByName(pluginName))
+                .orElseThrow(() -> NotFoundExceptionFactory.entandoPlugin(pluginName));
     }
 
     private Ingress getEntandoPluginIngressOrFail(EntandoPlugin plugin) {
@@ -134,7 +159,7 @@ public class EntandoPluginController {
     }
 
     private void addCollectionLinks(CollectionModel<EntityModel<EntandoPlugin>> collection) {
-        collection.add(linkTo(methodOn(EntandoPluginController.class).get(null)).withRel("plugin"));
+        collection.add(linkTo(methodOn(EntandoPluginController.class).get(null, null)).withRel("plugin"));
         collection.add(linkTo(methodOn(EntandoPluginController.class).listInNamespace(null)).withRel("plugins-in-namespace"));
         collection.add(linkTo(methodOn(EntandoLinksController.class).listPluginLinks(null)).withRel("plugin-links"));
         collection.add(linkTo(methodOn(EntandoPluginController.class).createOrReplace(null)).withRel("create-or-replace-plugin"));

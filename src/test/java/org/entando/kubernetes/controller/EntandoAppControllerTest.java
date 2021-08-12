@@ -32,9 +32,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import org.entando.kubernetes.EntandoKubernetesJavaApplication;
 import org.entando.kubernetes.config.TestKubernetesConfig;
-import org.entando.kubernetes.config.TestSecurityConfiguration;
 import org.entando.kubernetes.model.app.EntandoApp;
 import org.entando.kubernetes.model.link.EntandoAppPluginLink;
+import org.entando.kubernetes.model.link.EntandoAppPluginLinkBuilder;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.entando.kubernetes.service.EntandoAppService;
 import org.entando.kubernetes.service.EntandoLinkService;
@@ -71,7 +71,6 @@ import org.springframework.web.util.UriComponentsBuilder;
         webEnvironment = WebEnvironment.RANDOM_PORT,
         classes = {
                 EntandoKubernetesJavaApplication.class,
-                TestSecurityConfiguration.class,
                 TestKubernetesConfig.class
         })
 @ActiveProfiles("test")
@@ -188,7 +187,7 @@ class EntandoAppControllerTest {
 
         Ingress appIngress = IngressTestHelper.getIngressForEntandoResource(ea);
 
-        when(entandoAppService.findByName(eq(entandoAppName))).thenReturn(Optional.of(ea));
+        when(entandoAppService.findByNameAndDefaultNamespace(entandoAppName)).thenReturn(Optional.of(ea));
         when(ingressService.findByEntandoApp(any(EntandoApp.class))).thenReturn(Optional.of(appIngress));
 
         mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
@@ -206,7 +205,7 @@ class EntandoAppControllerTest {
         EntandoApp ea = EntandoAppTestHelper.getTestEntandoApp();
         String entandoAppName = ea.getMetadata().getName();
 
-        when(entandoAppService.findByName(eq(entandoAppName))).thenReturn(Optional.of(ea));
+        when(entandoAppService.findByNameAndDefaultNamespace(entandoAppName)).thenReturn(Optional.of(ea));
         when(ingressService.findByEntandoApp(any(EntandoApp.class))).thenReturn(Optional.empty());
 
         mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
@@ -229,19 +228,19 @@ class EntandoAppControllerTest {
 
     @Test
     void shouldCreateLinkBetweenExistingAppAndPlugin() throws Exception {
-        when(entandoLinkService.buildBetweenAppAndPlugin(any(EntandoApp.class), any(EntandoPlugin.class))).thenCallRealMethod();
-
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
                 .pathSegment(TEST_APP_NAME, "links")
                 .build().toUri();
         EntandoApp ea = EntandoAppTestHelper.getTestEntandoApp();
         EntandoPlugin ep = EntandoPluginTestHelper.getTestEntandoPlugin();
-        EntandoAppPluginLink el = entandoLinkService.buildBetweenAppAndPlugin(ea, ep);
+        EntandoAppPluginLink el = stubEntandoAppPluginLink();
 
-        when(entandoAppService.findByName(anyString())).thenReturn(Optional.of(ea));
+        when(entandoAppService.findByNameAndDefaultNamespace(anyString())).thenReturn(Optional.of(ea));
         when(entandoPluginService.deploy(any(EntandoPlugin.class), eq(true))).thenReturn(ep);
         when(entandoLinkService.deploy(any(EntandoAppPluginLink.class))).thenReturn(el);
+        when(entandoLinkService.buildBetweenAppAndPlugin(any(EntandoApp.class), any(EntandoPlugin.class))).thenReturn(
+                el);
 
         mvc.perform(post(uri)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -257,7 +256,8 @@ class EntandoAppControllerTest {
                 )))
                 .andExpect(jsonPath("$._links").exists())
                 .andExpect(jsonPath("$._links.app.href").value(endsWith("apps/my-app")))
-                .andExpect(jsonPath("$._links.plugin.href").value(endsWith("plugins/my-plugin")));
+                .andExpect(jsonPath("$._links.plugin.href").value(
+                        endsWith("plugins/" + TEST_PLUGIN_NAME + "?namespace=" + TEST_PLUGIN_NAMESPACE)));
 
         // ensure entandoPluginService is asked to deploy the plugin
         ArgumentCaptor<EntandoPlugin> argCapt = ArgumentCaptor.forClass(EntandoPlugin.class);
@@ -266,8 +266,6 @@ class EntandoAppControllerTest {
 
     @Test
     void shouldDeployPluginOnFallbackNamespaceIfNoneIsFoundWhileCreatingLink() throws Exception {
-        when(entandoLinkService.buildBetweenAppAndPlugin(any(EntandoApp.class), any(EntandoPlugin.class))).thenCallRealMethod();
-
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
                 .pathSegment(TEST_APP_NAME, "links")
@@ -276,11 +274,13 @@ class EntandoAppControllerTest {
         EntandoPlugin ep = EntandoPluginTestHelper.getTestEntandoPlugin();
         ep.getMetadata().setNamespace(null);
 
-        EntandoAppPluginLink el = entandoLinkService.buildBetweenAppAndPlugin(ea, ep);
+        EntandoAppPluginLink el = stubEntandoAppPluginLink();
 
         ArgumentCaptor<EntandoPlugin> argumentCaptor = ArgumentCaptor.forClass(EntandoPlugin.class);
-        when(entandoAppService.findByName(anyString())).thenReturn(Optional.of(ea));
+        when(entandoAppService.findByNameAndDefaultNamespace(anyString())).thenReturn(Optional.of(ea));
         when(entandoLinkService.deploy(any(EntandoAppPluginLink.class))).thenReturn(el);
+        when(entandoLinkService.buildBetweenAppAndPlugin(any(EntandoApp.class), any(EntandoPlugin.class))).thenReturn(
+                el);
         when(entandoPluginService.deploy(any(EntandoPlugin.class), eq(true))).thenReturn(ep);
 
         mvc.perform(post(uri)
@@ -307,9 +307,18 @@ class EntandoAppControllerTest {
                 .content(mapper.writeValueAsString(ep)))
                 .andExpect(status().isNotFound());
 
-        verify(entandoAppService, times(1)).findByName(TEST_APP_NAME);
+        verify(entandoAppService, times(1)).findByNameAndDefaultNamespace(TEST_APP_NAME);
         verify(entandoPluginService, times(0)).deletePlugin(any(EntandoPlugin.class));
 
+    }
+
+    private EntandoAppPluginLink stubEntandoAppPluginLink() {
+        return new EntandoAppPluginLinkBuilder()
+                .withNewSpec()
+                .withEntandoApp(TEST_APP_NAMESPACE, TEST_APP_NAME)
+                .withEntandoPlugin(TEST_PLUGIN_NAMESPACE, TEST_PLUGIN_NAME)
+                .and()
+                .withNewMetadata().withName("my-app-my-plugin-link").and().build();
     }
 
 }

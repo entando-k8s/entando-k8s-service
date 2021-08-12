@@ -38,7 +38,6 @@ public class ObservedNamespaceController {
     @GetMapping(value = "/{name}", produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
     public ResponseEntity<EntityModel<ObservedNamespace>> getByName(@PathVariable String name) {
         String validNamespace = validateNamespace(name);
-        observedNamespaces.failIfNotObserved(validNamespace);
         return ResponseEntity.ok(resAssembler.toModel(new ObservedNamespace(validNamespace)));
     }
 
@@ -53,7 +52,7 @@ public class ObservedNamespaceController {
         nsCollection.add(linkTo(methodOn(this.getClass()).getByName(null)).withRel("namespace"));
         nsCollection.add(linkTo(methodOn(EntandoAppController.class).listInNamespace(null)).withRel("apps-in-namespace"));
         nsCollection.add(linkTo(methodOn(EntandoPluginController.class).listInNamespace(null)).withRel("plugins-in-namespace"));
-        nsCollection.add(linkTo(methodOn(EntandoDeBundleController.class).listInNamespace(null)).withRel("bundles-in-namespace"));
+        nsCollection.add(linkTo(methodOn(EntandoDeBundleController.class).list(null)).withRel("bundles-in-namespace"));
         nsCollection.add(linkTo(methodOn(EntandoLinksController.class).listInNamespace(null)).withRel("app-plugin-links-in-namespace"));
     }
 

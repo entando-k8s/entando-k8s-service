@@ -10,14 +10,12 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import java.util.Arrays;
 import java.util.Optional;
-import org.entando.kubernetes.exception.NotObservedNamespaceException;
 import org.entando.kubernetes.model.app.EntandoApp;
 import org.entando.kubernetes.model.app.EntandoAppBuilder;
 import org.entando.kubernetes.model.app.EntandoAppOperationFactory;
 import org.entando.kubernetes.model.namespace.ObservedNamespaces;
 import org.entando.kubernetes.security.oauth2.KubernetesUtilsTest;
 import org.junit.Rule;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Tags;
@@ -125,15 +123,6 @@ class EntandoAppServiceTest {
 
         assertEquals(TEST_APP_NAME, plg.getMetadata().getName());
         assertEquals(TEST_APP_NAMESPACE, plg.getMetadata().getNamespace());
-    }
-
-    @Test
-    void shouldThrowExceptionIfSearchingAppInNotObservedNamespace() {
-        initalizeService(TEST_APP_NAMESPACE);
-        createTestEntandoApp(TEST_APP_NAMESPACE, TEST_APP_NAME);
-        Assertions.assertThrows(NotObservedNamespaceException.class, () -> {
-            entandoAppService.findByNameAndNamespace(TEST_APP_NAME, "any");
-        });
     }
 
     @Test

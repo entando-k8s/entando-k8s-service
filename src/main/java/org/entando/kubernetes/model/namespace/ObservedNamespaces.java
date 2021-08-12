@@ -7,7 +7,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.entando.kubernetes.exception.NotObservedNamespaceException;
 import org.entando.kubernetes.service.KubernetesUtils;
 import org.entando.kubernetes.service.OperatorDeploymentType;
 
@@ -35,18 +34,12 @@ public class ObservedNamespaces {
         log.info("ObservedNamespaces are {}", String.join(", ", this.names));
     }
 
+    public List<ObservedNamespace> getList() {
+        return list;
+    }
+
     public String getCurrentNamespace() {
         return kubernetesUtils.getCurrentNamespace();
-    }
-
-    public boolean isObservedNamespace(String namespace) {
-        return isClusterScoped() || getList().stream().anyMatch(ns -> ns.getName().equals(namespace));
-    }
-
-    public void failIfNotObserved(String namespace) {
-        if (namespace == null || !isObservedNamespace(namespace)) {
-            throw new NotObservedNamespaceException(namespace);
-        }
     }
 
     public boolean isClusterScoped() {

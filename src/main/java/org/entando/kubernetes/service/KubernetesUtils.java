@@ -1,5 +1,7 @@
 package org.entando.kubernetes.service;
 
+import static java.util.Optional.ofNullable;
+
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.JWTParser;
@@ -27,6 +29,8 @@ public class KubernetesUtils implements JwtDecoder {
     //Because a single string per active thread cannot cause a memory leak.
     //This is exactly why we do not cache the KubernetesClient instance here.
     private final ThreadLocal<String> currentToken = new ThreadLocal<>();
+    @SuppressWarnings("java:S5164")
+    private final ThreadLocal<String> callerNamespace = new ThreadLocal<>();
 
     public KubernetesUtils() {
         this(s -> new DefaultKubernetesClient());
@@ -37,12 +41,20 @@ public class KubernetesUtils implements JwtDecoder {
         this.kubernetesClients = new KubernetesClientCache(defaultKubernetesClientSupplier);
     }
 
+    public String getDefaultPluginNamespace() {
+        return ofNullable(callerNamespace.get()).orElse(getCurrentNamespace());
+    }
+
     public String getCurrentNamespace() {
         return getCurrentKubernetesClient().getNamespace();
     }
 
     public KubernetesClient getCurrentKubernetesClient() {
-        return this.kubernetesClients.get(currentToken.get());
+        //at this point, we always use the service account of the entando-k8s-service which should be the same as the operator's service
+        // account
+        return this.kubernetesClients.get(DefaultKubernetesClientBuilder.NOT_K8S_TOKEN);
+        //If we ever require serviceAccount propagation from component-manager, reactivate this line:
+        //return this.kubernetesClients.get(currentToken.get());
     }
 
     @Override
@@ -50,20 +62,25 @@ public class KubernetesUtils implements JwtDecoder {
         try {
             final JWT parsedJwt = JWTParser.parse(token);
             if (parsedJwt.getJWTClaimsSet().getClaims().get("kubernetes.io/serviceaccount/namespace") != null) {
+                //Leaving this here for now. We may still want to use the consumer's K8S token, but for now
+                // none of our consumers are passing the K8S token
                 this.currentToken.set(token);
+                this.callerNamespace.set((String) parsedJwt.getJWTClaimsSet().getClaims().get("kubernetes.io/serviceaccount/namespace"));
+
                 //Some possible fields to use:
                 //iss
                 //kubernetes.io/serviceaccount/service-account.name
                 //kubernetes.io/serviceaccount/service-account.uid
             } else {
-                //TODO once component-manager has been migrated, throw an exception here. We only support K8S tokens
+                this.callerNamespace.remove();
                 this.currentToken.set(DefaultKubernetesClientBuilder.NOT_K8S_TOKEN);
+
             }
             Map<String, Object> claims = new LinkedHashMap<>(parsedJwt.getJWTClaimsSet().getClaims());
             claims.put(ROLES,
-                    //For now, everyone is an admin
+                    //TODO For now, everyone is an admin. In future we may want to limit the creation of plugins
+                    // across namespaces
                     Collections.singletonList(new SimpleGrantedAuthority("ROLE_ADMIN")));
-            //TODO take this out once migration is complete
             if (claims.get(JwtClaimNames.IAT) instanceof Date) {
                 claims.put(JwtClaimNames.IAT, ((Date) claims.get(JwtClaimNames.IAT)).toInstant());
             }

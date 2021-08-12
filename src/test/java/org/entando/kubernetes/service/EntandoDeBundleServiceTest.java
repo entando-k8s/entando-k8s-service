@@ -9,15 +9,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import org.entando.kubernetes.exception.NotObservedNamespaceException;
 import org.entando.kubernetes.model.debundle.EntandoDeBundle;
 import org.entando.kubernetes.model.debundle.EntandoDeBundleOperationFactory;
 import org.entando.kubernetes.model.namespace.ObservedNamespaces;
 import org.entando.kubernetes.security.oauth2.KubernetesUtilsTest;
-import org.entando.kubernetes.util.EntandoAppTestHelper;
 import org.entando.kubernetes.util.EntandoDeBundleTestHelper;
 import org.junit.Rule;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Tags;
@@ -92,16 +89,6 @@ class EntandoDeBundleServiceTest {
                 .findByNameAndNamespace(bundleName, bundleNamespace);
         assertThat(foundBundles).isNotEmpty();
         assertThat(foundBundles.get().getMetadata().getName()).isEqualTo(bundleName);
-    }
-
-    @Test
-    void shouldNotFindBundleByNameInWrongNamespace() {
-        initializeService(TEST_BUNDLE_NAMESPACE);
-        EntandoDeBundle bundle = EntandoDeBundleTestHelper.createTestEntandoDeBundle(client);
-        String bundleName = bundle.getSpec().getDetails().getName();
-        Assertions.assertThrows(NotObservedNamespaceException.class, () -> {
-            entandoDeBundleService.findByNameAndNamespace(bundleName, "myNamespace");
-        });
     }
 
     @Test

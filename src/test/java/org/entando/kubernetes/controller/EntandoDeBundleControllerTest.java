@@ -18,7 +18,6 @@ import java.util.Collections;
 import java.util.Optional;
 import org.entando.kubernetes.EntandoKubernetesJavaApplication;
 import org.entando.kubernetes.config.TestKubernetesConfig;
-import org.entando.kubernetes.config.TestSecurityConfiguration;
 import org.entando.kubernetes.model.debundle.EntandoDeBundle;
 import org.entando.kubernetes.service.EntandoDeBundleService;
 import org.entando.kubernetes.util.EntandoDeBundleTestHelper;
@@ -41,7 +40,6 @@ import org.springframework.web.util.UriComponentsBuilder;
         webEnvironment = WebEnvironment.RANDOM_PORT,
         classes = {
                 EntandoKubernetesJavaApplication.class,
-                TestSecurityConfiguration.class,
                 TestKubernetesConfig.class
         })
 @ActiveProfiles("test")
@@ -94,7 +92,7 @@ class EntandoDeBundleControllerTest {
                 .andExpect(jsonPath("$._embedded.entandoDeBundles[0].metadata.name").value(TEST_BUNDLE_NAME))
                 .andExpect(jsonPath("$._embedded.entandoDeBundles[0].metadata.namespace").value(TEST_BUNDLE_NAMESPACE))
                 .andExpect(jsonPath("$._links", hasKey("bundle")))
-                .andExpect(jsonPath("$._links", hasKey("bundles-in-namespace")));
+                .andExpect(jsonPath("$._links", hasKey("bundles-list")));
 
         verify(entandoDeBundleService, times(1)).getAll();
     }

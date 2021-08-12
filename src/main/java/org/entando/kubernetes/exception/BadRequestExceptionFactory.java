@@ -35,11 +35,6 @@ public final class BadRequestExceptionFactory {
                 String.format("Provided namespace %s is not part of namespaces observed by this instance", namespace));
     }
 
-    public static ThrowableProblem notObservedNamespace(NotObservedNamespaceException ex) {
-        return Problem.valueOf(Status.BAD_REQUEST,
-                String.format("Provided namespace %s is not part of namespaces observed by this instance", ex.getNamespace()));
-    }
-
     public static ThrowableProblem invalidAppPluginLinkDeleteRequest(AppPluginLinkRequest req) {
         String message = "Invalid link delete request! appName and pluginName must be not null nor empty - " + req.toString();
         return Problem.valueOf(Status.BAD_REQUEST, message);

@@ -24,7 +24,6 @@ public abstract class EntandoKubernetesResourceCollector<T extends HasMetadata> 
     }
 
     public List<T> getAllInNamespace(String namespace) {
-        observedNamespaces.failIfNotObserved(namespace);
         return getInNamespaceWithoutChecking(namespace);
     }
 
@@ -41,6 +40,15 @@ public abstract class EntandoKubernetesResourceCollector<T extends HasMetadata> 
     }
 
     public Optional<T> findByNameAndNamespace(String name, String namespace) {
+        return getAllInNamespace(namespace)
+                .stream()
+                .filter(r -> r.getMetadata().getName().equals(name))
+                .findFirst();
+    }
+
+    public Optional<T> findByNameAndDefaultNamespace(String name) {
+
+        final String namespace = kubernetesUtils.getDefaultPluginNamespace();
         return getAllInNamespace(namespace)
                 .stream()
                 .filter(r -> r.getMetadata().getName().equals(name))
