@@ -3,16 +3,20 @@ package org.entando.kubernetes.controller;
 import static org.entando.kubernetes.util.EntandoDeBundleTestHelper.TEST_BUNDLE_NAME;
 import static org.entando.kubernetes.util.EntandoDeBundleTestHelper.TEST_BUNDLE_NAMESPACE;
 import static org.hamcrest.Matchers.hasKey;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URI;
 import java.util.Collections;
 import java.util.Optional;
@@ -54,6 +58,8 @@ class EntandoDeBundleControllerTest {
 
     @Autowired
     private WebApplicationContext context;
+
+    private final ObjectMapper mapper = new ObjectMapper();
 
     @BeforeEach
     void setup() {
@@ -116,25 +122,6 @@ class EntandoDeBundleControllerTest {
         verify(entandoDeBundleService, times(1)).getAllInNamespace(TEST_BUNDLE_NAMESPACE);
     }
 
-    //     void shouldReturnAListWithOneBundleWhenFilteringByName() throws Exception {
-    //        URI uri = UriComponentsBuilder
-    //                .fromUriString(EntandoDeBundleTestHelper.BASE_BUNDLES_ENDPOINT)
-    //                .build().toUri();
-    //
-    //        EntandoDeBundle tempBundle = EntandoDeBundleTestHelper.getTestEntandoDeBundle();
-    //        when(entandoDeBundleService.findBundlesByName(anyString())).thenReturn(Collections.singletonList(tempBundle));
-    //
-    //        mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
-    //                .andExpect(status().is2xxSuccessful())
-    //                .andExpect(jsonPath("$._embedded.entandoDeBundleList").isNotEmpty())
-    //                .andExpect(jsonPath("$._embedded.entandoDeBundleList[0].metadata.name" ).value(TEST_BUNDLE_NAME))
-    //                .andExpect(jsonPath("$._embedded.entandoDeBundleList[0].metadata.namespace").value(TEST_BUNDLE_NAMESPACE));
-    //
-    //
-    //        verify(entandoDeBundleService, times(1))
-    //                .findBundlesByName(TEST_BUNDLE_NAME);
-    //    }
-
     @Test
     void shouldReturnAListWithOneBundleWhenFilteringByNameAndNamespace() throws Exception {
         URI uri = UriComponentsBuilder
@@ -159,4 +146,21 @@ class EntandoDeBundleControllerTest {
 
     }
 
+    @Test
+    void shouldCreateBundle() throws Exception {
+        URI uri = UriComponentsBuilder
+                .fromUriString(EntandoDeBundleTestHelper.BASE_BUNDLES_ENDPOINT)
+                .build().toUri();
+
+        EntandoDeBundle bundle = EntandoDeBundleTestHelper.getTestEntandoDeBundle();
+        when(entandoDeBundleService.createBundle(any())).thenReturn(bundle);
+
+        mvc.perform(post(uri).accept(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(bundle))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().is2xxSuccessful())
+                .andExpect(jsonPath("$.metadata.name").value(TEST_BUNDLE_NAME))
+                .andExpect(jsonPath("$.metadata.namespace").value(TEST_BUNDLE_NAMESPACE));
+    }
 }

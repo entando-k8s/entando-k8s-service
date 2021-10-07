@@ -43,6 +43,11 @@ public class EntandoDeBundleService extends EntandoKubernetesResourceCollector<E
                 .collect(Collectors.toList());
     }
 
+    public EntandoDeBundle createBundle(EntandoDeBundle entandoDeBundle) {
+        return getBundleOperations()
+                .inNamespace(entandoDeBundle.getMetadata().getNamespace()).createOrReplace(entandoDeBundle);
+    }
+
     //CHECKSTYLE:OFF
     private MixedOperation<EntandoDeBundle, EntandoDeBundleList, DoneableEntandoDeBundle, Resource<EntandoDeBundle,
             DoneableEntandoDeBundle>> getBundleOperations() {

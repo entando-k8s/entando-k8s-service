@@ -2,19 +2,18 @@ package org.entando.kubernetes.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.entando.kubernetes.util.EntandoDeBundleTestHelper.TEST_BUNDLE_NAMESPACE;
+import static org.entando.kubernetes.util.EntandoDeBundleTestHelper.getTestEntandoDeBundle;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
+import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import org.entando.kubernetes.model.debundle.EntandoDeBundle;
-import org.entando.kubernetes.model.debundle.EntandoDeBundleOperationFactory;
 import org.entando.kubernetes.model.namespace.ObservedNamespaces;
 import org.entando.kubernetes.security.oauth2.KubernetesUtilsTest;
 import org.entando.kubernetes.util.EntandoDeBundleTestHelper;
-import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Tags;
@@ -23,27 +22,24 @@ import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
 
 @Tags({@Tag("component"), @Tag("in-process")})
 @EnableRuleMigrationSupport
+@EnableKubernetesMockClient(crud = true, https = false)
 class EntandoDeBundleServiceTest {
-
-    @Rule
-    public KubernetesServer server = new KubernetesServer(false, true);
 
     private EntandoDeBundleService entandoDeBundleService;
 
-    private KubernetesClient client;
+    static KubernetesClient client;
 
     @BeforeEach
     public void setup() {
-        client = server.getClient();
-        EntandoDeBundleOperationFactory.produceAllEntandoDeBundles(server.getClient());
+        EntandoDeBundleTestHelper.deleteAllEntandoDeBundleInNamespace(client, TEST_BUNDLE_NAMESPACE);
     }
 
     private void initializeService(String... namespaces) {
-        KubernetesUtils kubernetesUtils = new KubernetesUtils(token -> server.getClient());
+        KubernetesUtils kubernetesUtils = new KubernetesUtils(token -> client);
         kubernetesUtils.decode(KubernetesUtilsTest.NON_K8S_TOKEN);
-        ObservedNamespaces ons = new ObservedNamespaces(kubernetesUtils, Arrays.asList(namespaces), OperatorDeploymentType.HELM);
+        ObservedNamespaces ons = new ObservedNamespaces(kubernetesUtils, Arrays.asList(namespaces),
+                OperatorDeploymentType.HELM);
         entandoDeBundleService = new EntandoDeBundleService(kubernetesUtils, ons);
-
     }
 
     @Test
@@ -94,7 +90,7 @@ class EntandoDeBundleServiceTest {
     @Test
     void shouldFindBundlesWithKeywords() {
         initializeService(TEST_BUNDLE_NAMESPACE);
-        EntandoDeBundle bundle = EntandoDeBundleTestHelper.createTestEntandoDeBundle(client);
+        EntandoDeBundleTestHelper.createTestEntandoDeBundle(client);
         List<String> bundleKeywords = Collections.singletonList("entando6");
         List<EntandoDeBundle> foundBundles = entandoDeBundleService.findBundlesByAnyKeywords(bundleKeywords);
         assertThat(foundBundles).hasSize(1);
@@ -112,10 +108,21 @@ class EntandoDeBundleServiceTest {
     @Test
     void shouldNotFindBundleBecauseMissingAKeywords() {
         initializeService(TEST_BUNDLE_NAMESPACE);
-        EntandoDeBundle bundle = EntandoDeBundleTestHelper.createTestEntandoDeBundle(client);
+        EntandoDeBundleTestHelper.createTestEntandoDeBundle(client);
         List<String> bundleKeywords = Arrays.asList("entando6", "my-custom-keyword");
         List<EntandoDeBundle> foundBundles = entandoDeBundleService.findBundlesByAllKeywords(bundleKeywords);
         assertThat(foundBundles).isEmpty();
     }
 
+    @Test
+    void shouldCreateBundle() {
+        initializeService(TEST_BUNDLE_NAMESPACE);
+        EntandoDeBundle bundle = getTestEntandoDeBundle();
+
+        entandoDeBundleService.createBundle(bundle);
+
+        List<String> bundleKeywords = bundle.getSpec().getDetails().getKeywords();
+        List<EntandoDeBundle> foundBundles = entandoDeBundleService.findBundlesByAllKeywords(bundleKeywords);
+        assertThat(foundBundles).hasSize(1);
+    }
 }

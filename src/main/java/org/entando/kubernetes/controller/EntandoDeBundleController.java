@@ -6,7 +6,6 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +21,8 @@ import org.springframework.hateoas.Links;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -64,6 +65,11 @@ public class EntandoDeBundleController {
                 .or(() -> bundleService.findByName(name))
                 .orElseThrow(() -> NotFoundExceptionFactory.entandoDeBundle(name));
         return ResponseEntity.ok(resourceAssembler.toModel(bundle));
+    }
+
+    @PostMapping(produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
+    public ResponseEntity<EntityModel<EntandoDeBundle>> create(@RequestBody EntandoDeBundle entandoDeBundle) {
+        return ResponseEntity.ok(resourceAssembler.toModel(bundleService.createBundle(entandoDeBundle)));
     }
 
     private CollectionModel<EntityModel<EntandoDeBundle>> getCollectionWithLinks(List<EntandoDeBundle> deBundles) {
