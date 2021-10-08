@@ -3,8 +3,10 @@ package org.entando.kubernetes.service;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.entando.kubernetes.model.debundle.DoneableEntandoDeBundle;
 import org.entando.kubernetes.model.debundle.EntandoDeBundle;
 import org.entando.kubernetes.model.debundle.EntandoDeBundleList;
@@ -44,8 +46,11 @@ public class EntandoDeBundleService extends EntandoKubernetesResourceCollector<E
     }
 
     public EntandoDeBundle createBundle(EntandoDeBundle entandoDeBundle) {
+        String namespace = Optional.ofNullable(entandoDeBundle.getMetadata().getNamespace())
+                .filter(StringUtils::isNotBlank)
+                .orElse(observedNamespaces.getCurrentNamespace());
         return getBundleOperations()
-                .inNamespace(entandoDeBundle.getMetadata().getNamespace()).createOrReplace(entandoDeBundle);
+                .inNamespace(namespace).createOrReplace(entandoDeBundle);
     }
 
     //CHECKSTYLE:OFF
