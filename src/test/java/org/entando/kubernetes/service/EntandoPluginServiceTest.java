@@ -16,7 +16,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
+import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -26,7 +26,6 @@ import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.entando.kubernetes.security.oauth2.KubernetesUtilsTest;
 import org.entando.kubernetes.util.EntandoPluginTestHelper;
 import org.entando.kubernetes.util.JWTTestUtils;
-import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Tags;
@@ -35,23 +34,22 @@ import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
 
 @Tags({@Tag("component"), @Tag("in-process")})
 @EnableRuleMigrationSupport
+@EnableKubernetesMockClient(crud = true, https = false)
 class EntandoPluginServiceTest {
 
-    @Rule
-    public KubernetesServer server = new KubernetesServer(false, true);
-
     private EntandoPluginService entandoPluginService;
-    private KubernetesClient client;
+    static KubernetesClient client;
 
     @BeforeEach
     void setUp() {
-        client = server.getClient();
+        EntandoPluginTestHelper.getEntandoPluginOperations(client).inAnyNamespace().delete();
     }
 
     private void initializeService(String... namespaces) {
-        KubernetesUtils kubernetesUtils = new KubernetesUtils(token -> server.getClient());
+        KubernetesUtils kubernetesUtils = new KubernetesUtils(token -> client);
         kubernetesUtils.decode(KubernetesUtilsTest.NON_K8S_TOKEN);
-        ObservedNamespaces ons = new ObservedNamespaces(kubernetesUtils, Arrays.asList(namespaces), OperatorDeploymentType.HELM);
+        ObservedNamespaces ons = new ObservedNamespaces(kubernetesUtils, Arrays.asList(namespaces),
+                OperatorDeploymentType.HELM);
         entandoPluginService = new EntandoPluginService(kubernetesUtils, ons);
     }
 
@@ -83,7 +81,8 @@ class EntandoPluginServiceTest {
                 .thenCallRealMethod();
         when(epsMock.getAllInNamespace(eq(TEST_PLUGIN_NAMESPACE)))
                 .thenReturn(Collections.singletonList(getTestEntandoPlugin()));
-        List<EntandoPlugin> plugins = epsMock.collectFromNamespaces(Arrays.asList(TEST_PLUGIN_NAMESPACE, "invalid-namespace"));
+        List<EntandoPlugin> plugins = epsMock.collectFromNamespaces(
+                Arrays.asList(TEST_PLUGIN_NAMESPACE, "invalid-namespace"));
         verify(epsMock, times(2)).getAllInNamespace(anyString());
         assertThat(plugins).hasSize(1);
     }
@@ -208,9 +207,10 @@ class EntandoPluginServiceTest {
     }
 
     /**
-     * forces the validation to expect the same response for a plugin create action and a plugin createOrReplace action.
+     * forces the validation to expect the same response for a plugin create action and a plugin createOrReplace
+     * action.
      *
-     * @param expected the expected EntandoPlugin
+     * @param expected         the expected EntandoPlugin
      * @param availablePlugins the list of the available plugin in the current namespace
      */
     private void assertOnEntandoPlugins(EntandoPlugin expected, List<EntandoPlugin> availablePlugins) {

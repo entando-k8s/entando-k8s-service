@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
+import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import java.util.Arrays;
 import java.util.Optional;
 import org.entando.kubernetes.model.app.EntandoApp;
@@ -15,7 +15,6 @@ import org.entando.kubernetes.model.app.EntandoAppBuilder;
 import org.entando.kubernetes.model.app.EntandoAppOperationFactory;
 import org.entando.kubernetes.model.namespace.ObservedNamespaces;
 import org.entando.kubernetes.security.oauth2.KubernetesUtilsTest;
-import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Tags;
@@ -24,24 +23,23 @@ import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
 
 @Tags({@Tag("component"), @Tag("in-process")})
 @EnableRuleMigrationSupport
+@EnableKubernetesMockClient(crud = true, https = false)
 class EntandoAppServiceTest {
-
-    @Rule
-    public KubernetesServer server = new KubernetesServer(false, true);
 
     private EntandoAppService entandoAppService;
 
-    private KubernetesClient client;
+    static KubernetesClient client;
 
     @BeforeEach
-    void setUp() {
-        client = server.getClient();
+    public void setUp() {
+        EntandoAppOperationFactory.produceAllEntandoApps(client).inNamespace(TEST_APP_NAMESPACE).delete();
     }
 
     private void initalizeService(String... namespaces) {
-        KubernetesUtils kubernetesUtils = new KubernetesUtils(token -> server.getClient().inNamespace(TEST_APP_NAMESPACE));
+        KubernetesUtils kubernetesUtils = new KubernetesUtils(token -> client);
         kubernetesUtils.decode(KubernetesUtilsTest.NON_K8S_TOKEN);
-        ObservedNamespaces ons = new ObservedNamespaces(kubernetesUtils, Arrays.asList(namespaces), OperatorDeploymentType.HELM);
+        ObservedNamespaces ons = new ObservedNamespaces(kubernetesUtils, Arrays.asList(namespaces),
+                OperatorDeploymentType.HELM);
         entandoAppService = new EntandoAppService(kubernetesUtils, ons);
     }
 
@@ -59,12 +57,13 @@ class EntandoAppServiceTest {
     }
 
     private void createTestEntandoApp(String testAppNamespace, String testAppName) {
-        EntandoAppOperationFactory.produceAllEntandoApps(client).inNamespace(testAppNamespace).create(new EntandoAppBuilder()
-                .withNewMetadata()
-                .withName(testAppName)
-                .withNamespace(testAppNamespace)
-                .endMetadata()
-                .build());
+        EntandoAppOperationFactory.produceAllEntandoApps(client).inNamespace(testAppNamespace)
+                .create(new EntandoAppBuilder()
+                        .withNewMetadata()
+                        .withName(testAppName)
+                        .withNamespace(testAppNamespace)
+                        .endMetadata()
+                        .build());
     }
 
     @Test

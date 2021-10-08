@@ -29,6 +29,15 @@ public class EntandoLinkTestHelper {
 
     }
 
+    public static void deleteInAllNamespaces(KubernetesClient client) {
+        EntandoAppPluginLink el = getTestLink();
+        KubernetesDeserializer.registerCustomKind(el.getApiVersion(), el.getKind(), EntandoAppPluginLink.class);
+        ((MixedOperation<EntandoAppPluginLink, EntandoAppPluginLinkList, DoneableEntandoAppPluginLink,
+                Resource<EntandoAppPluginLink, DoneableEntandoAppPluginLink>>) EntandoAppPluginLinkOperationFactory
+                .produceAllEntandoAppPluginLinks(client))
+                .inAnyNamespace().delete();
+    }
+
     public static EntandoAppPluginLink getTestLink() {
 
         EntandoAppPluginLink link = new EntandoAppPluginLinkBuilder().withNewSpec()

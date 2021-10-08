@@ -45,6 +45,13 @@ public class EntandoDeBundleTestHelper {
 
     }
 
+    public static void deleteAllEntandoDeBundleInNamespace(KubernetesClient client, String namespace) {
+        ((MixedOperation<EntandoDeBundle, EntandoDeBundleList, DoneableEntandoDeBundle, Resource<EntandoDeBundle,
+                DoneableEntandoDeBundle>>) EntandoDeBundleOperationFactory
+                .produceAllEntandoDeBundles(client))
+                .inNamespace(namespace).delete();
+    }
+
     public static EntandoDeBundleSpec getTestEntandoDeBundleSpec() {
         return new EntandoDeBundleSpecBuilder()
                 .withNewDetails()
