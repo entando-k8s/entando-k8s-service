@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
-import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
+import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import java.util.Arrays;
 import java.util.List;
 import org.entando.kubernetes.model.app.EntandoApp;
@@ -27,7 +27,6 @@ import org.entando.kubernetes.security.oauth2.KubernetesUtilsTest;
 import org.entando.kubernetes.util.EntandoAppTestHelper;
 import org.entando.kubernetes.util.EntandoLinkTestHelper;
 import org.entando.kubernetes.util.EntandoPluginTestHelper;
-import org.junit.Rule;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -37,24 +36,23 @@ import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
 
 @Tags({@Tag("component"), @Tag("in-process")})
 @EnableRuleMigrationSupport
+@EnableKubernetesMockClient(crud = true, https = false)
 class EntandoLinkServiceTest {
-
-    @Rule
-    public KubernetesServer server = new KubernetesServer(false, true);
 
     private EntandoLinkService linkService;
 
-    private KubernetesClient client;
+    static KubernetesClient client;
 
     @BeforeEach
     void setUp() {
-        client = server.getClient();
+        EntandoLinkTestHelper.deleteInAllNamespaces(client);
     }
 
     private void initializeService(String... namespaces) {
-        KubernetesUtils kubernetesUtils = new KubernetesUtils(token -> server.getClient());
+        KubernetesUtils kubernetesUtils = new KubernetesUtils(token -> client);
         kubernetesUtils.decode(KubernetesUtilsTest.NON_K8S_TOKEN);
-        ObservedNamespaces ons = new ObservedNamespaces(kubernetesUtils, Arrays.asList(namespaces), OperatorDeploymentType.HELM);
+        ObservedNamespaces ons = new ObservedNamespaces(kubernetesUtils, Arrays.asList(namespaces),
+                OperatorDeploymentType.HELM);
         linkService = new EntandoLinkService(kubernetesUtils, ons);
     }
 
@@ -120,7 +118,8 @@ class EntandoLinkServiceTest {
         EntandoAppPluginLink testLink = EntandoLinkTestHelper.getTestLink();
 
         EntandoAppPluginLink createdLink = linkService.deploy(testLink);
-        assertEquals(String.format("%s-to-%s-link", TEST_APP_NAME, TEST_PLUGIN_NAME), createdLink.getMetadata().getName());
+        assertEquals(String.format("%s-to-%s-link", TEST_APP_NAME, TEST_PLUGIN_NAME),
+                createdLink.getMetadata().getName());
         assertEquals(TEST_APP_NAMESPACE, createdLink.getMetadata().getNamespace());
         assertEquals(TEST_APP_NAME, createdLink.getSpec().getEntandoAppName());
         assertEquals(TEST_APP_NAMESPACE, createdLink.getSpec().getEntandoAppNamespace().get());
