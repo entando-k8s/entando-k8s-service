@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.entando</groupId>
     <artifactId>entando-k8s-service</artifactId>
-    <version>6.4.0-SNAPSHOT</version>
+    <version>7.0-SNAPSHOT</version>
 
     <packaging>jar</packaging>
 
@@ -45,7 +43,7 @@
 
     <properties>
         <preDeploymentTestGroups>unit,component,in-process</preDeploymentTestGroups>
-        <postDeploymentTestGroups></postDeploymentTestGroups>
+        <postDeploymentTestGroups/>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <github.organization>entando-k8s</github.organization>
         <entando-k8s-custom-model.version>6.3.4</entando-k8s-custom-model.version>
