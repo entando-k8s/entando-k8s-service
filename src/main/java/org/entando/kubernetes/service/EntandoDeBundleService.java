@@ -6,9 +6,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.entando.kubernetes.exception.BadRequestExceptionFactory;
+import org.entando.kubernetes.exception.NotFoundExceptionFactory;
 import org.entando.kubernetes.model.debundle.DoneableEntandoDeBundle;
 import org.entando.kubernetes.model.debundle.EntandoDeBundle;
+import org.entando.kubernetes.model.debundle.EntandoDeBundleBuilder;
 import org.entando.kubernetes.model.debundle.EntandoDeBundleList;
 import org.entando.kubernetes.model.debundle.EntandoDeBundleOperationFactory;
 import org.entando.kubernetes.model.namespace.ObservedNamespaces;
@@ -46,11 +50,28 @@ public class EntandoDeBundleService extends EntandoKubernetesResourceCollector<E
     }
 
     public EntandoDeBundle createBundle(EntandoDeBundle entandoDeBundle) {
-        String namespace = Optional.ofNullable(entandoDeBundle.getMetadata().getNamespace())
-                .filter(StringUtils::isNotBlank)
-                .orElse(observedNamespaces.getCurrentNamespace());
+        String namespace = kubernetesUtils.getDefaultPluginNamespace();
         return getBundleOperations()
                 .inNamespace(namespace).createOrReplace(entandoDeBundle);
+    }
+
+    public void deleteBundle(String bundleName) {
+
+        if (ObjectUtils.isEmpty(bundleName)) {
+            throw BadRequestExceptionFactory.invalidBundleNameRequest();
+        }
+
+        final EntandoDeBundle entandoDeBundle = new EntandoDeBundleBuilder().withNewMetadata().withName(bundleName)
+                .endMetadata().build();
+        String namespace = kubernetesUtils.getDefaultPluginNamespace();
+
+        if (Boolean.FALSE.equals(
+                getBundleOperations().inNamespace(namespace).delete(entandoDeBundle))) {
+
+            throw NotFoundExceptionFactory.entandoDeBundle(bundleName);
+        }
+
+        log.info("Deleted {} EntandoDeBundle", bundleName);
     }
 
     //CHECKSTYLE:OFF

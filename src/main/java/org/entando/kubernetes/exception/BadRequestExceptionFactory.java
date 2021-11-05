@@ -39,4 +39,8 @@ public final class BadRequestExceptionFactory {
         String message = "Invalid link delete request! appName and pluginName must be not null nor empty - " + req.toString();
         return Problem.valueOf(Status.BAD_REQUEST, message);
     }
+
+    public static ThrowableProblem invalidBundleNameRequest() {
+        return Problem.valueOf(Status.BAD_REQUEST, "Empty bundle name received");
+    }
 }
