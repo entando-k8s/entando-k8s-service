@@ -16,7 +16,7 @@
     <parent>
         <groupId>org.entando</groupId>
         <artifactId>entando-spring-boot-parent</artifactId>
-        <version>6.3.10</version>
+        <version>7.0.0-ENG-2892-PR-8</version>
     </parent>
     <url>http://www.entando.com/</url>
     <licenses>
@@ -49,7 +49,6 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <github.organization>entando-k8s</github.organization>
         <entando-k8s-custom-model.version>6.3.4</entando-k8s-custom-model.version>
-        <fabric8.version>4.10.3</fabric8.version>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
     </properties>

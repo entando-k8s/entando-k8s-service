@@ -19,6 +19,7 @@ import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Links;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -70,6 +71,15 @@ public class EntandoDeBundleController {
     @PostMapping(produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
     public ResponseEntity<EntityModel<EntandoDeBundle>> create(@RequestBody EntandoDeBundle entandoDeBundle) {
         return ResponseEntity.ok(resourceAssembler.toModel(bundleService.createBundle(entandoDeBundle)));
+    }
+
+    @DeleteMapping(path = "/{name}", produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
+    public ResponseEntity<Void> delete(@PathVariable String name) {
+
+        log.info("Deleting {} EntandoDeBundle", name);
+
+        bundleService.deleteBundle(name);
+        return ResponseEntity.noContent().build();
     }
 
     private CollectionModel<EntityModel<EntandoDeBundle>> getCollectionWithLinks(List<EntandoDeBundle> deBundles) {

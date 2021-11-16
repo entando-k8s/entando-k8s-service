@@ -5,10 +5,12 @@ import static org.entando.kubernetes.util.EntandoDeBundleTestHelper.TEST_BUNDLE_
 import static org.hamcrest.Matchers.hasKey;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -22,6 +24,7 @@ import java.util.Collections;
 import java.util.Optional;
 import org.entando.kubernetes.EntandoKubernetesJavaApplication;
 import org.entando.kubernetes.config.TestKubernetesConfig;
+import org.entando.kubernetes.exception.NotFoundExceptionFactory;
 import org.entando.kubernetes.model.debundle.EntandoDeBundle;
 import org.entando.kubernetes.service.EntandoDeBundleService;
 import org.entando.kubernetes.util.EntandoDeBundleTestHelper;
@@ -162,5 +165,34 @@ class EntandoDeBundleControllerTest {
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(jsonPath("$.metadata.name").value(TEST_BUNDLE_NAME))
                 .andExpect(jsonPath("$.metadata.namespace").value(TEST_BUNDLE_NAMESPACE));
+    }
+
+    @Test
+    void shouldDeleteBundle() throws Exception {
+        URI uri = UriComponentsBuilder
+                .fromUriString(EntandoDeBundleTestHelper.BASE_BUNDLES_ENDPOINT)
+                .path("/" + EntandoDeBundleTestHelper.TEST_BUNDLE_NAME)
+                .build().toUri();
+
+        mvc.perform(delete(uri).accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is2xxSuccessful());
+    }
+
+    @Test
+    void shouldReturn404WhenDeletingNotExistingBundle() throws Exception {
+
+        String bundleName = "not-existing";
+
+        URI uri = UriComponentsBuilder
+                .fromUriString(EntandoDeBundleTestHelper.BASE_BUNDLES_ENDPOINT)
+                .path("/" + bundleName)
+                .build().toUri();
+
+        doThrow(NotFoundExceptionFactory.entandoDeBundle(bundleName)).when(entandoDeBundleService).deleteBundle(any());
+
+        mvc.perform(delete(uri).accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is4xxClientError());
     }
 }

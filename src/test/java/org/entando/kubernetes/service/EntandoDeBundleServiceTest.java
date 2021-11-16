@@ -1,6 +1,8 @@
 package org.entando.kubernetes.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.entando.kubernetes.util.EntandoDeBundleTestHelper.TEST_BUNDLE_NAMESPACE;
 import static org.entando.kubernetes.util.EntandoDeBundleTestHelper.getTestEntandoDeBundle;
 
@@ -19,6 +21,8 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Tags;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
+import org.webjars.NotFoundException;
+import org.zalando.problem.ThrowableProblem;
 
 @Tags({@Tag("component"), @Tag("in-process")})
 @EnableRuleMigrationSupport
@@ -32,6 +36,7 @@ class EntandoDeBundleServiceTest {
     @BeforeEach
     public void setup() {
         EntandoDeBundleTestHelper.deleteAllEntandoDeBundleInNamespace(client, TEST_BUNDLE_NAMESPACE);
+        EntandoDeBundleTestHelper.deleteAllEntandoDeBundleInNamespace(client, "test");
     }
 
     private void initializeService(String... namespaces) {
@@ -118,11 +123,34 @@ class EntandoDeBundleServiceTest {
     void shouldCreateBundle() {
         initializeService(TEST_BUNDLE_NAMESPACE);
         EntandoDeBundle bundle = getTestEntandoDeBundle();
+        bundle.getMetadata().setNamespace("test");
 
         entandoDeBundleService.createBundle(bundle);
 
         List<String> bundleKeywords = bundle.getSpec().getDetails().getKeywords();
         List<EntandoDeBundle> foundBundles = entandoDeBundleService.findBundlesByAllKeywords(bundleKeywords);
         assertThat(foundBundles).hasSize(1);
+    }
+
+    @Test
+    void givenThatABundleExistsShouldDeleteIt() {
+        initializeService(TEST_BUNDLE_NAMESPACE);
+        assertThat(entandoDeBundleService.getAll()).isEmpty();
+
+        EntandoDeBundleTestHelper.createTestEntandoDeBundleInNamespace(client, "test");
+        assertThat(entandoDeBundleService.getAll()).hasSize(1);
+
+        entandoDeBundleService.deleteBundle(EntandoDeBundleTestHelper.TEST_BUNDLE_NAME);
+        assertThat(entandoDeBundleService.getAll()).isEmpty();
+    }
+
+    @Test
+    void givenThatABundleDoesNotExistsShouldThrowNotFoundException() {
+        initializeService(TEST_BUNDLE_NAMESPACE);
+        assertThat(entandoDeBundleService.getAll()).isEmpty();
+
+        assertThatExceptionOfType(ThrowableProblem.class)
+                .isThrownBy(() -> entandoDeBundleService.deleteBundle(EntandoDeBundleTestHelper.TEST_BUNDLE_NAME))
+                .withMessage("Not Found: Bundle with name " + EntandoDeBundleTestHelper.TEST_BUNDLE_NAME + " not found in observed namespace");
     }
 }
