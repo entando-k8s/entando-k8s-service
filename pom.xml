@@ -57,24 +57,20 @@
             <dependency>
                 <groupId>io.fabric8</groupId>
                 <artifactId>kubernetes-server-mock</artifactId>
-                <version>${fabric8.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.atteo</groupId>
                 <artifactId>evo-inflector</artifactId>
-                <version>${evo-inflector.version}</version>
             </dependency>
 
             <dependency>
                 <groupId>org.zalando</groupId>
                 <artifactId>problem-spring-web-starter</artifactId>
-                <version>${problem-spring-web-starter.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.apache.logging.log4j</groupId>
                 <artifactId>log4j-to-slf4j</artifactId>
-                <version>${log4j-to-slf4j.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
