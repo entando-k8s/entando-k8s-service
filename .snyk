@@ -5,3 +5,6 @@ ignore:
   SNYK-JAVA-CHQOSLOGBACK-1726923:
     - '*':
         reason: '.'
+  SNYK-JAVA-COMH2DATABASE-1769238:
+    - '*':
+        reason: '.'
