@@ -6,12 +6,12 @@ import static org.entando.kubernetes.util.EntandoPluginTestHelper.TEST_PLUGIN_NA
 
 import io.fabric8.kubernetes.api.model.extensions.Ingress;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import java.util.Arrays;
 import java.util.Optional;
 import org.entando.kubernetes.model.app.EntandoApp;
 import org.entando.kubernetes.model.namespace.ObservedNamespaces;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
+import org.entando.kubernetes.util.CustomKubernetesServer;
 import org.entando.kubernetes.util.EntandoAppTestHelper;
 import org.entando.kubernetes.util.EntandoPluginTestHelper;
 import org.entando.kubernetes.util.IngressTestHelper;
@@ -27,7 +27,7 @@ import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
 class IngressServiceTest {
 
     @Rule
-    public KubernetesServer server = new KubernetesServer(false, true);
+    public CustomKubernetesServer server = new CustomKubernetesServer(false, true);
 
     private IngressService ingressService;
 

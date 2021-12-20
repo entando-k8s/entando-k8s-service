@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.entando.kubernetes.util.EntandoDeBundleTestHelper.TEST_BUNDLE_NAMESPACE;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -13,6 +12,7 @@ import org.entando.kubernetes.exception.NotObservedNamespaceException;
 import org.entando.kubernetes.model.debundle.EntandoDeBundle;
 import org.entando.kubernetes.model.debundle.EntandoDeBundleOperationFactory;
 import org.entando.kubernetes.model.namespace.ObservedNamespaces;
+import org.entando.kubernetes.util.CustomKubernetesServer;
 import org.entando.kubernetes.util.EntandoDeBundleTestHelper;
 import org.entando.kubernetes.util.MockObservedNamespaces;
 import org.junit.Rule;
@@ -28,7 +28,7 @@ import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
 class EntandoDeBundleServiceTest {
 
     @Rule
-    public KubernetesServer server = new KubernetesServer(false, true);
+    public CustomKubernetesServer server = new CustomKubernetesServer(false, true);
 
     private EntandoDeBundleService entandoDeBundleService;
 
