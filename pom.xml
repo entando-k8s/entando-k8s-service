@@ -6,7 +6,7 @@
 
     <groupId>org.entando</groupId>
     <artifactId>entando-k8s-service</artifactId>
-    <version>6.3.4</version>
+    <version>6.3.4-fix.1</version>
 
     <packaging>jar</packaging>
 
@@ -50,6 +50,7 @@
         <github.organization>entando-k8s</github.organization>
         <entando-k8s-custom-model.version>6.3.1</entando-k8s-custom-model.version>
         <fabric8.version>4.7.0</fabric8.version>
+        <log4j.version>2.17.0</log4j.version>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -73,7 +74,12 @@
             <dependency>
                 <groupId>org.apache.logging.log4j</groupId>
                 <artifactId>log4j-to-slf4j</artifactId>
-                <version>2.13.2</version>
+                <version>${log4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.logging.log4j</groupId>
+                <artifactId>log4j-api</artifactId>
+                <version>${log4j.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -171,11 +177,11 @@
 
         <!-- Not working yet with Spring Boot 2.2.0 and Spring Hateoas, waiting for fix -->
         <!-- Check comments here: https://stackoverflow.com/a/60064485/3449226 -->
-<!--        <dependency>-->
-<!--            <groupId>io.springfox</groupId>-->
-<!--            <artifactId>springfox-swagger2</artifactId>-->
-<!--            <version>2.9.2</version>-->
-<!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>io.springfox</groupId>-->
+        <!--            <artifactId>springfox-swagger2</artifactId>-->
+        <!--            <version>2.9.2</version>-->
+        <!--        </dependency>-->
 
         <dependency>
             <groupId>org.projectlombok</groupId>

@@ -11,7 +11,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
-import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import java.util.Collections;
 import java.util.List;
 import org.entando.kubernetes.model.app.EntandoApp;
@@ -23,6 +22,7 @@ import org.entando.kubernetes.model.link.EntandoAppPluginLinkOperationFactory;
 import org.entando.kubernetes.model.namespace.ObservedNamespaces;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.entando.kubernetes.model.plugin.EntandoPluginBuilder;
+import org.entando.kubernetes.util.CustomKubernetesServer;
 import org.entando.kubernetes.util.EntandoAppTestHelper;
 import org.entando.kubernetes.util.EntandoLinkTestHelper;
 import org.entando.kubernetes.util.EntandoPluginTestHelper;
@@ -40,7 +40,7 @@ import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
 class EntandoLinkServiceTest {
 
     @Rule
-    public KubernetesServer server = new KubernetesServer(false, true);
+    public CustomKubernetesServer server = new CustomKubernetesServer(false, true);
 
     private EntandoLinkService linkService;
 

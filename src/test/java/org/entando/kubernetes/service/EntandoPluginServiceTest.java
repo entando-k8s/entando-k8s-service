@@ -16,7 +16,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -24,6 +23,7 @@ import java.util.Optional;
 import org.entando.kubernetes.exception.NotObservedNamespaceException;
 import org.entando.kubernetes.model.namespace.ObservedNamespaces;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
+import org.entando.kubernetes.util.CustomKubernetesServer;
 import org.entando.kubernetes.util.EntandoPluginTestHelper;
 import org.entando.kubernetes.util.MockObservedNamespaces;
 import org.junit.Rule;
@@ -39,7 +39,7 @@ import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
 class EntandoPluginServiceTest {
 
     @Rule
-    public KubernetesServer server = new KubernetesServer(false, true);
+    public CustomKubernetesServer server = new CustomKubernetesServer(false, true);
 
     private EntandoPluginService entandoPluginService;
     private KubernetesClient client;
