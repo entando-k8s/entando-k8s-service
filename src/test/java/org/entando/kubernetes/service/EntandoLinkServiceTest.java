@@ -150,6 +150,19 @@ class EntandoLinkServiceTest {
     }
 
     @Test
+    void shouldTruncateLinkWithNameWhenItExceeds63Chars() {
+        initializeService(TEST_APP_NAMESPACE);
+        EntandoApp ea = EntandoAppTestHelper.getTestEntandoApp();
+        EntandoPlugin ep = EntandoPluginTestHelper.getTestEntandoPlugin();
+        ep.getMetadata().setName("very-very-very-very-very-very-very-very-very-very-very-long-plugin-name");
+
+        EntandoAppPluginLink generatedLink = linkService.buildBetweenAppAndPlugin(ea, ep);
+        assertEquals(
+                "my-app-very-very-very-very-very-very-very-very-very-very-v-link",
+                generatedLink.getMetadata().getName());
+    }
+
+    @Test
     void shouldDeleteEntandoAppPluginLink() {
         initializeService(TEST_APP_NAMESPACE);
         EntandoAppPluginLink el = EntandoLinkTestHelper.createTestEntandoAppPluginLink(client);

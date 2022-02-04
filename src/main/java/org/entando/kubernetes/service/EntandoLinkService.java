@@ -19,6 +19,9 @@ import org.springframework.stereotype.Service;
 @Service
 public class EntandoLinkService extends EntandoKubernetesResourceCollector<EntandoAppPluginLink> {
 
+    public static final String LINK_SUFFIX = "-link";
+    public static final int MAX_LINK_NAME_LENGTH = 63 - LINK_SUFFIX.length();
+
     public EntandoLinkService(KubernetesUtils kubernetesUtils,
             ObservedNamespaces observedNamespaces) {
         super(kubernetesUtils, observedNamespaces);
@@ -78,7 +81,7 @@ public class EntandoLinkService extends EntandoKubernetesResourceCollector<Entan
         String pluginNamespace = kubernetesUtils.getDefaultPluginNamespace();
         return new EntandoAppPluginLinkBuilder()
                 .withNewMetadata()
-                .withName(String.format("%s-%s-link", appName, pluginName))
+                .withName(createAppPluginLinkName(appName, pluginName))
                 .withNamespace(appNamespace)
                 .endMetadata()
                 .withNewSpec()
@@ -86,6 +89,14 @@ public class EntandoLinkService extends EntandoKubernetesResourceCollector<Entan
                 .withEntandoPlugin(pluginNamespace, pluginName)
                 .endSpec()
                 .build();
+    }
+
+    private String createAppPluginLinkName(String appName, String pluginName) {
+        String baseName = String.format("%s-%s", appName, pluginName);
+        if (baseName.length() > MAX_LINK_NAME_LENGTH) {   // max label value length = 63
+            baseName = baseName.substring(0, MAX_LINK_NAME_LENGTH);
+        }
+        return baseName + LINK_SUFFIX;
     }
 
     //CHECKSTYLE:OFF
