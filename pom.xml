@@ -16,7 +16,7 @@
     <parent>
         <groupId>org.entando</groupId>
         <artifactId>entando-spring-boot-parent</artifactId>
-        <version>7.0.0-ENG-3224-PR-17</version>
+        <version>7.0.0-ENG-3143-PR-20</version>
     </parent>
     <url>http://www.entando.com/</url>
     <licenses>

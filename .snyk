@@ -11,3 +11,6 @@ ignore:
   SNYK-JAVA-COMH2DATABASE-2348247:
     - '*':
         reason: '.'
+  SNYK-JAVA-ORGAPACHETOMCATEMBED-2414084:
+    - '*':
+        reason: '.'
