@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.entando.kubernetes.model.namespace.ObservedNamespaces;
+import org.entando.kubernetes.model.plugin.EntandoPlugin;
 
 @Slf4j
 @RequiredArgsConstructor

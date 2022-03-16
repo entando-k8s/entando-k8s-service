@@ -96,15 +96,23 @@ public class EntandoLinksController {
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
+//    private void cleanPossiblyFailedPlugin(EntandoAppPluginLink link) {
+//        Optional<EntandoPlugin> optPlugin = pluginService.findByName(link.getSpec().getEntandoPluginName());
+//        if (optPlugin.isPresent() && !optPlugin.get().getStatus().getEntandoDeploymentPhase().equals(SUCCESSFUL)) {
+//            log.info("Removing link associated plugin {} as it's deployment phase is not SUCCESSFUL",
+//                    optPlugin.get().getMetadata().getName());
+//            pluginService.deletePlugin(optPlugin.get());
+//        }
+//    }
+
     private void cleanPossiblyFailedPlugin(EntandoAppPluginLink link) {
         Optional<EntandoPlugin> optPlugin = pluginService.findByName(link.getSpec().getEntandoPluginName());
-        if (optPlugin.isPresent() && !optPlugin.get().getStatus().getEntandoDeploymentPhase().equals(SUCCESSFUL)) {
-            log.info("Removing link associated plugin {} as it's deployment phase is not SUCCESSFUL",
+        if (optPlugin.isPresent() && optPlugin.get().getStatus().getEntandoDeploymentPhase().equals(SUCCESSFUL)) {
+            log.info("Scalind down plugin {} as it's deployment phase is not SUCCESSFUL",
                     optPlugin.get().getMetadata().getName());
-            pluginService.deletePlugin(optPlugin.get());
+            pluginService.scaleDownPlugin(optPlugin.get());
         }
     }
-
 
     private EntandoApp getAppByNameOrFail(String name) {
         return appService.findByName(name)
