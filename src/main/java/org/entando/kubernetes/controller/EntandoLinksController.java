@@ -91,24 +91,16 @@ public class EntandoLinksController {
     @DeleteMapping(value = "/{name}")
     public ResponseEntity<Object> delete(@PathVariable String name) {
         EntandoAppPluginLink link = getLinkByNameOrFail(name);
-        cleanPossiblyFailedPlugin(link);
+        disableActivePlugin(link);
         linkService.delete(link);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
-//    private void cleanPossiblyFailedPlugin(EntandoAppPluginLink link) {
-//        Optional<EntandoPlugin> optPlugin = pluginService.findByName(link.getSpec().getEntandoPluginName());
-//        if (optPlugin.isPresent() && !optPlugin.get().getStatus().getEntandoDeploymentPhase().equals(SUCCESSFUL)) {
-//            log.info("Removing link associated plugin {} as it's deployment phase is not SUCCESSFUL",
-//                    optPlugin.get().getMetadata().getName());
-//            pluginService.deletePlugin(optPlugin.get());
-//        }
-//    }
 
-    private void cleanPossiblyFailedPlugin(EntandoAppPluginLink link) {
+    private void disableActivePlugin(EntandoAppPluginLink link) {
         Optional<EntandoPlugin> optPlugin = pluginService.findByName(link.getSpec().getEntandoPluginName());
         if (optPlugin.isPresent() && optPlugin.get().getStatus().getEntandoDeploymentPhase().equals(SUCCESSFUL)) {
-            log.info("Scalind down plugin {} as it's deployment phase is not SUCCESSFUL",
+            log.info("Scalind down plugin {} as it's deployment phase is SUCCESSFUL",
                     optPlugin.get().getMetadata().getName());
             pluginService.scaleDownPlugin(optPlugin.get());
         }

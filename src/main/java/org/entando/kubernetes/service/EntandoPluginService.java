@@ -1,5 +1,7 @@
 package org.entando.kubernetes.service;
 
+import io.fabric8.kubernetes.api.model.EnvVar;
+import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
@@ -27,6 +29,8 @@ public class EntandoPluginService extends EntandoKubernetesResourceCollector<Ent
 
     public static final boolean CREATE = false;
     public static final boolean CREATE_OR_REPLACE = true;
+
+    public static final String ENTANDO_TIMESTAMP_NAME = "ENTANDO_TIMESTAMP";
 
     public EntandoPluginService(KubernetesUtils kubernetesUtils,
             ObservedNamespaces observedNamespaces) {
@@ -70,6 +74,7 @@ public class EntandoPluginService extends EntandoKubernetesResourceCollector<Ent
         String namespace = kubernetesUtils.getDefaultPluginNamespace();
         EntandoPlugin cleanPlugin = pluginCleanUp(plugin);
         cleanPlugin.getMetadata().setNamespace(namespace);
+        addEntandoTimestampEnvVar(cleanPlugin);
 
         log.info("Deploying {} plugin {} in namespace {}",
                 (createOrReplace) ? "(createOrReplace)" : "(create)",
@@ -81,6 +86,14 @@ public class EntandoPluginService extends EntandoKubernetesResourceCollector<Ent
         } else {
             return getPluginOperations().inNamespace(namespace).create(cleanPlugin);
         }
+    }
+
+    private void addEntandoTimestampEnvVar(EntandoPlugin plugin) {
+        EnvVar envVar = new EnvVarBuilder()
+                .withName(ENTANDO_TIMESTAMP_NAME)
+                .withValue(System.currentTimeMillis() + "")
+                .build();
+        plugin.getSpec().getEnvironmentVariables().add(envVar);
     }
 
     private EntandoPlugin pluginCleanUp(EntandoPlugin plugin) {
