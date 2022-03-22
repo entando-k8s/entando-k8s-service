@@ -11,6 +11,7 @@ import static org.hamcrest.Matchers.hasEntry;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
 import static org.springframework.hateoas.MediaTypes.HAL_JSON;
@@ -117,6 +118,7 @@ class EntandoLinksControllerTest {
                 .containsExactlyInAnyOrder(
                         "app-plugin-link",
                         "app-links",
+                        "delete-and-scale-down",
                         "plugin-links",
                         "delete",
                         "app-plugin-links-in-namespace");
@@ -236,7 +238,7 @@ class EntandoLinksControllerTest {
     }
 
     @Test
-    void shouldDeleteLinkAndFailingPlugin() throws Exception {
+    void shouldDeleteLink() throws Exception {
         EntandoAppPluginLink el = EntandoLinkTestHelper.getTestLink();
         EntandoPlugin plugin = EntandoPluginTestHelper.getTestEntandoPlugin();
         plugin.getStatus().updateDeploymentPhase(EntandoDeploymentPhase.FAILED, 1L);
@@ -247,11 +249,8 @@ class EntandoLinksControllerTest {
 
         mvc.perform(delete("/app-plugin-links/{name}", el.getMetadata().getName()))
                 .andExpect(status().isNoContent());
-        ArgumentCaptor<EntandoPlugin> argCapt = ArgumentCaptor.forClass(EntandoPlugin.class);
         Mockito.verify(entandoLinkService, times(1)).delete(any(EntandoAppPluginLink.class));
-        Mockito.verify(entandoPluginService, times(1)).deletePlugin(argCapt.capture());
-        assertThat(argCapt.getValue().getMetadata().getName()).isEqualTo(plugin.getMetadata().getName());
-        assertThat(argCapt.getValue().getStatus().getEntandoDeploymentPhase()).isEqualTo(EntandoDeploymentPhase.FAILED);
+        Mockito.verify(entandoPluginService, never()).deletePlugin(any(EntandoPlugin.class));
 
         plugin = EntandoPluginTestHelper.getTestEntandoPlugin();
         plugin.getStatus().updateDeploymentPhase(EntandoDeploymentPhase.STARTED, 1L);
@@ -259,8 +258,34 @@ class EntandoLinksControllerTest {
                 .thenReturn(Optional.of(plugin));
         mvc.perform(delete("/app-plugin-links/{name}", el.getMetadata().getName()))
                 .andExpect(status().isNoContent());
-        Mockito.verify(entandoPluginService, times(2)).deletePlugin(argCapt.capture());
-        assertThat(argCapt.getValue().getStatus().getEntandoDeploymentPhase()).isEqualTo(EntandoDeploymentPhase.STARTED);
+        Mockito.verify(entandoPluginService, never()).deletePlugin(any(EntandoPlugin.class));
+        Mockito.verify(entandoPluginService, never()).scaleDownPlugin(any(EntandoPlugin.class));
+    }
+
+    @Test
+    void shouldDeleteLinkAndScaleDownThePluginDeployment() throws Exception {
+        EntandoAppPluginLink el = EntandoLinkTestHelper.getTestLink();
+        EntandoPlugin plugin = EntandoPluginTestHelper.getTestEntandoPlugin();
+        plugin.getStatus().updateDeploymentPhase(EntandoDeploymentPhase.FAILED, 1L);
+        when(entandoLinkService.findByName(el.getMetadata().getName()))
+                .thenReturn(Optional.of(el));
+        when(entandoPluginService.findByName(plugin.getMetadata().getName()))
+                .thenReturn(Optional.of(plugin));
+
+        mvc.perform(delete("/app-plugin-links/delete-and-scale-down/{name}", el.getMetadata().getName()))
+                .andExpect(status().isNoContent());
+        Mockito.verify(entandoLinkService, times(1)).delete(any(EntandoAppPluginLink.class));
+        Mockito.verify(entandoPluginService, never()).deletePlugin(any(EntandoPlugin.class));
+        Mockito.verify(entandoPluginService, never()).scaleDownPlugin(any(EntandoPlugin.class));
+
+        plugin = EntandoPluginTestHelper.getTestEntandoPlugin();
+        plugin.getStatus().updateDeploymentPhase(EntandoDeploymentPhase.SUCCESSFUL, 1L);
+        when(entandoPluginService.findByName(plugin.getMetadata().getName()))
+                .thenReturn(Optional.of(plugin));
+        mvc.perform(delete("/app-plugin-links/delete-and-scale-down/{name}", el.getMetadata().getName()))
+                .andExpect(status().isNoContent());
+        Mockito.verify(entandoPluginService, never()).deletePlugin(any(EntandoPlugin.class));
+        Mockito.verify(entandoPluginService, times(1)).scaleDownPlugin(any(EntandoPlugin.class));
     }
 
     @Test

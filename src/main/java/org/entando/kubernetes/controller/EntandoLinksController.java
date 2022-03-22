@@ -91,20 +91,27 @@ public class EntandoLinksController {
     @DeleteMapping(value = "/{name}")
     public ResponseEntity<Object> delete(@PathVariable String name) {
         EntandoAppPluginLink link = getLinkByNameOrFail(name);
-        cleanPossiblyFailedPlugin(link);
         linkService.delete(link);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
-    private void cleanPossiblyFailedPlugin(EntandoAppPluginLink link) {
-        Optional<EntandoPlugin> optPlugin = pluginService.findByName(link.getSpec().getEntandoPluginName());
-        if (optPlugin.isPresent() && !optPlugin.get().getStatus().getEntandoDeploymentPhase().equals(SUCCESSFUL)) {
-            log.info("Removing link associated plugin {} as it's deployment phase is not SUCCESSFUL",
-                    optPlugin.get().getMetadata().getName());
-            pluginService.deletePlugin(optPlugin.get());
-        }
+    @DeleteMapping(value = "/delete-and-scale-down/{name}")
+    public ResponseEntity<Object> deleteAndScaleDown(@PathVariable String name) {
+        EntandoAppPluginLink link = getLinkByNameOrFail(name);
+        disableActivePlugin(link);
+        linkService.delete(link);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
+
+    private void disableActivePlugin(EntandoAppPluginLink link) {
+        Optional<EntandoPlugin> optPlugin = pluginService.findByName(link.getSpec().getEntandoPluginName());
+        if (optPlugin.isPresent() && optPlugin.get().getStatus().getEntandoDeploymentPhase().equals(SUCCESSFUL)) {
+            log.info("Scalind down plugin {} as it's deployment phase is SUCCESSFUL",
+                    optPlugin.get().getMetadata().getName());
+            pluginService.scaleDownPlugin(optPlugin.get());
+        }
+    }
 
     private EntandoApp getAppByNameOrFail(String name) {
         return appService.findByName(name)
@@ -133,6 +140,7 @@ public class EntandoLinksController {
         return Links.of(
                 linkTo(methodOn(EntandoLinksController.class).get(null)).withRel("app-plugin-link"),
                 linkTo(methodOn(EntandoLinksController.class).delete(null)).withRel("delete"),
+                linkTo(methodOn(EntandoLinksController.class).deleteAndScaleDown(null)).withRel("delete-and-scale-down"),
                 linkTo(methodOn(EntandoLinksController.class).listAppLinks(null)).withRel("app-links"),
                 linkTo(methodOn(EntandoLinksController.class).listPluginLinks(null)).withRel("plugin-links"),
                 linkTo(methodOn(EntandoLinksController.class).listInNamespace(null)).withRel("app-plugin-links-in-namespace")

@@ -1,9 +1,14 @@
 package org.entando.kubernetes.service;
 
+import io.fabric8.kubernetes.api.model.EnvVar;
+import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
+import io.fabric8.kubernetes.api.model.apps.Deployment;
+import io.fabric8.kubernetes.api.model.apps.DoneableDeployment;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
+import io.fabric8.kubernetes.client.dsl.RollableScalableResource;
 import io.fabric8.zjsonpatch.internal.guava.Strings;
 import java.util.List;
 import java.util.Optional;
@@ -24,6 +29,8 @@ public class EntandoPluginService extends EntandoKubernetesResourceCollector<Ent
 
     public static final boolean CREATE = false;
     public static final boolean CREATE_OR_REPLACE = true;
+
+    public static final String ENTANDO_TIMESTAMP_NAME = "ENTANDO_TIMESTAMP";
 
     public EntandoPluginService(KubernetesUtils kubernetesUtils,
             ObservedNamespaces observedNamespaces) {
@@ -67,6 +74,7 @@ public class EntandoPluginService extends EntandoKubernetesResourceCollector<Ent
         String namespace = kubernetesUtils.getDefaultPluginNamespace();
         EntandoPlugin cleanPlugin = pluginCleanUp(plugin);
         cleanPlugin.getMetadata().setNamespace(namespace);
+        addEntandoTimestampEnvVar(cleanPlugin);
 
         log.info("Deploying {} plugin {} in namespace {}",
                 (createOrReplace) ? "(createOrReplace)" : "(create)",
@@ -78,6 +86,14 @@ public class EntandoPluginService extends EntandoKubernetesResourceCollector<Ent
         } else {
             return getPluginOperations().inNamespace(namespace).create(cleanPlugin);
         }
+    }
+
+    private void addEntandoTimestampEnvVar(EntandoPlugin plugin) {
+        EnvVar envVar = new EnvVarBuilder()
+                .withName(ENTANDO_TIMESTAMP_NAME)
+                .withValue(System.currentTimeMillis() + "")
+                .build();
+        plugin.getSpec().getEnvironmentVariables().add(envVar);
     }
 
     private EntandoPlugin pluginCleanUp(EntandoPlugin plugin) {
@@ -98,6 +114,18 @@ public class EntandoPluginService extends EntandoKubernetesResourceCollector<Ent
         return newPlugin;
     }
 
+    public void scaleDownPlugin(EntandoPlugin entandoPlugin) {
+        final RollableScalableResource<Deployment, DoneableDeployment> pluginDeployment =
+                kubernetesUtils.getCurrentKubernetesClient()
+                .apps()
+                .deployments()
+                .inNamespace(entandoPlugin.getMetadata().getNamespace())
+                .withName(entandoPlugin.getMetadata().getName() + "-deployment");
+
+        if (pluginDeployment != null) {
+            pluginDeployment.scale(0);
+        }
+    }
 
     //CHECKSTYLE:OFF
     private MixedOperation<EntandoPlugin, EntandoPluginList, DoneableEntandoPlugin, Resource<EntandoPlugin, DoneableEntandoPlugin>> getPluginOperations() {

@@ -64,7 +64,7 @@ public class EntandoLinkService extends EntandoKubernetesResourceCollector<Entan
         log.info("Link creation between EntandoApp {} on namespace {} and EntandoPlugin {} on namespace {}",
                 newLink.getSpec().getEntandoAppName(), newLink.getSpec().getEntandoAppNamespace(),
                 newLink.getSpec().getEntandoPluginName(), newLink.getSpec().getEntandoPluginNamespace());
-        return getLinksOperations().inNamespace(newLink.getMetadata().getNamespace()).create(newLink);
+        return getLinksOperations().inNamespace(newLink.getMetadata().getNamespace()).createOrReplace(newLink);
     }
 
     public void delete(EntandoAppPluginLink l) {
