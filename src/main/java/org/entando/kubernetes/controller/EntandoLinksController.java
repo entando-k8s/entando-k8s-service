@@ -91,6 +91,13 @@ public class EntandoLinksController {
     @DeleteMapping(value = "/{name}")
     public ResponseEntity<Object> delete(@PathVariable String name) {
         EntandoAppPluginLink link = getLinkByNameOrFail(name);
+        linkService.delete(link);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+    @DeleteMapping(value = "/delete-and-scale-down/{name}")
+    public ResponseEntity<Object> deleteAndScaleDown(@PathVariable String name) {
+        EntandoAppPluginLink link = getLinkByNameOrFail(name);
         disableActivePlugin(link);
         linkService.delete(link);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
@@ -133,6 +140,7 @@ public class EntandoLinksController {
         return Links.of(
                 linkTo(methodOn(EntandoLinksController.class).get(null)).withRel("app-plugin-link"),
                 linkTo(methodOn(EntandoLinksController.class).delete(null)).withRel("delete"),
+                linkTo(methodOn(EntandoLinksController.class).deleteAndScaleDown(null)).withRel("delete-and-scale-down"),
                 linkTo(methodOn(EntandoLinksController.class).listAppLinks(null)).withRel("app-links"),
                 linkTo(methodOn(EntandoLinksController.class).listPluginLinks(null)).withRel("plugin-links"),
                 linkTo(methodOn(EntandoLinksController.class).listInNamespace(null)).withRel("app-plugin-links-in-namespace")
