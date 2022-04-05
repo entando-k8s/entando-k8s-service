@@ -2,23 +2,22 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-
-    <groupId>org.entando</groupId>
-    <artifactId>entando-k8s-service</artifactId>
-    <version>7.0.0-SNAPSHOT</version>
-
-    <packaging>jar</packaging>
-
-    <name>Entando Kubernetes Service</name>
-    <description>A REST layer to interact with Kubernetes resources</description>
-
+    
     <parent>
         <groupId>org.entando</groupId>
         <artifactId>entando-spring-boot-parent</artifactId>
-        <version>7.0.0-ENG-3143-PR-20</version>
+        <version>7.1.0-ENG-3143-PR-22</version>
     </parent>
+
+    <groupId>org.entando</groupId>
+    <artifactId>entando-k8s-service</artifactId>
+    <version>7.1.0-SNAPSHOT</version>
+
+    <modelVersion>4.0.0</modelVersion>
+    <name>Entando Kubernetes Service</name>
+    <description>A REST layer to interact with Kubernetes resources</description>
     <url>http://www.entando.com/</url>
+    <packaging>jar</packaging>
     <licenses>
         <license>
             <name>GNU LESSER GENERAL PUBLIC LICENSE, Version 2.1, February 1999</name>
@@ -48,7 +47,7 @@
         <postDeploymentTestGroups></postDeploymentTestGroups>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <github.organization>entando-k8s</github.organization>
-        <entando-k8s-custom-model.version>6.3.4</entando-k8s-custom-model.version>
+        <entando-k8s-custom-model.version>7.1.0-ENG-3143-PR-56</entando-k8s-custom-model.version>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
     </properties>

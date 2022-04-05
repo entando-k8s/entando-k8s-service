@@ -14,3 +14,33 @@ ignore:
   SNYK-JAVA-ORGAPACHETOMCATEMBED-2414084:
     - '*':
         reason: '.'
+  SNYK-JAVA-COMFASTERXMLJACKSONCORE-2421244:
+    - '*':
+        reason: '.'
+  SNYK-JAVA-ORGPOSTGRESQL-2401816:
+    - '*':
+        reason: '.'
+  SNYK-JAVA-ORGSPRINGFRAMEWORK-2434828:
+    - '*':
+        reason: '.'
+  SNYK-JAVA-ORGSPRINGFRAMEWORK-2436751:
+    - '*':
+        reason: '.'
+  SNYK-JAVA-MYSQL-2386864:
+    - '*':
+        reason: '.'
+  SNYK-JAVA-ORGJBOSSRESTEASY-1009963:
+    - '*':
+        reason: '.'
+  SNYK-JAVA-ORGKEYCLOAK-1062507:
+    - '*':
+        reason: '.'
+  SNYK-JAVA-ORGKEYCLOAK-1083276:
+    - '*':
+        reason: '.'
+  SNYK-JAVA-ORGKEYCLOAK-1085642:
+    - '*':
+        reason: '.'
+  SNYK-JAVA-ORGKEYCLOAK-2434281:
+    - '*':
+        reason: '.'
