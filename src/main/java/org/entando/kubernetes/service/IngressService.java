@@ -1,8 +1,8 @@
 package org.entando.kubernetes.service;
 
-import io.fabric8.kubernetes.api.model.extensions.DoneableIngress;
-import io.fabric8.kubernetes.api.model.extensions.Ingress;
-import io.fabric8.kubernetes.api.model.extensions.IngressList;
+import io.fabric8.kubernetes.api.model.networking.v1.DoneableIngress;
+import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
+import io.fabric8.kubernetes.api.model.networking.v1.IngressList;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
@@ -42,7 +42,7 @@ public class IngressService {
     //CHECKSTYLE:OFF
     private MixedOperation<Ingress, IngressList, DoneableIngress, Resource<Ingress, DoneableIngress>> getIngressOperations() {
         //CHECKSTYLE:ON
-        return client.extensions().ingresses();
+        return client.network().v1().ingresses();
     }
 
 }
