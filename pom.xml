@@ -6,7 +6,7 @@
 
     <groupId>org.entando</groupId>
     <artifactId>entando-k8s-service</artifactId>
-    <version>6.3.4</version>
+    <version>6.5.0</version>
 
     <packaging>jar</packaging>
 
