@@ -48,8 +48,8 @@
         <postDeploymentTestGroups></postDeploymentTestGroups>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <github.organization>entando-k8s</github.organization>
-        <entando-k8s-custom-model.version>6.3.1</entando-k8s-custom-model.version>
-        <fabric8.version>4.7.0</fabric8.version>
+        <entando-k8s-custom-model.version>6.5.0-ENG-3515-PR-58</entando-k8s-custom-model.version>
+        <fabric8.version>4.13.3</fabric8.version>
     </properties>
     <dependencyManagement>
         <dependencies>

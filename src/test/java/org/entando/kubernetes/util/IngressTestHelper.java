@@ -1,7 +1,7 @@
 package org.entando.kubernetes.util;
 
-import io.fabric8.kubernetes.api.model.extensions.Ingress;
-import io.fabric8.kubernetes.api.model.extensions.IngressBuilder;
+import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
+import io.fabric8.kubernetes.api.model.networking.v1.IngressBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import org.entando.kubernetes.model.EntandoBaseCustomResource;
 import org.entando.kubernetes.model.app.EntandoApp;
@@ -19,7 +19,7 @@ public class IngressTestHelper {
                 .addToLabels(app.getKind(), name)
                 .endMetadata()
                 .build();
-        return client.extensions().ingresses().inNamespace(namespace).create(appIngress);
+        return client.network().v1().ingresses().inNamespace(namespace).create(appIngress);
     }
 
     public static Ingress createPluginIngress(KubernetesClient client, EntandoPlugin plugin) {
@@ -33,7 +33,7 @@ public class IngressTestHelper {
                 .addToLabels(plugin.getKind(), name)
                 .endMetadata()
                 .build();
-        return client.extensions().ingresses().inNamespace(namespace).create(appIngress);
+        return client.network().v1().ingresses().inNamespace(namespace).create(appIngress);
     }
 
     public static Ingress getIngressForEntandoResource(EntandoBaseCustomResource ebcr) {
