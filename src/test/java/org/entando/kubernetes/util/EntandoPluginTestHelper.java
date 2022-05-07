@@ -1,15 +1,14 @@
 package org.entando.kubernetes.util;
 
+import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.dsl.internal.CustomResourceOperationsImpl;
+import io.fabric8.kubernetes.client.dsl.MixedOperation;
+import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.internal.KubernetesDeserializer;
-import org.entando.kubernetes.model.DbmsVendor;
-import org.entando.kubernetes.model.plugin.DoneableEntandoPlugin;
+import org.entando.kubernetes.model.common.DbmsVendor;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.entando.kubernetes.model.plugin.EntandoPluginBuilder;
-import org.entando.kubernetes.model.plugin.EntandoPluginList;
-import org.entando.kubernetes.model.plugin.EntandoPluginOperationFactory;
 import org.entando.kubernetes.model.plugin.PluginSecurityLevel;
 
 public class EntandoPluginTestHelper {
@@ -20,12 +19,8 @@ public class EntandoPluginTestHelper {
 
     public static EntandoPlugin createTestEntandoPlugin(KubernetesClient client) {
         EntandoPlugin ep = getTestEntandoPlugin();
-
-        KubernetesDeserializer
-                .registerCustomKind(ep.getApiVersion(), ep.getKind(), EntandoPlugin.class);
-
-        return EntandoPluginOperationFactory.produceAllEntandoPlugins(client).inNamespace(ep.getMetadata().getNamespace()).createOrReplace(ep);
-
+        KubernetesDeserializer.registerCustomKind(ep.getApiVersion(), ep.getKind(), EntandoPlugin.class);
+        return getEntandoPluginOperations(client).inNamespace(ep.getMetadata().getNamespace()).createOrReplace(ep);
     }
 
     public static EntandoPlugin getTestEntandoPlugin() {
@@ -48,7 +43,8 @@ public class EntandoPluginTestHelper {
         return entandoPlugin;
     }
 
-    public static CustomResourceOperationsImpl<EntandoPlugin, EntandoPluginList, DoneableEntandoPlugin> getEntandoPluginOperations(KubernetesClient client) {
-        return EntandoPluginOperationFactory.produceAllEntandoPlugins(client);
+    public static MixedOperation<EntandoPlugin, KubernetesResourceList<EntandoPlugin>, Resource<EntandoPlugin>> getEntandoPluginOperations(
+            KubernetesClient client) {
+        return client.customResources(EntandoPlugin.class);
     }
 }

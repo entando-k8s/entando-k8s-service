@@ -19,9 +19,7 @@ import static org.mockito.Mockito.when;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.api.model.apps.DeploymentList;
-import io.fabric8.kubernetes.api.model.apps.DoneableDeployment;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.NonNamespaceOperation;
 import io.fabric8.kubernetes.client.dsl.RollableScalableResource;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
@@ -225,7 +223,7 @@ class EntandoPluginServiceTest {
                 OperatorDeploymentType.HELM);
         entandoPluginService = new EntandoPluginService(kubernetesUtils, ons);
 
-        NonNamespaceOperation<Deployment, DeploymentList, DoneableDeployment, RollableScalableResource<Deployment, DoneableDeployment>> ops = mock(
+        NonNamespaceOperation<Deployment, DeploymentList, RollableScalableResource<Deployment>> ops = mock(
                 NonNamespaceOperation.class, Mockito.RETURNS_DEEP_STUBS);
 
         when(kubernetesUtils.getCurrentKubernetesClient()
@@ -233,8 +231,7 @@ class EntandoPluginServiceTest {
                 .deployments()
                 .inNamespace(anyString())).thenReturn(ops);
 
-        RollableScalableResource<Deployment, DoneableDeployment> pluginDeployment = mock(
-                RollableScalableResource.class);
+        RollableScalableResource<Deployment> pluginDeployment = mock(RollableScalableResource.class);
 
         when(ops.withName(anyString())).thenReturn(pluginDeployment);
 

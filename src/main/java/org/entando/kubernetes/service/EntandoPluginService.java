@@ -2,10 +2,10 @@ package org.entando.kubernetes.service;
 
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
+import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
-import io.fabric8.kubernetes.api.model.apps.DoneableDeployment;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.dsl.RollableScalableResource;
@@ -14,11 +14,8 @@ import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.entando.kubernetes.model.namespace.ObservedNamespaces;
-import org.entando.kubernetes.model.plugin.DoneableEntandoPlugin;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.entando.kubernetes.model.plugin.EntandoPluginBuilder;
-import org.entando.kubernetes.model.plugin.EntandoPluginList;
-import org.entando.kubernetes.model.plugin.EntandoPluginOperationFactory;
 import org.springframework.stereotype.Service;
 import org.zalando.problem.Problem;
 import org.zalando.problem.Status;
@@ -115,8 +112,7 @@ public class EntandoPluginService extends EntandoKubernetesResourceCollector<Ent
     }
 
     public void scaleDownPlugin(EntandoPlugin entandoPlugin) {
-        final RollableScalableResource<Deployment, DoneableDeployment> pluginDeployment =
-                kubernetesUtils.getCurrentKubernetesClient()
+        RollableScalableResource<Deployment> pluginDeployment = kubernetesUtils.getCurrentKubernetesClient()
                 .apps()
                 .deployments()
                 .inNamespace(entandoPlugin.getMetadata().getNamespace())
@@ -128,9 +124,8 @@ public class EntandoPluginService extends EntandoKubernetesResourceCollector<Ent
     }
 
     //CHECKSTYLE:OFF
-    private MixedOperation<EntandoPlugin, EntandoPluginList, DoneableEntandoPlugin, Resource<EntandoPlugin, DoneableEntandoPlugin>> getPluginOperations() {
+    private MixedOperation<EntandoPlugin, KubernetesResourceList<EntandoPlugin>, Resource<EntandoPlugin>> getPluginOperations() {
         //CHECKSTYLE:ON
-        return EntandoPluginOperationFactory.produceAllEntandoPlugins(kubernetesUtils.getCurrentKubernetesClient());
+        return kubernetesUtils.getCurrentKubernetesClient().customResources(EntandoPlugin.class);
     }
-
 }

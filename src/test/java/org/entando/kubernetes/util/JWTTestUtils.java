@@ -1,14 +1,5 @@
 package org.entando.kubernetes.util;
 
-import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
-import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.internal.KubernetesDeserializer;
-import org.entando.kubernetes.model.DbmsVendor;
-import org.entando.kubernetes.model.JeeServer;
-import org.entando.kubernetes.model.app.EntandoApp;
-import org.entando.kubernetes.model.app.EntandoAppBuilder;
-import org.entando.kubernetes.model.app.EntandoAppOperationFactory;
-import org.entando.kubernetes.service.DefaultKubernetesClientBuilder;
 import org.entando.kubernetes.service.KubernetesUtils;
 
 public class JWTTestUtils {

@@ -1,6 +1,5 @@
 package org.entando.kubernetes.controller;
 
-import static org.entando.kubernetes.model.EntandoDeploymentPhase.SUCCESSFUL;
 import static org.springframework.hateoas.MediaTypes.HAL_JSON_VALUE;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
@@ -14,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.entando.kubernetes.exception.NotFoundExceptionFactory;
 import org.entando.kubernetes.model.app.EntandoApp;
+import org.entando.kubernetes.model.common.EntandoDeploymentPhase;
 import org.entando.kubernetes.model.link.EntandoAppPluginLink;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.entando.kubernetes.model.request.AppPluginLinkRequest;
@@ -106,7 +106,7 @@ public class EntandoLinksController {
 
     private void disableActivePlugin(EntandoAppPluginLink link) {
         Optional<EntandoPlugin> optPlugin = pluginService.findByName(link.getSpec().getEntandoPluginName());
-        if (optPlugin.isPresent() && optPlugin.get().getStatus().getEntandoDeploymentPhase().equals(SUCCESSFUL)) {
+        if (optPlugin.isPresent() && optPlugin.get().getStatus().getPhase().equals(EntandoDeploymentPhase.SUCCESSFUL)) {
             log.info("Scalind down plugin {} as it's deployment phase is SUCCESSFUL",
                     optPlugin.get().getMetadata().getName());
             pluginService.scaleDownPlugin(optPlugin.get());
