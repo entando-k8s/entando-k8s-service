@@ -1,6 +1,6 @@
 package org.entando.kubernetes.exception;
 
-import org.entando.kubernetes.model.EntandoBaseCustomResource;
+import org.entando.kubernetes.model.common.EntandoBaseCustomResource;
 import org.zalando.problem.Problem;
 import org.zalando.problem.Status;
 import org.zalando.problem.ThrowableProblem;

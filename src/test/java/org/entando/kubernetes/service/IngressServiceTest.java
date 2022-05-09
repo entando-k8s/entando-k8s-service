@@ -2,7 +2,7 @@ package org.entando.kubernetes.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.fabric8.kubernetes.api.model.extensions.Ingress;
+import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import java.util.Optional;

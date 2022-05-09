@@ -1,16 +1,15 @@
 package org.entando.kubernetes.service;
 
+import io.fabric8.kubernetes.api.model.KubernetesResourceList;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.entando.kubernetes.model.app.EntandoApp;
-import org.entando.kubernetes.model.link.DoneableEntandoAppPluginLink;
 import org.entando.kubernetes.model.link.EntandoAppPluginLink;
 import org.entando.kubernetes.model.link.EntandoAppPluginLinkBuilder;
-import org.entando.kubernetes.model.link.EntandoAppPluginLinkList;
-import org.entando.kubernetes.model.link.EntandoAppPluginLinkOperationFactory;
 import org.entando.kubernetes.model.namespace.ObservedNamespaces;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.springframework.stereotype.Service;
@@ -100,10 +99,14 @@ public class EntandoLinkService extends EntandoKubernetesResourceCollector<Entan
     }
 
     //CHECKSTYLE:OFF
-    private MixedOperation<EntandoAppPluginLink, EntandoAppPluginLinkList, DoneableEntandoAppPluginLink, Resource<EntandoAppPluginLink,
-            DoneableEntandoAppPluginLink>> getLinksOperations() {
-        //CHECKSTYLE:ON
-        return EntandoAppPluginLinkOperationFactory.produceAllEntandoAppPluginLinks(kubernetesUtils.getCurrentKubernetesClient());
+    private MixedOperation<EntandoAppPluginLink, KubernetesResourceList<EntandoAppPluginLink>, Resource<EntandoAppPluginLink>> getLinksOperations() {
+        return getLinksOperations(kubernetesUtils.getCurrentKubernetesClient());
+    }
+
+    //CHECKSTYLE:OFF
+    public static MixedOperation<EntandoAppPluginLink, KubernetesResourceList<EntandoAppPluginLink>, Resource<EntandoAppPluginLink>> getLinksOperations(
+            KubernetesClient client) {
+        return client.customResources(EntandoAppPluginLink.class);
     }
 
 }

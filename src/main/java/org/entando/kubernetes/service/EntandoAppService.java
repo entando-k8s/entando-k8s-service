@@ -1,13 +1,12 @@
 package org.entando.kubernetes.service;
 
+import io.fabric8.kubernetes.api.model.KubernetesResourceList;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
-import org.entando.kubernetes.model.app.DoneableEntandoApp;
 import org.entando.kubernetes.model.app.EntandoApp;
-import org.entando.kubernetes.model.app.EntandoAppList;
-import org.entando.kubernetes.model.app.EntandoAppOperationFactory;
 import org.entando.kubernetes.model.namespace.ObservedNamespaces;
 import org.springframework.stereotype.Service;
 
@@ -31,9 +30,14 @@ public class EntandoAppService extends EntandoKubernetesResourceCollector<Entand
     }
 
     //CHECKSTYLE:OFF
-    private MixedOperation<EntandoApp, EntandoAppList, DoneableEntandoApp, Resource<EntandoApp, DoneableEntandoApp>> getEntandoAppsOperations() {
-        //CHECKSTYLE:ON
-        return EntandoAppOperationFactory.produceAllEntandoApps(kubernetesUtils.getCurrentKubernetesClient());
+    private MixedOperation<EntandoApp, KubernetesResourceList<EntandoApp>, Resource<EntandoApp>> getEntandoAppsOperations() {
+        return getEntandoAppsOperations(kubernetesUtils.getCurrentKubernetesClient());
     }
 
+    //CHECKSTYLE:OFF
+    public static MixedOperation<EntandoApp, KubernetesResourceList<EntandoApp>, Resource<EntandoApp>> getEntandoAppsOperations(
+            KubernetesClient client) {
+        //~
+        return client.customResources(EntandoApp.class);
+    }
 }

@@ -18,6 +18,7 @@
         <artifactId>entando-spring-boot-parent</artifactId>
         <version>7.0.2</version>
     </parent>
+
     <url>http://www.entando.com/</url>
     <licenses>
         <license>
@@ -30,6 +31,7 @@
         <name>Entando Inc.</name>
         <url>http://www.entando.com/</url>
     </organization>
+
     <repositories>
         <repository>
             <id>jx-releases</id>
@@ -48,12 +50,14 @@
         <postDeploymentTestGroups></postDeploymentTestGroups>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <github.organization>entando-k8s</github.organization>
-        <entando-k8s-custom-model.version>6.3.4</entando-k8s-custom-model.version>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
+        <!-- LOCAL OVERRIDES -->
+        <entando-k8s-custom-model.version>7.0.7</entando-k8s-custom-model.version>
+        <fabric8.version>5.3.2</fabric8.version>
     </properties>
-    <dependencies>
 
+    <dependencies>
         <!-- OWASP Fixes -->
         <dependency>
             <groupId>org.apache.tomcat.embed</groupId>
@@ -186,6 +190,19 @@
         <dependency>
             <groupId>org.zalando</groupId>
             <artifactId>problem-spring-web-starter</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.fabric8</groupId>
+            <artifactId>kubernetes-client</artifactId>
+            <version>${fabric8.version}</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.fabric8</groupId>
+            <artifactId>kubernetes-server-mock</artifactId>
+            <version>${fabric8.version}</version>
+            <scope>test</scope>
         </dependency>
 
         <dependency>

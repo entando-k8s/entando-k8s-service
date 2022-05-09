@@ -1,16 +1,12 @@
 package org.entando.kubernetes.util;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.dsl.MixedOperation;
-import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.internal.KubernetesDeserializer;
-import org.entando.kubernetes.model.debundle.DoneableEntandoDeBundle;
 import org.entando.kubernetes.model.debundle.EntandoDeBundle;
 import org.entando.kubernetes.model.debundle.EntandoDeBundleBuilder;
-import org.entando.kubernetes.model.debundle.EntandoDeBundleList;
-import org.entando.kubernetes.model.debundle.EntandoDeBundleOperationFactory;
 import org.entando.kubernetes.model.debundle.EntandoDeBundleSpec;
 import org.entando.kubernetes.model.debundle.EntandoDeBundleSpecBuilder;
+import org.entando.kubernetes.service.EntandoDeBundleService;
 
 public class EntandoDeBundleTestHelper {
 
@@ -20,13 +16,8 @@ public class EntandoDeBundleTestHelper {
 
     public static EntandoDeBundle createTestEntandoDeBundle(KubernetesClient client) {
         EntandoDeBundle eb = getTestEntandoDeBundle();
-
-        KubernetesDeserializer
-                .registerCustomKind(eb.getApiVersion(), eb.getKind(), EntandoDeBundle.class);
-
-        return ((MixedOperation<EntandoDeBundle, EntandoDeBundleList, DoneableEntandoDeBundle, Resource<EntandoDeBundle,
-                DoneableEntandoDeBundle>>) EntandoDeBundleOperationFactory
-                .produceAllEntandoDeBundles(client))
+        KubernetesDeserializer.registerCustomKind(eb.getApiVersion(), eb.getKind(), EntandoDeBundle.class);
+        return EntandoDeBundleService.getBundleOperations(client)
                 .inNamespace(eb.getMetadata().getNamespace()).createOrReplace(eb);
 
     }
@@ -34,22 +25,12 @@ public class EntandoDeBundleTestHelper {
     public static EntandoDeBundle createTestEntandoDeBundleInNamespace(KubernetesClient client, String namespace) {
         EntandoDeBundle eb = getTestEntandoDeBundle();
         eb.getMetadata().setNamespace(namespace);
-
-        KubernetesDeserializer
-                .registerCustomKind(eb.getApiVersion(), eb.getKind(), EntandoDeBundle.class);
-
-        return ((MixedOperation<EntandoDeBundle, EntandoDeBundleList, DoneableEntandoDeBundle, Resource<EntandoDeBundle,
-                DoneableEntandoDeBundle>>) EntandoDeBundleOperationFactory
-                .produceAllEntandoDeBundles(client))
-                .inNamespace(namespace).createOrReplace(eb);
-
+        KubernetesDeserializer.registerCustomKind(eb.getApiVersion(), eb.getKind(), EntandoDeBundle.class);
+        return EntandoDeBundleService.getBundleOperations(client).inNamespace(namespace).createOrReplace(eb);
     }
 
     public static void deleteAllEntandoDeBundleInNamespace(KubernetesClient client, String namespace) {
-        ((MixedOperation<EntandoDeBundle, EntandoDeBundleList, DoneableEntandoDeBundle, Resource<EntandoDeBundle,
-                DoneableEntandoDeBundle>>) EntandoDeBundleOperationFactory
-                .produceAllEntandoDeBundles(client))
-                .inNamespace(namespace).delete();
+        EntandoDeBundleService.getBundleOperations(client).inNamespace(namespace).delete();
     }
 
     public static EntandoDeBundleSpec getTestEntandoDeBundleSpec() {
