@@ -9,17 +9,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.dsl.MixedOperation;
-import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import java.util.Arrays;
 import java.util.List;
 import org.entando.kubernetes.model.app.EntandoApp;
 import org.entando.kubernetes.model.app.EntandoAppBuilder;
-import org.entando.kubernetes.model.link.DoneableEntandoAppPluginLink;
 import org.entando.kubernetes.model.link.EntandoAppPluginLink;
-import org.entando.kubernetes.model.link.EntandoAppPluginLinkList;
-import org.entando.kubernetes.model.link.EntandoAppPluginLinkOperationFactory;
 import org.entando.kubernetes.model.namespace.ObservedNamespaces;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.entando.kubernetes.model.plugin.EntandoPluginBuilder;
@@ -167,9 +162,7 @@ class EntandoLinkServiceTest {
         initializeService(TEST_APP_NAMESPACE);
         EntandoAppPluginLink el = EntandoLinkTestHelper.createTestEntandoAppPluginLink(client);
         linkService.delete(el);
-        List<EntandoAppPluginLink> links = ((MixedOperation<EntandoAppPluginLink, EntandoAppPluginLinkList, DoneableEntandoAppPluginLink,
-                Resource<EntandoAppPluginLink, DoneableEntandoAppPluginLink>>) EntandoAppPluginLinkOperationFactory
-                .produceAllEntandoAppPluginLinks(client))
+        List<EntandoAppPluginLink> links = EntandoLinkService.getLinksOperations(client)
                 .inNamespace(el.getMetadata().getNamespace())
                 .list().getItems();
         assertTrue(links.isEmpty());
@@ -181,5 +174,4 @@ class EntandoLinkServiceTest {
         EntandoAppPluginLink el = EntandoLinkTestHelper.getTestLink();
         Assertions.assertDoesNotThrow(() -> linkService.delete(el));
     }
-
 }

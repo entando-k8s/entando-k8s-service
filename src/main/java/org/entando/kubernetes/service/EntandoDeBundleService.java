@@ -1,20 +1,17 @@
 package org.entando.kubernetes.service;
 
+import io.fabric8.kubernetes.api.model.KubernetesResourceList;
+import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.entando.kubernetes.exception.BadRequestExceptionFactory;
 import org.entando.kubernetes.exception.NotFoundExceptionFactory;
-import org.entando.kubernetes.model.debundle.DoneableEntandoDeBundle;
 import org.entando.kubernetes.model.debundle.EntandoDeBundle;
 import org.entando.kubernetes.model.debundle.EntandoDeBundleBuilder;
-import org.entando.kubernetes.model.debundle.EntandoDeBundleList;
-import org.entando.kubernetes.model.debundle.EntandoDeBundleOperationFactory;
 import org.entando.kubernetes.model.namespace.ObservedNamespaces;
 import org.springframework.stereotype.Service;
 
@@ -75,10 +72,14 @@ public class EntandoDeBundleService extends EntandoKubernetesResourceCollector<E
     }
 
     //CHECKSTYLE:OFF
-    private MixedOperation<EntandoDeBundle, EntandoDeBundleList, DoneableEntandoDeBundle, Resource<EntandoDeBundle,
-            DoneableEntandoDeBundle>> getBundleOperations() {
-        //CHECKSTYLE:ON
-        return EntandoDeBundleOperationFactory.produceAllEntandoDeBundles(kubernetesUtils.getCurrentKubernetesClient());
+    private MixedOperation<EntandoDeBundle, KubernetesResourceList<EntandoDeBundle>, Resource<EntandoDeBundle>> getBundleOperations() {
+        return getBundleOperations(kubernetesUtils.getCurrentKubernetesClient());
+    }
+
+    //CHECKSTYLE:OFF
+    public static MixedOperation<EntandoDeBundle, KubernetesResourceList<EntandoDeBundle>, Resource<EntandoDeBundle>> getBundleOperations(
+            KubernetesClient client) {
+        return client.customResources(EntandoDeBundle.class);
     }
 
 }

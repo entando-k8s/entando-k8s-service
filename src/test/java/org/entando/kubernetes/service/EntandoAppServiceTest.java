@@ -12,7 +12,6 @@ import java.util.Arrays;
 import java.util.Optional;
 import org.entando.kubernetes.model.app.EntandoApp;
 import org.entando.kubernetes.model.app.EntandoAppBuilder;
-import org.entando.kubernetes.model.app.EntandoAppOperationFactory;
 import org.entando.kubernetes.model.namespace.ObservedNamespaces;
 import org.entando.kubernetes.security.oauth2.KubernetesUtilsTest;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,7 +31,7 @@ class EntandoAppServiceTest {
 
     @BeforeEach
     public void setUp() {
-        EntandoAppOperationFactory.produceAllEntandoApps(client).inNamespace(TEST_APP_NAMESPACE).delete();
+        EntandoAppService.getEntandoAppsOperations(client).inNamespace(TEST_APP_NAMESPACE).delete();
     }
 
     private void initalizeService(String... namespaces) {
@@ -57,7 +56,7 @@ class EntandoAppServiceTest {
     }
 
     private void createTestEntandoApp(String testAppNamespace, String testAppName) {
-        EntandoAppOperationFactory.produceAllEntandoApps(client).inNamespace(testAppNamespace)
+        EntandoAppService.getEntandoAppsOperations(client).inNamespace(testAppNamespace)
                 .create(new EntandoAppBuilder()
                         .withNewMetadata()
                         .withName(testAppName)

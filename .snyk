@@ -1,0 +1,37 @@
+# Snyk (https://snyk.io) policy file, patches or ignores known vulnerabilities.
+version: v1.19.0
+# ignores vulnerabilities until expiry date; change duration by modifying expiry date
+ignore:
+  SNYK-JAVA-COMH2DATABASE-2331071:
+    - '*':
+        reason: '.'
+  SNYK-JAVA-COMH2DATABASE-1769238:
+    - '*':
+        reason: '.'
+  SNYK-JAVA-COMH2DATABASE-2348247:
+    - '*':
+        reason: '.'
+  SNYK-JAVA-ORGAPACHETOMCATEMBED-2414084:
+    - '*':
+        reason: '.'
+  SNYK-JAVA-COMFASTERXMLJACKSONCORE-2421244:
+    - '*':
+        reason: '.'
+  SNYK-JAVA-ORGPOSTGRESQL-2401816:
+    - '*':
+        reason: '.'
+  SNYK-JAVA-ORGSPRINGFRAMEWORK-2434828:
+    - '*':
+        reason: '.'
+  SNYK-JAVA-ORGSPRINGFRAMEWORKSECURITYOAUTH-2772728:
+    - '*':
+        reason: '.'
+  SNYK-JAVA-ORGSPRINGFRAMEWORK-2689634:
+    - '*':
+        reason: '.'
+  SNYK-JAVA-MYSQL-2386864:
+    - '*':
+        reason: '.'
+  SNYK-JAVA-ORGLIQUIBASE-2419059:
+    - '*':
+        reason: '.'
