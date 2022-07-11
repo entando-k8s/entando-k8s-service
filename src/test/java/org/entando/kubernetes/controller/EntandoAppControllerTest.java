@@ -32,7 +32,10 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import org.entando.kubernetes.EntandoKubernetesJavaApplication;
 import org.entando.kubernetes.config.TestKubernetesConfig;
+import org.entando.kubernetes.controller.EntandoAppController.ApplicationStatus;
 import org.entando.kubernetes.model.app.EntandoApp;
+import org.entando.kubernetes.model.common.EntandoCustomResourceStatus;
+import org.entando.kubernetes.model.common.EntandoDeploymentPhase;
 import org.entando.kubernetes.model.link.EntandoAppPluginLink;
 import org.entando.kubernetes.model.link.EntandoAppPluginLinkBuilder;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
@@ -171,10 +174,78 @@ class EntandoAppControllerTest {
                 .pathSegment(TEST_APP_NAME)
                 .build().toUri();
         mvc.perform(get(uri)
-                .accept(MediaType.APPLICATION_JSON))
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
 
     }
+
+    @Test
+    void shouldReturnEntandoAppStatus() throws Exception {
+
+        final URI uri = UriComponentsBuilder
+                .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
+                .pathSegment(TEST_APP_NAME, "status/phase")
+                .build().toUri();
+
+        EntandoApp tempApp = EntandoAppTestHelper.getTestEntandoApp();
+        EntandoCustomResourceStatus status = new EntandoCustomResourceStatus();
+        status.updateDeploymentPhase(EntandoDeploymentPhase.SUCCESSFUL, 12L);
+        tempApp.setStatus(status);
+
+        when(entandoAppService.findByNameAndDefaultNamespace(TEST_APP_NAME)).thenReturn(Optional.ofNullable(tempApp));
+
+        MvcResult result = mvc.perform(get(uri)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andReturn();
+        ApplicationStatus appStatus =
+                HalUtils.halMapper().readValue(
+                        result.getResponse().getContentAsString(),
+                        new TypeReference<ApplicationStatus>() {
+                        }
+                );
+        assertThat(appStatus.getStatus()).isEqualTo(EntandoDeploymentPhase.SUCCESSFUL.toValue());
+
+    }
+
+    @Test
+    void shouldReturn404_or_Unknow_EntandoAppStatus() throws Exception {
+
+        final URI uri = UriComponentsBuilder
+                .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
+                .pathSegment(TEST_APP_NAME, "status/phase")
+                .build().toUri();
+
+        EntandoApp tempApp = EntandoAppTestHelper.getTestEntandoApp();
+        EntandoCustomResourceStatus status = new EntandoCustomResourceStatus();
+        status.updateDeploymentPhase(null, 12L);
+        tempApp.setStatus(status);
+
+        when(entandoAppService.findByNameAndDefaultNamespace(TEST_APP_NAME)).thenReturn(Optional.ofNullable(tempApp));
+
+        MvcResult result = mvc.perform(get(uri)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andReturn();
+
+        ApplicationStatus appStatus =
+                HalUtils.halMapper().readValue(
+                        result.getResponse().getContentAsString(),
+                        new TypeReference<ApplicationStatus>() {
+                        }
+                );
+        assertThat(appStatus.getStatus()).isEqualTo(EntandoAppController.UNKNOWN);
+
+        when(entandoAppService.findByNameAndDefaultNamespace(TEST_APP_NAME)).thenReturn(Optional.empty());
+        mvc.perform(get(uri)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isNotFound());
+
+    }
+
 
     @Test
     void shouldGetPluginIngress() throws Exception {
@@ -221,7 +292,7 @@ class EntandoAppControllerTest {
                 .build().toUri();
 
         mvc.perform(get(uri)
-                .accept(MediaType.APPLICATION_JSON))
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
 
     }
@@ -243,9 +314,9 @@ class EntandoAppControllerTest {
                 el);
 
         mvc.perform(post(uri)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .content(mapper.writeValueAsString(ep)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(ep)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.metadata.name").value(el.getMetadata().getName()))
                 .andExpect(jsonPath("$.spec").value(allOf(
@@ -284,9 +355,9 @@ class EntandoAppControllerTest {
         when(entandoPluginService.deploy(any(EntandoPlugin.class), eq(true))).thenReturn(ep);
 
         mvc.perform(post(uri)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .content(mapper.writeValueAsString(ep)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(ep)))
                 .andExpect(status().isCreated());
 
         verify(entandoPluginService, times(1)).deploy(argumentCaptor.capture(), eq(true));
@@ -302,9 +373,9 @@ class EntandoAppControllerTest {
                 .build().toUri();
         EntandoPlugin ep = EntandoPluginTestHelper.getTestEntandoPlugin();
         mvc.perform(post(uri)
-                .accept(MediaType.APPLICATION_JSON)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(mapper.writeValueAsString(ep)))
+                        .accept(MediaType.APPLICATION_JSON)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(mapper.writeValueAsString(ep)))
                 .andExpect(status().isNotFound());
 
         verify(entandoAppService, times(1)).findByNameAndDefaultNamespace(TEST_APP_NAME);

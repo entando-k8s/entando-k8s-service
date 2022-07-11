@@ -33,6 +33,7 @@ public class EntandoAppResourceAssembler implements RepresentationModelAssembler
                 linkTo(methodOn(EntandoAppController.class).list()).withRel("apps"),
                 linkTo(methodOn(EntandoAppController.class).listInNamespace(appNamespace)).withRel("apps-in-namespace"),
                 linkTo(methodOn(EntandoAppController.class).getAppIngress(appName)).withRel("app-ingress"),
+                linkTo(methodOn(EntandoAppController.class).getStatusPhase(appName)).withRel("app-status-phase"),
                 linkTo(methodOn(EntandoLinksController.class).listAppLinks(appName)).withRel("app-links"),
                 linkTo(methodOn(ObservedNamespaceController.class).getByName(appNamespace)).withRel("namespace")
         );
