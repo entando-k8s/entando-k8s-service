@@ -33,6 +33,8 @@ import java.util.stream.Collectors;
 import org.entando.kubernetes.EntandoKubernetesJavaApplication;
 import org.entando.kubernetes.config.TestKubernetesConfig;
 import org.entando.kubernetes.model.app.EntandoApp;
+import org.entando.kubernetes.model.common.EntandoCustomResourceStatus;
+import org.entando.kubernetes.model.common.EntandoDeploymentPhase;
 import org.entando.kubernetes.model.link.EntandoAppPluginLink;
 import org.entando.kubernetes.model.link.EntandoAppPluginLinkBuilder;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
@@ -171,9 +173,42 @@ class EntandoAppControllerTest {
                 .pathSegment(TEST_APP_NAME)
                 .build().toUri();
         mvc.perform(get(uri)
-                .accept(MediaType.APPLICATION_JSON))
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
 
+    }
+
+    @Test
+    void shouldReturnUndefindeAsDeploymentPhaseOfNonExistentApp() throws Exception {
+        URI uri = UriComponentsBuilder.fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
+                .pathSegment(TEST_APP_NAME, "status", "phase")
+                .build().toUri();
+
+        mvc.perform(
+                get(uri).accept(MediaType.APPLICATION_JSON)
+        ).andExpect(
+                content().json("{\"phase:\":\"undefined\"}")
+        );
+    }
+
+    @Test
+    void shouldReturnStartedAsDeploymentPhaseExistentAppWithDeploymentStarted() throws Exception {
+        URI uri = UriComponentsBuilder.fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
+                .pathSegment(TEST_APP_NAME, "status", "phase")
+                .build().toUri();
+
+        EntandoApp ea = EntandoAppTestHelper.getTestEntandoApp();
+        var eaStatus = new EntandoCustomResourceStatus();
+        eaStatus.updateDeploymentPhase(EntandoDeploymentPhase.STARTED, 1L);
+        ea.setStatus(eaStatus);
+        String entandoAppName = ea.getMetadata().getName();
+        when(entandoAppService.findByNameAndDefaultNamespace(entandoAppName)).thenReturn(Optional.of(ea));
+
+        mvc.perform(
+                get(uri).accept(MediaType.APPLICATION_JSON)
+        ).andExpect(
+                content().json("{\"phase:\":\"started\"}")
+        );
     }
 
     @Test

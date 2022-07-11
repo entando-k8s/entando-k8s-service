@@ -7,12 +7,14 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.entando.kubernetes.exception.NotFoundExceptionFactory;
 import org.entando.kubernetes.model.app.EntandoApp;
+import org.entando.kubernetes.model.common.EntandoCustomResourceStatus;
 import org.entando.kubernetes.model.link.EntandoAppPluginLink;
 import org.entando.kubernetes.model.namespace.ObservedNamespaces;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
@@ -77,6 +79,20 @@ public class EntandoAppController {
         log.debug("Requesting app with name {}", appName);
         EntandoApp entandoApp = getEntandoAppOrFail(appName);
         return ResponseEntity.ok(appResourceAssembler.toModel(entandoApp));
+    }
+
+    @GetMapping(path = "/{name}/status/phase", produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
+    public ResponseEntity<Map> getDeploymentPhase(@PathVariable("name") String appName) {
+        log.debug("Requesting deployment status of app with name {}", appName);
+        EntandoCustomResourceStatus status;
+        try {
+            EntandoApp entandoApp = getEntandoAppOrFail(appName);
+            status = entandoApp.getStatus();
+        } catch (ThrowableProblem ex) {
+            status = null;
+        }
+        if (status == null) { return ResponseEntity.ok(Map.of("phase:", "UNDEFINED")); }
+        return ResponseEntity.ok(Map.of("phase:", status.getPhase().toValue()));
     }
 
     @GetMapping(path = "/{name}/ingress", produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
