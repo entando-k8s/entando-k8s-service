@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.entando.kubernetes.exception.NotFoundExceptionFactory;
 import org.entando.kubernetes.model.app.EntandoApp;
+import org.entando.kubernetes.model.common.EntandoCustomResourceStatus;
 import org.entando.kubernetes.model.link.EntandoAppPluginLink;
 import org.entando.kubernetes.model.namespace.ObservedNamespaces;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
@@ -97,6 +98,18 @@ public class EntandoAppController {
         EntandoAppPluginLink newLink = linkService.buildBetweenAppAndPlugin(entandoApp, plugin);
         EntandoAppPluginLink deployedLink = linkService.deploy(newLink);
         return ResponseEntity.status(HttpStatus.CREATED).body(linkResourceAssembler.toModel(deployedLink));
+    }
+
+    @GetMapping(path = "/{name}/status/phase", produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
+    public ResponseEntity<String> getStatusPhase(@PathVariable("name") String appName) {
+        log.debug("Requesting deployment status of app with name {}", appName);
+        EntandoApp entandoApp = getEntandoAppOrFail(appName);
+        EntandoCustomResourceStatus status = entandoApp.getStatus();
+        if (status == null) {
+            return ResponseEntity.ok("UNKNOWN");
+        } else {
+            return ResponseEntity.ok(status.getPhase().toValue());
+        }
     }
 
     public Ingress getEntandoAppIngressOrFail(EntandoApp app) {
