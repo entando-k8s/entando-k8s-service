@@ -48,7 +48,7 @@ import org.zalando.problem.ThrowableProblem;
 @RequestMapping("/apps")
 public class EntandoAppController {
 
-    public static final String UNKNOWN = "UNKNOWN";
+    public static final String UNDEFINED = "undefined";
     private final EntandoAppService appService;
     private final EntandoAppResourceAssembler appResourceAssembler;
     private final EntandoAppPluginLinkResourceAssembler linkResourceAssembler;
@@ -106,7 +106,7 @@ public class EntandoAppController {
     }
 
     @Operation(description = "Returns application installation status")
-    @ApiResponse(responseCode = "200", description = "OK with status phase, used UNKNOWN for error")
+    @ApiResponse(responseCode = "200", description = "OK with status phase, used 'undefined' for error")
     @ApiResponse(responseCode = "404", description = "Application by name not found")
     @GetMapping(path = "/{name}/status/phase", produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
     public ResponseEntity<ApplicationStatus> getStatusPhase(@PathVariable("name") String appName) {
@@ -123,7 +123,7 @@ public class EntandoAppController {
 
         ApplicationStatus returnStatus = new ApplicationStatus();
         if (status == null) {
-            returnStatus.setStatus(UNKNOWN);
+            returnStatus.setStatus(UNDEFINED);
         } else {
             returnStatus.setStatus(status.toValue());
         }

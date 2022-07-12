@@ -184,7 +184,7 @@ class EntandoAppControllerTest {
 
         final URI uri = UriComponentsBuilder
                 .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
-                .pathSegment(TEST_APP_NAME, "status/phase")
+                .pathSegment(TEST_APP_NAME, "status", "phase")
                 .build().toUri();
 
         EntandoApp tempApp = EntandoAppTestHelper.getTestEntandoApp();
@@ -214,7 +214,7 @@ class EntandoAppControllerTest {
 
         final URI uri = UriComponentsBuilder
                 .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
-                .pathSegment(TEST_APP_NAME, "status/phase")
+                .pathSegment(TEST_APP_NAME, "status", "phase")
                 .build().toUri();
 
         EntandoApp tempApp = EntandoAppTestHelper.getTestEntandoApp();
@@ -236,7 +236,7 @@ class EntandoAppControllerTest {
                         new TypeReference<ApplicationStatus>() {
                         }
                 );
-        assertThat(appStatus.getStatus()).isEqualTo(EntandoAppController.UNKNOWN);
+        assertThat(appStatus.getStatus()).isEqualTo(EntandoAppController.UNDEFINED);
 
         when(entandoAppService.findByNameAndDefaultNamespace(TEST_APP_NAME)).thenReturn(Optional.empty());
         mvc.perform(get(uri)
