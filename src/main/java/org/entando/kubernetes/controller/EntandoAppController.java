@@ -48,7 +48,7 @@ import org.zalando.problem.ThrowableProblem;
 @RequestMapping("/apps")
 public class EntandoAppController {
 
-    public static final String UNDEFINED = "undefined";
+    private static final String UNDEFINED = "undefined";
     private final EntandoAppService appService;
     private final EntandoAppResourceAssembler appResourceAssembler;
     private final EntandoAppPluginLinkResourceAssembler linkResourceAssembler;

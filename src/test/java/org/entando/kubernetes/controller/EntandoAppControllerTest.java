@@ -101,6 +101,8 @@ class EntandoAppControllerTest {
     @MockBean
     private IngressService ingressService;
 
+    public static final String UNDEFINED = "undefined";
+
     @BeforeEach
     void setup() {
         mvc = MockMvcBuilders
@@ -236,7 +238,7 @@ class EntandoAppControllerTest {
                         new TypeReference<ApplicationStatus>() {
                         }
                 );
-        assertThat(appStatus.getStatus()).isEqualTo(EntandoAppController.UNDEFINED);
+        assertThat(appStatus.getStatus()).isEqualTo(UNDEFINED);
 
         when(entandoAppService.findByNameAndDefaultNamespace(TEST_APP_NAME)).thenReturn(Optional.empty());
         mvc.perform(get(uri)
