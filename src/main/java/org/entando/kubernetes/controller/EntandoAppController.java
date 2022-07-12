@@ -126,11 +126,9 @@ public class EntandoAppController {
     }
 
     public Ingress getEntandoAppIngressOrFail(EntandoApp app) {
-            return ingressService
-                .findByEntandoApp(app)
-                .<ThrowableProblem>orElseThrow(() -> {
-                    throw NotFoundExceptionFactory.ingress(app);
-                });
+        return ingressService.findByEntandoApp(app).<ThrowableProblem>orElseThrow(() -> {
+            throw NotFoundExceptionFactory.ingress(app);
+        });
     }
 
     private EntandoApp getEntandoAppOrFail(String appName) {
