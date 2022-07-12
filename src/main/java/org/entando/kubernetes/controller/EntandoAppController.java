@@ -112,14 +112,9 @@ public class EntandoAppController {
     public ResponseEntity<ApplicationStatus> getStatusPhase(@PathVariable("name") String appName) {
         log.debug("Requesting deployment status of app with name {}", appName);
         EntandoDeploymentPhase status = null;
-        try {
-            EntandoApp entandoApp = getEntandoAppOrFail(appName);
-            status = entandoApp.getStatus().getPhase();
-        } catch (ThrowableProblem ex) {
-            throw ex;
-        } catch (Exception ex) {
-            log.debug("Error retrieve application status for appName:'{}'", appName, ex);
-        }
+
+        EntandoApp entandoApp = getEntandoAppOrFail(appName);
+        status = entandoApp.getStatus().getPhase();
 
         ApplicationStatus returnStatus = new ApplicationStatus();
         if (status == null) {
@@ -131,7 +126,7 @@ public class EntandoAppController {
     }
 
     public Ingress getEntandoAppIngressOrFail(EntandoApp app) {
-        return ingressService
+            return ingressService
                 .findByEntandoApp(app)
                 .<ThrowableProblem>orElseThrow(() -> {
                     throw NotFoundExceptionFactory.ingress(app);
