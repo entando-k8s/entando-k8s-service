@@ -186,7 +186,7 @@ class EntandoAppControllerTest {
 
         final URI uri = UriComponentsBuilder
                 .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
-                .pathSegment(TEST_APP_NAME, "status/phase")
+                .pathSegment(TEST_APP_NAME, "status")
                 .build().toUri();
 
         EntandoApp tempApp = EntandoAppTestHelper.getTestEntandoApp();
@@ -216,7 +216,7 @@ class EntandoAppControllerTest {
 
         final URI uri = UriComponentsBuilder
                 .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
-                .pathSegment(TEST_APP_NAME, "status/phase")
+                .pathSegment(TEST_APP_NAME, "status")
                 .build().toUri();
 
         EntandoApp tempApp = EntandoAppTestHelper.getTestEntandoApp();

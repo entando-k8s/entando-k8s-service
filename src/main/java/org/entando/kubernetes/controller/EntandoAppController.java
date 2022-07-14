@@ -108,8 +108,8 @@ public class EntandoAppController {
     @Operation(description = "Returns application installation status")
     @ApiResponse(responseCode = "200", description = "OK with status phase, used 'undefined' for error")
     @ApiResponse(responseCode = "404", description = "Application by name not found")
-    @GetMapping(path = "/{name}/status/phase", produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
-    public ResponseEntity<ApplicationStatus> getStatusPhase(@PathVariable("name") String appName) {
+    @GetMapping(path = "/{name}/status", produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
+    public ResponseEntity<ApplicationStatus> getAppStatus(@PathVariable("name") String appName) {
         log.debug("Requesting deployment status of app with name {}", appName);
         EntandoDeploymentPhase status = null;
 
