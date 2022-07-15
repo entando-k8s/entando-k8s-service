@@ -6,13 +6,18 @@ import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.entando.kubernetes.exception.NotFoundExceptionFactory;
 import org.entando.kubernetes.model.app.EntandoApp;
+import org.entando.kubernetes.model.common.EntandoDeploymentPhase;
 import org.entando.kubernetes.model.link.EntandoAppPluginLink;
 import org.entando.kubernetes.model.namespace.ObservedNamespaces;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
@@ -43,6 +48,7 @@ import org.zalando.problem.ThrowableProblem;
 @RequestMapping("/apps")
 public class EntandoAppController {
 
+    private static final String UNDEFINED = "undefined";
     private final EntandoAppService appService;
     private final EntandoAppResourceAssembler appResourceAssembler;
     private final EntandoAppPluginLinkResourceAssembler linkResourceAssembler;
@@ -99,12 +105,30 @@ public class EntandoAppController {
         return ResponseEntity.status(HttpStatus.CREATED).body(linkResourceAssembler.toModel(deployedLink));
     }
 
+    @Operation(description = "Returns application installation status")
+    @ApiResponse(responseCode = "200", description = "OK with status phase, used 'undefined' for error")
+    @ApiResponse(responseCode = "404", description = "Application by name not found")
+    @GetMapping(path = "/{name}/status", produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
+    public ResponseEntity<ApplicationStatus> getAppStatus(@PathVariable("name") String appName) {
+        log.debug("Requesting deployment status of app with name {}", appName);
+        EntandoDeploymentPhase status = null;
+
+        EntandoApp entandoApp = getEntandoAppOrFail(appName);
+        status = entandoApp.getStatus().getPhase();
+
+        ApplicationStatus returnStatus = new ApplicationStatus();
+        if (status == null) {
+            returnStatus.setStatus(UNDEFINED);
+        } else {
+            returnStatus.setStatus(status.toValue());
+        }
+        return ResponseEntity.ok(returnStatus);
+    }
+
     public Ingress getEntandoAppIngressOrFail(EntandoApp app) {
-        return ingressService
-                .findByEntandoApp(app)
-                .<ThrowableProblem>orElseThrow(() -> {
-                    throw NotFoundExceptionFactory.ingress(app);
-                });
+        return ingressService.findByEntandoApp(app).<ThrowableProblem>orElseThrow(() -> {
+            throw NotFoundExceptionFactory.ingress(app);
+        });
     }
 
     private EntandoApp getEntandoAppOrFail(String appName) {
@@ -135,4 +159,10 @@ public class EntandoAppController {
                 entandoApps.stream().map(appResourceAssembler::toModel).collect(Collectors.toList()));
     }
 
+    @Data
+    @NoArgsConstructor
+    public static class ApplicationStatus {
+
+        private String status;
+    }
 }
