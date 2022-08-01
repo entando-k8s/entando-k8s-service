@@ -4,34 +4,22 @@ version: v1.19.0
 ignore:
   SNYK-JAVA-COMH2DATABASE-2331071:
     - '*':
-        reason: '.'
+        reason: 'False positive: We are not vulnerable to this because this vulnerability is about h2 console which is not exposed in our applications'
   SNYK-JAVA-COMH2DATABASE-1769238:
     - '*':
-        reason: '.'
+        reason: 'False positive: We are not vulnerable to this because we do not make use of COMMENT SQLXML in our tables'
   SNYK-JAVA-COMH2DATABASE-2348247:
     - '*':
-        reason: '.'
+        reason: 'False positive: We are not vulnerable to this because we do not set IGNORE_UNKNOWN_SETTINGS to true'
   SNYK-JAVA-ORGAPACHETOMCATEMBED-2414084:
-    - '*':
-        reason: '.'
-  SNYK-JAVA-COMFASTERXMLJACKSONCORE-2421244:
     - '*':
         reason: '.'
   SNYK-JAVA-ORGPOSTGRESQL-2401816:
     - '*':
         reason: '.'
-  SNYK-JAVA-ORGSPRINGFRAMEWORK-2434828:
+  SNYK-JAVA-ORGBOUNCYCASTLE-2841508:
     - '*':
         reason: '.'
-  SNYK-JAVA-ORGSPRINGFRAMEWORKSECURITYOAUTH-2772728:
-    - '*':
-        reason: '.'
-  SNYK-JAVA-ORGSPRINGFRAMEWORK-2689634:
-    - '*':
-        reason: '.'
-  SNYK-JAVA-MYSQL-2386864:
-    - '*':
-        reason: '.'
-  SNYK-JAVA-ORGLIQUIBASE-2419059:
+  SNYK-JAVA-COMSQUAREUPOKHTTP3-2958044:
     - '*':
         reason: '.'
