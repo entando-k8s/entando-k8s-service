@@ -1,5 +1,6 @@
 package org.entando.kubernetes.service.assembler;
 
+import static org.entando.kubernetes.controller.EntandoDeBundleController.BUNDLE_TYPE_ANNOTATION;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
@@ -25,10 +26,15 @@ public class EntandoDeBundleResourceAssembler implements
     private Links getLinks(EntandoDeBundle bundle) {
         String bundleName = bundle.getMetadata().getName();
         String bundleNamespace = bundle.getMetadata().getNamespace();
+        String bundleTypeAnnotation =
+                bundle.getMetadata().getAnnotations() != null ? bundle.getMetadata().getAnnotations()
+                        .get(BUNDLE_TYPE_ANNOTATION) : null;
+
         return Links.of(
-            linkTo(methodOn(EntandoDeBundleController.class).get(bundleName,bundleNamespace)).withSelfRel(),
-            linkTo(methodOn(EntandoDeBundleController.class).list(bundleNamespace)).withRel("bundles"),
-            linkTo(methodOn(ObservedNamespaceController.class).getByName(bundleNamespace)).withRel("namespace")
+                linkTo(methodOn(EntandoDeBundleController.class).get(bundleName, bundleNamespace)).withSelfRel(),
+                linkTo(methodOn(EntandoDeBundleController.class).list(bundleNamespace, bundleTypeAnnotation)).withRel(
+                        "bundles"),
+                linkTo(methodOn(ObservedNamespaceController.class).getByName(bundleNamespace)).withRel("namespace")
         );
     }
 }
