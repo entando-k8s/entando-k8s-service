@@ -23,4 +23,4 @@ COPY pom.xml target/lib* /opt/lib/
 # we could do with a better way to know the name - or to always create an app.jar or something
 COPY target/entando-k8s-service.jar /opt/app.jar
 WORKDIR /opt
-CMD ["java", "-XX:+UnlockExperimentalVMOptions", "-jar", "app.jar"]
+CMD ["java", "-XX:+UnlockExperimentalVMOptions", "-XX:MaxRAMPercentage=90.0", "-XshowSettings:vm", "-jar", "app.jar"]
