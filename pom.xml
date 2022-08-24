@@ -6,12 +6,12 @@
     <parent>
         <groupId>org.entando</groupId>
         <artifactId>entando-spring-boot-parent</artifactId>
-        <version>7.1.0-ENG-3659-PR-27</version>
+        <version>7.2.0-ENG-4134-PR-34</version>
     </parent>
 
     <groupId>org.entando</groupId>
     <artifactId>entando-k8s-service</artifactId>
-    <version>7.1.0-SNAPSHOT</version>
+    <version>7.2.0-SNAPSHOT</version>
 
     <modelVersion>4.0.0</modelVersion>
     <name>Entando Kubernetes Service</name>
@@ -51,7 +51,7 @@
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
         <!-- LOCAL OVERRIDES -->
-        <entando-k8s-custom-model.version>7.1.0-ENG-3830-PR-59</entando-k8s-custom-model.version>
+        <entando-k8s-custom-model.version>7.2.0-ENG-4134-PR-68</entando-k8s-custom-model.version>
         <fabric8.version>5.3.2</fabric8.version>
     </properties>
 
