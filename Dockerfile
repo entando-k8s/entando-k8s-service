@@ -1,4 +1,4 @@
-FROM entando/entando-ubi8-java11-base:6.4.0
+FROM entando/entando-java-base:11.0.16-ENG-4132-PR-3
 ARG VERSION
 ### Required Openshift Labels
 LABEL name="Entando Kubernetes Service" \
@@ -10,6 +10,7 @@ LABEL name="Entando Kubernetes Service" \
       description="Entando infrastructure project for kubernetes APIs"
 
 COPY target/generated-resources/licenses /licenses
+COPY entrypoint.sh /
 
 ENV PORT 8080
 ENV CLASSPATH /opt/lib
@@ -23,4 +24,5 @@ COPY pom.xml target/lib* /opt/lib/
 # we could do with a better way to know the name - or to always create an app.jar or something
 COPY target/entando-k8s-service.jar /opt/app.jar
 WORKDIR /opt
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["java", "-XX:+UnlockExperimentalVMOptions", "-XX:MaxRAMPercentage=90.0", "-XshowSettings:vm", "-jar", "app.jar"]
