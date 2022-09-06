@@ -34,15 +34,15 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/bundles")
 public class EntandoDeBundleController {
 
-    public static final String BUNDLE_TYPE_ANNOTATION = "bundle.entando.org/type";
-    public static final String BUNDLE_TYPE_REQUEST_PARAM = "type";
+    public static final String ECR_INSTALL_CAUSE_ANNOTATION = "ecr.entando.org/install-cause";
+    public static final String ECR_INSTALL_CAUSE_REQUEST_PARAM = "installCause";
     private final EntandoDeBundleResourceAssembler resourceAssembler;
     private final EntandoDeBundleService bundleService;
 
     @GetMapping(produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
     public ResponseEntity<CollectionModel<EntityModel<EntandoDeBundle>>> list(
             @RequestParam(value = "namespace", required = false) String namespace,
-            @RequestParam(value = BUNDLE_TYPE_REQUEST_PARAM, required = false) String type) {
+            @RequestParam(value = ECR_INSTALL_CAUSE_REQUEST_PARAM, required = false) String ecrInstallCause) {
 
         log.info("Listing available entando-de-bundles in {} namespace", StringUtils.isEmpty(namespace) ? "all" :
                 namespace);
@@ -51,8 +51,8 @@ public class EntandoDeBundleController {
                 .map(bundleService::getAllInNamespace)
                 .orElseGet(bundleService::getAll);
 
-        List<EntandoDeBundle> deBundles = ofNullable(type)
-                .map(t -> filterByAnnotationBundleType(t, deBundlesToFilter))
+        List<EntandoDeBundle> deBundles = ofNullable(ecrInstallCause)
+                .map(t -> filterByAnnotationEcrInstallCause(t, deBundlesToFilter))
                 .orElse(deBundlesToFilter);
 
         return ResponseEntity.ok(getCollectionWithLinks(deBundles));
@@ -103,10 +103,11 @@ public class EntandoDeBundleController {
         );
     }
 
-    private List<EntandoDeBundle> filterByAnnotationBundleType(String type, List<EntandoDeBundle> bundles) {
+    private List<EntandoDeBundle> filterByAnnotationEcrInstallCause(String ecrInstallCause,
+            List<EntandoDeBundle> bundles) {
         return bundles.stream()
-                .filter(b -> b.getMetadata().getAnnotations() != null && StringUtils.equals(type,
-                        b.getMetadata().getAnnotations().get(BUNDLE_TYPE_ANNOTATION)))
+                .filter(b -> b.getMetadata().getAnnotations() != null && StringUtils.equals(ecrInstallCause,
+                        b.getMetadata().getAnnotations().get(ECR_INSTALL_CAUSE_ANNOTATION)))
                 .collect(Collectors.toList());
     }
 }
