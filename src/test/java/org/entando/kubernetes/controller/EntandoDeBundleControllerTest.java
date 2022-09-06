@@ -1,8 +1,8 @@
 package org.entando.kubernetes.controller;
 
+import static org.entando.kubernetes.util.EntandoDeBundleTestHelper.ECR_INSTALL_CAUSE;
 import static org.entando.kubernetes.util.EntandoDeBundleTestHelper.TEST_BUNDLE_NAME;
 import static org.entando.kubernetes.util.EntandoDeBundleTestHelper.TEST_BUNDLE_NAMESPACE;
-import static org.entando.kubernetes.util.EntandoDeBundleTestHelper.TEST_BUNDLE_TYPE;
 import static org.hamcrest.Matchers.hasKey;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -133,14 +133,14 @@ class EntandoDeBundleControllerTest {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoDeBundleTestHelper.BASE_BUNDLES_ENDPOINT)
                 .queryParam("namespace", TEST_BUNDLE_NAMESPACE)
-                .queryParam("type", TEST_BUNDLE_TYPE)
+                .queryParam("installCause", ECR_INSTALL_CAUSE)
                 .build().toUri();
 
         EntandoDeBundle tempBundle = EntandoDeBundleTestHelper.getTestEntandoDeBundle();
         EntandoDeBundle tempBundlePostInit = EntandoDeBundleTestHelper.getTestEntandoDeBundle();
-        tempBundlePostInit.getMetadata().setAnnotations(Map.of("bundle.entando.org/type", TEST_BUNDLE_TYPE));
+        tempBundlePostInit.getMetadata().setAnnotations(Map.of("ecr.entando.org/install-cause", ECR_INSTALL_CAUSE));
         EntandoDeBundle tempBundleStandard = EntandoDeBundleTestHelper.getTestEntandoDeBundle();
-        tempBundleStandard.getMetadata().setAnnotations(Map.of("bundle.entando.org/type", "standard"));
+        tempBundleStandard.getMetadata().setAnnotations(Map.of("ecr.entando.org/install-cause", "standard"));
 
         when(entandoDeBundleService.getAllInNamespace(anyString())).thenReturn(
                 Arrays.asList(tempBundle, tempBundlePostInit, tempBundleStandard));

@@ -1,6 +1,6 @@
 package org.entando.kubernetes.service.assembler;
 
-import static org.entando.kubernetes.controller.EntandoDeBundleController.BUNDLE_TYPE_REQUEST_PARAM;
+import static org.entando.kubernetes.controller.EntandoDeBundleController.ECR_INSTALL_CAUSE_REQUEST_PARAM;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
@@ -34,7 +34,7 @@ public class KubernetesNamespaceResourceAssembler implements
         Link link = linkTo(methodOn(EntandoDeBundleController.class).list(ns, null)).withRel("bundles-in-namespace");
         // trick to remove param null to grant backward compatibility
         Map<String, String> parameters = new HashMap<>();
-        parameters.put(BUNDLE_TYPE_REQUEST_PARAM, null);
+        parameters.put(ECR_INSTALL_CAUSE_REQUEST_PARAM, null);
         em.add(link.expand(parameters));
 
         em.add(linkTo(methodOn(EntandoLinksController.class).listInNamespace(ns)).withRel(
