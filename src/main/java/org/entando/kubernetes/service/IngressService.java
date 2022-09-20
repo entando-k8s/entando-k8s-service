@@ -120,16 +120,25 @@ public class IngressService {
                                     .findFirst().orElse(null);
                         }
                 ).map(p -> {
+                    String annotationPathKey = retrieveAnnotationKeyFromPath(fluent.buildMetadata().getAnnotations(),
+                            p.getPath());
                     fluent.editSpec().editFirstRule().editHttp()
                             .removeFromPaths(p)
                             .endHttp()
                             .endRule()
-                            .endSpec();
+                            .endSpec()
+                            .editMetadata().removeFromAnnotations(annotationPathKey).endMetadata();
                     return this.done();
 
                 }).orElse(null);
             }
             return ingress;
+        }
+
+        private String retrieveAnnotationKeyFromPath(Map<String, String> annotations, String path) {
+            return annotations.keySet().stream()
+                    .filter(k -> StringUtils.equals(annotations.get(k), path))
+                    .findFirst().get();
         }
     }
 }

@@ -10,6 +10,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import org.entando.kubernetes.model.app.EntandoApp;
@@ -96,7 +97,10 @@ class IngressServiceTest {
                         Arrays.asList(
                                 new HTTPIngressPath(null, "/dummyPlugin", "Prefix"),
                                 new HTTPIngressPath(null, "/dummyCustomPath", "Prefix"))));
-        Ingress ingress = IngressTestHelper.createPluginIngressWithRule(client, plugin, rule);
+        Map<String, String> annotations = new HashMap<>();
+        annotations.put("entando.org/quickstart-pn-dummy-plugin-path", "/dummyPlugin");
+        annotations.put("entando.org/quickstart-pn-dummy-custom-plugin-path", "/dummyCustomPath");
+        Ingress ingress = IngressTestHelper.createPluginIngressWithRuleAndAnnotation(client, plugin, rule, annotations);
 
         ServerStatus mainServerStatus = new ServerStatus("main");
         mainServerStatus.setIngressName(ingress.getMetadata().getName());
