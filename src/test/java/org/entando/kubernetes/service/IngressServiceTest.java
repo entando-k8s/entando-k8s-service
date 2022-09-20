@@ -8,6 +8,7 @@ import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.kubernetes.api.model.networking.v1.IngressRule;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
@@ -61,7 +62,7 @@ class IngressServiceTest {
 
     @Test
     void shouldNotRemoveIngressPathForPlugin() {
-        EntandoPlugin plugin = EntandoPluginTestHelper.getTestEntandoPlugin();
+        EntandoPlugin plugin = EntandoPluginTestHelper.getTestEntandoPluginNoIngressPath();
 
         // no link no ingressName no path
         Map<String, Boolean> res = ingressService.deletePathFromIngressByEntandoPlugin(plugin, Collections.EMPTY_LIST);
@@ -91,11 +92,15 @@ class IngressServiceTest {
     void shouldRemoveIngressPathForPlugin() {
         EntandoPlugin plugin = EntandoPluginTestHelper.getTestEntandoPlugin();
         IngressRule rule = new IngressRule("host.com",
-                new HTTPIngressRuleValue(Collections.singletonList(new HTTPIngressPath(null, "/path", "Prefix"))));
+                new HTTPIngressRuleValue(
+                        Arrays.asList(
+                                new HTTPIngressPath(null, "/dummyPlugin", "Prefix"),
+                                new HTTPIngressPath(null, "/dummyCustomPath", "Prefix"))));
         Ingress ingress = IngressTestHelper.createPluginIngressWithRule(client, plugin, rule);
+
         ServerStatus mainServerStatus = new ServerStatus("main");
         mainServerStatus.setIngressName(ingress.getMetadata().getName());
-        mainServerStatus.putWebContext("plugin-xxx", "/path");
+
         EntandoAppPluginLink testLink = EntandoLinkTestHelper.createTestEntandoAppPluginLinkWithServerStatus(
                 client, mainServerStatus);
 
