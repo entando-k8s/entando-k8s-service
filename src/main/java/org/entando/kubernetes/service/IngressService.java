@@ -138,7 +138,7 @@ public class IngressService {
         private String retrieveAnnotationKeyFromPath(Map<String, String> annotations, String path) {
             return annotations.keySet().stream()
                     .filter(k -> StringUtils.equals(annotations.get(k), path))
-                    .findFirst().get();
+                    .findFirst().orElse(null);
         }
     }
 }

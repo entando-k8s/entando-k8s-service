@@ -112,7 +112,7 @@ public class EntandoPluginController {
         return ResponseEntity.accepted().build();
     }
 
-    @DeleteMapping(path = "/{name}/ingress", produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
+    @DeleteMapping(path = "/ingress/{name}", produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
     public ResponseEntity<Void> deletePluginIngressPath(@PathVariable("name") String pluginName,
             @RequestParam(value = "namespace", required = false) String namespace) {
 
@@ -183,7 +183,10 @@ public class EntandoPluginController {
         collection.add(linkTo(methodOn(EntandoPluginController.class).get(null, null)).withRel("plugin"));
         collection.add(linkTo(methodOn(EntandoPluginController.class).listInNamespace(null)).withRel("plugins-in-namespace"));
         collection.add(linkTo(methodOn(EntandoLinksController.class).listPluginLinks(null)).withRel("plugin-links"));
-        collection.add(linkTo(methodOn(EntandoPluginController.class).createOrReplace(null)).withRel("create-or-replace-plugin"));
+        collection.add(linkTo(methodOn(EntandoPluginController.class).deletePluginIngressPath(null, null)).withRel(
+                "delete-plugin-ingress-path"));
+        collection.add(linkTo(methodOn(EntandoPluginController.class).createOrReplace(null)).withRel(
+                "create-or-replace-plugin"));
     }
 
     private CollectionModel<EntityModel<EntandoPlugin>> getPluginCollectionModel(List<EntandoPlugin> plugins) {

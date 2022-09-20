@@ -152,7 +152,7 @@ class EntandoPluginControllerTest {
         assertThat(cl).isNotEmpty();
         assertThat(cl.stream().map(Link::getRel).map(LinkRelation::value).collect(Collectors.toList()))
                 .containsExactlyInAnyOrder("plugin", "plugins-in-namespace", "plugin-links",
-                        "create-or-replace-plugin");
+                        "delete-plugin-ingress-path", "create-or-replace-plugin");
         assertThat(cl.stream().filter(link -> !link.getRel().value().equals("create-or-replace-plugin"))
                 .allMatch(Link::isTemplated)).isTrue();
         assertThat(cl.getLink(LinkRelation.of("create-or-replace-plugin")).get().isTemplated()).isFalse();
@@ -299,7 +299,7 @@ class EntandoPluginControllerTest {
     void shouldReturnAcceptedWhenDeletingAPluginIngress() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(BASE_PLUGIN_ENDPOINT)
-                .pathSegment(TEST_PLUGIN_NAME, "ingress")
+                .pathSegment("ingress", TEST_PLUGIN_NAME)
                 .build().toUri();
 
         when(entandoPluginService.findByName(TEST_PLUGIN_NAME))
