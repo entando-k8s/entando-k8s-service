@@ -33,7 +33,7 @@ public class EntandoDeBundleTestHelper {
         EntandoDeBundleService.getBundleOperations(client).inNamespace(namespace).delete();
     }
 
-    public static EntandoDeBundleSpec getTestEntandoDeBundleSpec() {
+    public static EntandoDeBundleSpec getTestEntandoDeBundleSpec(String repoUrl) {
         return new EntandoDeBundleSpecBuilder()
                 .withNewDetails()
                 .withDescription("A bundle containing some demo components for Entando6")
@@ -45,24 +45,31 @@ public class EntandoDeBundleTestHelper {
                 .and()
                 .addNewTag()
                 .withVersion("0.0.1")
-                .withIntegrity("sha512-n4TEroSqg/sZlEGg2xj6RKNtl/t3ZROYdNd99/dl3UrzCUHvBrBxZ1rxQg/sl3kmIYgn3+ogbIFmUZYKWxG3Ag==")
+                .withIntegrity(
+                        "sha512-n4TEroSqg/sZlEGg2xj6RKNtl/t3ZROYdNd99/dl3UrzCUHvBrBxZ1rxQg/sl3kmIYgn3+ogbIFmUZYKWxG3Ag==")
                 .withShasum("4d80130d7d651176953b5ce470c3a6f297a70815")
-                .withTarball("http://localhost:8081/repository/npm-internal/inail_bundle/-/inail_bundle-0.0.1.tgz")
+                .withTarball(repoUrl)
                 .endTag()
                 .build();
     }
 
     public static EntandoDeBundle getTestEntandoDeBundle() {
+        String repoUrl = "http://localhost:8081/repository/npm-internal/inail_bundle/-/inail_bundle-0.0.1.tgz";
+        return getTestEntandoDeBundle(repoUrl);
+    }
+
+    public static EntandoDeBundle getTestEntandoDeBundle(String repoUrl) {
 
         EntandoDeBundle bundle = new EntandoDeBundleBuilder()
                 .withNewMetadata()
                 .withName(TEST_BUNDLE_NAME)
                 .withNamespace(TEST_BUNDLE_NAMESPACE)
                 .endMetadata()
-                .withSpec(getTestEntandoDeBundleSpec())
+                .withSpec(getTestEntandoDeBundleSpec(repoUrl))
                 .build();
 
         bundle.setApiVersion("entando.org/v1alpha1");
         return bundle;
     }
+
 }
