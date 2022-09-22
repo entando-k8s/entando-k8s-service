@@ -28,11 +28,15 @@ public class EntandoPluginResourceAssembler implements
         String pluginName = plugin.getMetadata().getName();
         String pluginNamespace = plugin.getMetadata().getNamespace();
         return Links.of(
-            linkTo(methodOn(EntandoPluginController.class).get(pluginName, pluginNamespace)).withSelfRel(),
-            linkTo(methodOn(EntandoPluginController.class).list()).withRel("plugins"),
-            linkTo(methodOn(EntandoPluginController.class).listInNamespace(pluginNamespace)).withRel("plugins-in-namespace"),
-            linkTo(methodOn(EntandoPluginController.class).getPluginIngress(pluginName, pluginNamespace)).withRel("plugin-ingress"),
-            linkTo(methodOn(ObservedNamespaceController.class).getByName(pluginNamespace)).withRel("namespace")
+                linkTo(methodOn(EntandoPluginController.class).get(pluginName, pluginNamespace)).withSelfRel(),
+                linkTo(methodOn(EntandoPluginController.class).list()).withRel("plugins"),
+                linkTo(methodOn(EntandoPluginController.class).listInNamespace(pluginNamespace)).withRel(
+                        "plugins-in-namespace"),
+                linkTo(methodOn(EntandoPluginController.class).getPluginIngress(pluginName, pluginNamespace)).withRel(
+                        "plugin-ingress"),
+                linkTo(methodOn(EntandoPluginController.class).deletePluginIngressPath(pluginName,
+                        pluginNamespace)).withRel("delete-plugin-ingress-path"),
+                linkTo(methodOn(ObservedNamespaceController.class).getByName(pluginNamespace)).withRel("namespace")
         );
     }
 }
