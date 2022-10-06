@@ -1,5 +1,6 @@
 package org.entando.kubernetes.controller;
 
+import static org.entando.kubernetes.util.EntandoDeBundleTestHelper.ECR_INSTALL_CAUSE;
 import static org.entando.kubernetes.util.EntandoDeBundleTestHelper.TEST_BUNDLE_NAME;
 import static org.entando.kubernetes.util.EntandoDeBundleTestHelper.TEST_BUNDLE_NAMESPACE;
 import static org.hamcrest.Matchers.hasKey;
@@ -20,7 +21,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
 import org.entando.kubernetes.EntandoKubernetesJavaApplication;
 import org.entando.kubernetes.config.TestKubernetesConfig;
@@ -119,6 +122,33 @@ class EntandoDeBundleControllerTest {
         mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(jsonPath("$._embedded.entandoDeBundles").isNotEmpty())
+                .andExpect(jsonPath("$._embedded.entandoDeBundles[0].metadata.name").value(TEST_BUNDLE_NAME))
+                .andExpect(jsonPath("$._embedded.entandoDeBundles[0].metadata.namespace").value(TEST_BUNDLE_NAMESPACE));
+
+        verify(entandoDeBundleService, times(1)).getAllInNamespace(TEST_BUNDLE_NAMESPACE);
+    }
+
+    @Test
+    void shouldReturnAListWithOneBundleWhenFilteringByType() throws Exception {
+        URI uri = UriComponentsBuilder
+                .fromUriString(EntandoDeBundleTestHelper.BASE_BUNDLES_ENDPOINT)
+                .queryParam("namespace", TEST_BUNDLE_NAMESPACE)
+                .queryParam("installCause", ECR_INSTALL_CAUSE)
+                .build().toUri();
+
+        EntandoDeBundle tempBundle = EntandoDeBundleTestHelper.getTestEntandoDeBundle();
+        EntandoDeBundle tempBundlePostInit = EntandoDeBundleTestHelper.getTestEntandoDeBundle();
+        tempBundlePostInit.getMetadata().setAnnotations(Map.of("ecr.entando.org/install-cause", ECR_INSTALL_CAUSE));
+        EntandoDeBundle tempBundleStandard = EntandoDeBundleTestHelper.getTestEntandoDeBundle();
+        tempBundleStandard.getMetadata().setAnnotations(Map.of("ecr.entando.org/install-cause", "standard"));
+
+        when(entandoDeBundleService.getAllInNamespace(anyString())).thenReturn(
+                Arrays.asList(tempBundle, tempBundlePostInit, tempBundleStandard));
+
+        mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().is2xxSuccessful())
+                .andExpect(jsonPath("$._embedded.entandoDeBundles").isNotEmpty())
+                .andExpect(jsonPath("$._embedded.entandoDeBundles.length()").value(1))
                 .andExpect(jsonPath("$._embedded.entandoDeBundles[0].metadata.name").value(TEST_BUNDLE_NAME))
                 .andExpect(jsonPath("$._embedded.entandoDeBundles[0].metadata.namespace").value(TEST_BUNDLE_NAMESPACE));
 

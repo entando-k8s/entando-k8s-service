@@ -13,6 +13,7 @@ public class EntandoDeBundleTestHelper {
     public static final String BASE_BUNDLES_ENDPOINT = "/bundles";
     public static final String TEST_BUNDLE_NAME = "my-bundle";
     public static final String TEST_BUNDLE_NAMESPACE = "test-namespace";
+    public static final String ECR_INSTALL_CAUSE = "postinit";
 
     public static EntandoDeBundle createTestEntandoDeBundle(KubernetesClient client) {
         EntandoDeBundle eb = getTestEntandoDeBundle();
