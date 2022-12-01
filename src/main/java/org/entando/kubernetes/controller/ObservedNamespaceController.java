@@ -51,9 +51,12 @@ public class ObservedNamespaceController {
     private void addNamespaceLinks(CollectionModel<EntityModel<ObservedNamespace>> nsCollection) {
         nsCollection.add(linkTo(methodOn(this.getClass()).getByName(null)).withRel("namespace"));
         nsCollection.add(linkTo(methodOn(EntandoAppController.class).listInNamespace(null)).withRel("apps-in-namespace"));
-        nsCollection.add(linkTo(methodOn(EntandoPluginController.class).listInNamespace(null)).withRel("plugins-in-namespace"));
-        nsCollection.add(linkTo(methodOn(EntandoDeBundleController.class).list(null)).withRel("bundles-in-namespace"));
-        nsCollection.add(linkTo(methodOn(EntandoLinksController.class).listInNamespace(null)).withRel("app-plugin-links-in-namespace"));
+        nsCollection.add(
+                linkTo(methodOn(EntandoPluginController.class).listInNamespace(null)).withRel("plugins-in-namespace"));
+        nsCollection.add(
+                linkTo(methodOn(EntandoDeBundleController.class).list(null, null)).withRel("bundles-in-namespace"));
+        nsCollection.add(linkTo(methodOn(EntandoLinksController.class).listInNamespace(null)).withRel(
+                "app-plugin-links-in-namespace"));
     }
 
 

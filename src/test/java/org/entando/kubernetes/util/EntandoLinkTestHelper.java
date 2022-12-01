@@ -8,6 +8,8 @@ import static org.entando.kubernetes.util.EntandoPluginTestHelper.TEST_PLUGIN_NA
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.internal.KubernetesDeserializer;
+import org.entando.kubernetes.model.common.EntandoCustomResourceStatus;
+import org.entando.kubernetes.model.common.ServerStatus;
 import org.entando.kubernetes.model.link.EntandoAppPluginLink;
 import org.entando.kubernetes.model.link.EntandoAppPluginLinkBuilder;
 import org.entando.kubernetes.service.EntandoLinkService;
@@ -16,6 +18,17 @@ public class EntandoLinkTestHelper {
 
     public static EntandoAppPluginLink createTestEntandoAppPluginLink(KubernetesClient client) {
         EntandoAppPluginLink el = getTestLink();
+        KubernetesDeserializer.registerCustomKind(el.getApiVersion(), el.getKind(), EntandoAppPluginLink.class);
+        return EntandoLinkService.getLinksOperations(client)
+                .inNamespace(el.getMetadata().getNamespace()).createOrReplace(el);
+    }
+
+    public static EntandoAppPluginLink createTestEntandoAppPluginLinkWithServerStatus(KubernetesClient client,
+            ServerStatus serverStatus) {
+        EntandoAppPluginLink el = getTestLink();
+        EntandoCustomResourceStatus status = new EntandoCustomResourceStatus();
+        status.putServerStatus(serverStatus);
+        el.setStatus(status);
         KubernetesDeserializer.registerCustomKind(el.getApiVersion(), el.getKind(), EntandoAppPluginLink.class);
         return EntandoLinkService.getLinksOperations(client)
                 .inNamespace(el.getMetadata().getNamespace()).createOrReplace(el);

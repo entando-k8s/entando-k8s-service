@@ -16,7 +16,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.entando.kubernetes.exception.BadRequestExceptionFactory;
 import org.entando.kubernetes.exception.NotFoundExceptionFactory;
+import org.entando.kubernetes.model.link.EntandoAppPluginLink;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
+import org.entando.kubernetes.service.EntandoLinkService;
 import org.entando.kubernetes.service.EntandoPluginService;
 import org.entando.kubernetes.service.IngressService;
 import org.entando.kubernetes.service.assembler.EntandoPluginResourceAssembler;
@@ -41,6 +43,7 @@ import org.zalando.problem.ThrowableProblem;
 @RequiredArgsConstructor
 public class EntandoPluginController {
 
+    private final EntandoLinkService linkService;
     private final EntandoPluginService pluginService;
     private final EntandoPluginResourceAssembler resourceAssembler;
     private final IngressService ingressService;
@@ -109,6 +112,24 @@ public class EntandoPluginController {
         return ResponseEntity.accepted().build();
     }
 
+    @DeleteMapping(path = "/ingress/{name}", produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
+    public ResponseEntity<Void> deletePluginIngressPath(@PathVariable("name") String pluginName,
+            @RequestParam(value = "namespace", required = false) String namespace) {
+
+        if (StringUtils.isEmpty(namespace)) {
+            log.info("Deleting ingress path for plugin with identifier {} from observed namespaces", pluginName);
+        } else {
+            log.info("Deleting ingress path for plugin with identifier {} from namespace {}", pluginName, namespace);
+        }
+
+        EntandoPlugin plugin = getEntandoPluginOrFail(pluginName, namespace);
+        List<EntandoAppPluginLink> links = linkService.getPluginLinks(plugin);
+        ingressService.deletePathFromIngressByEntandoPlugin(plugin, links);
+        
+        return ResponseEntity.accepted().build();
+    }
+
+
     @PostMapping(consumes = APPLICATION_JSON_VALUE, produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
     public ResponseEntity<EntityModel<EntandoPlugin>> create(
             @RequestBody EntandoPlugin entandoPlugin) {
@@ -162,7 +183,10 @@ public class EntandoPluginController {
         collection.add(linkTo(methodOn(EntandoPluginController.class).get(null, null)).withRel("plugin"));
         collection.add(linkTo(methodOn(EntandoPluginController.class).listInNamespace(null)).withRel("plugins-in-namespace"));
         collection.add(linkTo(methodOn(EntandoLinksController.class).listPluginLinks(null)).withRel("plugin-links"));
-        collection.add(linkTo(methodOn(EntandoPluginController.class).createOrReplace(null)).withRel("create-or-replace-plugin"));
+        collection.add(linkTo(methodOn(EntandoPluginController.class).deletePluginIngressPath(null, null)).withRel(
+                "delete-plugin-ingress-path"));
+        collection.add(linkTo(methodOn(EntandoPluginController.class).createOrReplace(null)).withRel(
+                "create-or-replace-plugin"));
     }
 
     private CollectionModel<EntityModel<EntandoPlugin>> getPluginCollectionModel(List<EntandoPlugin> plugins) {

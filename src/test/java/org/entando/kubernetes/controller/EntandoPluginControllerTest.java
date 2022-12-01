@@ -31,8 +31,10 @@ import java.util.stream.Collectors;
 import org.entando.kubernetes.EntandoKubernetesJavaApplication;
 import org.entando.kubernetes.config.TestKubernetesConfig;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
+import org.entando.kubernetes.service.EntandoLinkService;
 import org.entando.kubernetes.service.EntandoPluginService;
 import org.entando.kubernetes.service.IngressService;
+import org.entando.kubernetes.util.EntandoLinkTestHelper;
 import org.entando.kubernetes.util.EntandoPluginTestHelper;
 import org.entando.kubernetes.util.HalUtils;
 import org.entando.kubernetes.util.IngressTestHelper;
@@ -77,6 +79,9 @@ class EntandoPluginControllerTest {
 
     @MockBean
     private EntandoPluginService entandoPluginService;
+
+    @MockBean
+    private EntandoLinkService entandoLinkService;
 
     @MockBean
     private IngressService ingressService;
@@ -147,7 +152,7 @@ class EntandoPluginControllerTest {
         assertThat(cl).isNotEmpty();
         assertThat(cl.stream().map(Link::getRel).map(LinkRelation::value).collect(Collectors.toList()))
                 .containsExactlyInAnyOrder("plugin", "plugins-in-namespace", "plugin-links",
-                        "create-or-replace-plugin");
+                        "delete-plugin-ingress-path", "create-or-replace-plugin");
         assertThat(cl.stream().filter(link -> !link.getRel().value().equals("create-or-replace-plugin"))
                 .allMatch(Link::isTemplated)).isTrue();
         assertThat(cl.getLink(LinkRelation.of("create-or-replace-plugin")).get().isTemplated()).isFalse();
@@ -284,14 +289,35 @@ class EntandoPluginControllerTest {
                 .thenReturn(Optional.of(getTestEntandoPlugin()));
 
         mvc.perform(delete(uri)
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isAccepted());
+
+    }
+
+    @Test
+    void shouldReturnAcceptedWhenDeletingAPluginIngress() throws Exception {
+        URI uri = UriComponentsBuilder
+                .fromUriString(BASE_PLUGIN_ENDPOINT)
+                .pathSegment("ingress", TEST_PLUGIN_NAME)
+                .build().toUri();
+
+        when(entandoPluginService.findByName(TEST_PLUGIN_NAME))
+                .thenReturn(Optional.of(getTestEntandoPlugin()));
+
+        when(entandoLinkService.getPluginLinks(any()))
+                .thenReturn(Collections.singletonList(EntandoLinkTestHelper.getTestLink()));
+
+        mvc.perform(delete(uri)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isAccepted());
 
     }
 
     /**
-     * forces the validation to expect the same response for a plugin create action and a plugin createOrReplace action.
+     * forces the validation to expect the same response for a plugin create action and a plugin createOrReplace
+     * action.
      *
      * @param resultActions the ResultActions on which assert
      */
