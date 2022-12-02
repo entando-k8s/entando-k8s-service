@@ -25,10 +25,13 @@ public class EntandoDeBundleResourceAssembler implements
     private Links getLinks(EntandoDeBundle bundle) {
         String bundleName = bundle.getMetadata().getName();
         String bundleNamespace = bundle.getMetadata().getNamespace();
+        String repoUrl =
+                (bundle.getSpec().getTags() != null && !bundle.getSpec().getTags().isEmpty()) ? bundle.getSpec()
+                        .getTags().get(0).getTarball() : null;
         return Links.of(
-            linkTo(methodOn(EntandoDeBundleController.class).get(bundleName,bundleNamespace)).withSelfRel(),
-            linkTo(methodOn(EntandoDeBundleController.class).list(bundleNamespace)).withRel("bundles"),
-            linkTo(methodOn(ObservedNamespaceController.class).getByName(bundleNamespace)).withRel("namespace")
+                linkTo(methodOn(EntandoDeBundleController.class).get(bundleName, bundleNamespace)).withSelfRel(),
+                linkTo(methodOn(EntandoDeBundleController.class).list(bundleNamespace, repoUrl)).withRel("bundles"),
+                linkTo(methodOn(ObservedNamespaceController.class).getByName(bundleNamespace)).withRel("namespace")
         );
     }
 }

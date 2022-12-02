@@ -81,8 +81,10 @@ class ObservedNamespaceControllerTest {
     void shouldReturnLinksToEntandoCustomResourceInNamespace() throws Exception {
         mvc.perform(get(URI.create("/namespaces/" + TEST_PLUGIN_NAMESPACE)).accept(HAL_JSON_VALUE))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$._links.plugins-in-namespace.href").value(endsWith("/plugins?namespace=" + TEST_PLUGIN_NAMESPACE)))
-                .andExpect(jsonPath("$._links.bundles-in-namespace.href").value(endsWith("/bundles?namespace=" + TEST_PLUGIN_NAMESPACE)))
+                .andExpect(jsonPath("$._links.plugins-in-namespace.href").value(
+                        endsWith("/plugins?namespace=" + TEST_PLUGIN_NAMESPACE)))
+                .andExpect(jsonPath("$._links.bundles-in-namespace.href").value(
+                        endsWith("/bundles?namespace=" + TEST_PLUGIN_NAMESPACE + "{&repoUrl}")))
                 .andExpect(jsonPath("$._links.apps-in-namespace.href").value(endsWith("/apps?namespace=" + TEST_PLUGIN_NAMESPACE)))
                 .andExpect(jsonPath("$._links.app-plugin-links-in-namespace.href")
                         .value(endsWith("/app-plugin-links?namespace=" + TEST_PLUGIN_NAMESPACE)));

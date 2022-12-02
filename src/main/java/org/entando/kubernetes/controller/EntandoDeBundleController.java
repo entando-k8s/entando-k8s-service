@@ -39,16 +39,25 @@ public class EntandoDeBundleController {
 
     @GetMapping(produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
     public ResponseEntity<CollectionModel<EntityModel<EntandoDeBundle>>> list(
-            @RequestParam(value = "namespace", required = false) String namespace) {
+            @RequestParam(value = "namespace", required = false) String namespace,
+            @RequestParam(value = "repoUrl", required = false) String repoUrl) {
 
-        log.info("Listing available entando-de-bundles in {} namespace", StringUtils.isEmpty(namespace) ? "all" :
-                namespace);
+        log.info("Listing available entando-de-bundles in {} namespace with repoUrl:'{}'",
+                StringUtils.isEmpty(namespace) ? "all" :
+                        namespace, repoUrl);
 
         List<EntandoDeBundle> deBundles = ofNullable(namespace)
                 .map(bundleService::getAllInNamespace)
                 .orElseGet(bundleService::getAll);
 
-        return ResponseEntity.ok(getCollectionWithLinks(deBundles));
+        return ResponseEntity.ok(getCollectionWithLinks(
+                ofNullable(repoUrl).map(r ->
+                                deBundles.stream().filter(b -> bundleContainsRepoUrl(b, r)).collect(Collectors.toList()))
+                        .orElse(deBundles)));
+    }
+
+    private boolean bundleContainsRepoUrl(EntandoDeBundle bundle, String repoUrl) {
+        return bundle.getSpec().getTags().stream().anyMatch(t -> StringUtils.equals(repoUrl, t.getTarball()));
     }
 
     @GetMapping(path = "/{name}", produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
@@ -92,7 +101,7 @@ public class EntandoDeBundleController {
     private Links getCollectionLinks() {
         return Links.of(
                 linkTo(methodOn(EntandoDeBundleController.class).get(null, null)).withRel("bundle"),
-                linkTo(methodOn(EntandoDeBundleController.class).list(null)).withRel("bundles-list")
+                linkTo(methodOn(EntandoDeBundleController.class).list(null, null)).withRel("bundles-list")
         );
     }
 

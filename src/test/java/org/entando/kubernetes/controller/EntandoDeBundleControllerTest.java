@@ -20,6 +20,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
 import org.entando.kubernetes.EntandoKubernetesJavaApplication;
@@ -100,6 +101,30 @@ class EntandoDeBundleControllerTest {
                 .andExpect(jsonPath("$._embedded.entandoDeBundles").isNotEmpty())
                 .andExpect(jsonPath("$._embedded.entandoDeBundles[0].metadata.name").value(TEST_BUNDLE_NAME))
                 .andExpect(jsonPath("$._embedded.entandoDeBundles[0].metadata.namespace").value(TEST_BUNDLE_NAMESPACE))
+                .andExpect(jsonPath("$._links", hasKey("bundle")))
+                .andExpect(jsonPath("$._links", hasKey("bundles-list")));
+
+        verify(entandoDeBundleService, times(1)).getAll();
+    }
+
+    @Test
+    void shouldReturnAListFilteredByRepoUrl() throws Exception {
+        final String repoUrl = "https://github.com/entando-samples/standard-demo-content-bundle.git";
+        URI uri = UriComponentsBuilder
+                .fromUriString(EntandoDeBundleTestHelper.BASE_BUNDLES_ENDPOINT)
+                .queryParam("repoUrl", Optional.of(repoUrl))
+                .build().toUri();
+
+        EntandoDeBundle tempBundle1 = EntandoDeBundleTestHelper.getTestEntandoDeBundle();
+        EntandoDeBundle tempBundle2 = EntandoDeBundleTestHelper.getTestEntandoDeBundle(repoUrl);
+        when(entandoDeBundleService.getAll()).thenReturn(Arrays.asList(tempBundle1, tempBundle2));
+
+        mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().is2xxSuccessful())
+                .andExpect(jsonPath("$._embedded.entandoDeBundles").isNotEmpty())
+                .andExpect(jsonPath("$._embedded.entandoDeBundles[0].metadata.name").value(TEST_BUNDLE_NAME))
+                .andExpect(jsonPath("$._embedded.entandoDeBundles[0].metadata.namespace").value(TEST_BUNDLE_NAMESPACE))
+                .andExpect(jsonPath("$._embedded.entandoDeBundles[0].spec.tags[0].tarball").value(repoUrl))
                 .andExpect(jsonPath("$._links", hasKey("bundle")))
                 .andExpect(jsonPath("$._links", hasKey("bundles-list")));
 

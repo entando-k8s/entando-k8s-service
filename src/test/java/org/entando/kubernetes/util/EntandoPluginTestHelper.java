@@ -30,6 +30,26 @@ public class EntandoPluginTestHelper {
                 .withReplicas(1)
                 .withHealthCheckPath("/management/health")
                 .withIngressPath("/dummyPlugin")
+                .withCustomIngressPath("/dummyCustomPath")
+                .withSecurityLevel(PluginSecurityLevel.LENIENT)
+                .withIngressHostName("dummyPlugin.test")
+                .endSpec()
+                .build();
+
+        entandoPlugin.setMetadata(new ObjectMetaBuilder()
+                .withName(TEST_PLUGIN_NAME)
+                .withNamespace(TEST_PLUGIN_NAMESPACE)
+                .build());
+        entandoPlugin.setApiVersion("entando.org/v1alpha1");
+        return entandoPlugin;
+    }
+
+    public static EntandoPlugin getTestEntandoPluginNoIngressPath() {
+        EntandoPlugin entandoPlugin = new EntandoPluginBuilder().withNewSpec()
+                .withImage("entando/entando-avatar-plugin")
+                .withDbms(DbmsVendor.POSTGRESQL)
+                .withReplicas(1)
+                .withHealthCheckPath("/management/health")
                 .withSecurityLevel(PluginSecurityLevel.LENIENT)
                 .withIngressHostName("dummyPlugin.test")
                 .endSpec()
