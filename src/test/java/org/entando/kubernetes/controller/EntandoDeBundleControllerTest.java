@@ -2,7 +2,6 @@ package org.entando.kubernetes.controller;
 
 import static org.entando.kubernetes.util.EntandoDeBundleTestHelper.TEST_BUNDLE_NAME;
 import static org.entando.kubernetes.util.EntandoDeBundleTestHelper.TEST_BUNDLE_NAMESPACE;
-import static org.hamcrest.Matchers.hasKey;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
@@ -82,7 +81,7 @@ class EntandoDeBundleControllerTest {
 
         mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is2xxSuccessful())
-                .andExpect(content().json("{}"));
+                .andExpect(content().json("[]"));
 
         verify(entandoDeBundleService, times(1)).getAll();
     }
@@ -98,11 +97,9 @@ class EntandoDeBundleControllerTest {
 
         mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is2xxSuccessful())
-                .andExpect(jsonPath("$._embedded.entandoDeBundles").isNotEmpty())
-                .andExpect(jsonPath("$._embedded.entandoDeBundles[0].metadata.name").value(TEST_BUNDLE_NAME))
-                .andExpect(jsonPath("$._embedded.entandoDeBundles[0].metadata.namespace").value(TEST_BUNDLE_NAMESPACE))
-                .andExpect(jsonPath("$._links", hasKey("bundle")))
-                .andExpect(jsonPath("$._links", hasKey("bundles-list")));
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$.[0].metadata.name").value(TEST_BUNDLE_NAME))
+                .andExpect(jsonPath("$.[0].metadata.namespace").value(TEST_BUNDLE_NAMESPACE));
 
         verify(entandoDeBundleService, times(1)).getAll();
     }
@@ -121,12 +118,11 @@ class EntandoDeBundleControllerTest {
 
         mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is2xxSuccessful())
-                .andExpect(jsonPath("$._embedded.entandoDeBundles").isNotEmpty())
-                .andExpect(jsonPath("$._embedded.entandoDeBundles[0].metadata.name").value(TEST_BUNDLE_NAME))
-                .andExpect(jsonPath("$._embedded.entandoDeBundles[0].metadata.namespace").value(TEST_BUNDLE_NAMESPACE))
-                .andExpect(jsonPath("$._embedded.entandoDeBundles[0].spec.tags[0].tarball").value(repoUrl))
-                .andExpect(jsonPath("$._links", hasKey("bundle")))
-                .andExpect(jsonPath("$._links", hasKey("bundles-list")));
+                .andDo(print())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$.[0].metadata.name").value(TEST_BUNDLE_NAME))
+                .andExpect(jsonPath("$.[0].metadata.namespace").value(TEST_BUNDLE_NAMESPACE))
+                .andExpect(jsonPath("$.[0].spec.tags[0].tarball").value(repoUrl));
 
         verify(entandoDeBundleService, times(1)).getAll();
     }
@@ -143,9 +139,9 @@ class EntandoDeBundleControllerTest {
 
         mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is2xxSuccessful())
-                .andExpect(jsonPath("$._embedded.entandoDeBundles").isNotEmpty())
-                .andExpect(jsonPath("$._embedded.entandoDeBundles[0].metadata.name").value(TEST_BUNDLE_NAME))
-                .andExpect(jsonPath("$._embedded.entandoDeBundles[0].metadata.namespace").value(TEST_BUNDLE_NAMESPACE));
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$.[0].metadata.name").value(TEST_BUNDLE_NAME))
+                .andExpect(jsonPath("$.[0].metadata.namespace").value(TEST_BUNDLE_NAMESPACE));
 
         verify(entandoDeBundleService, times(1)).getAllInNamespace(TEST_BUNDLE_NAMESPACE);
     }

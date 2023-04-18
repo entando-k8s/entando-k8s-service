@@ -1,9 +1,7 @@
 package org.entando.kubernetes.controller;
 
 import static org.entando.kubernetes.util.EntandoPluginTestHelper.TEST_PLUGIN_NAMESPACE;
-import static org.hamcrest.CoreMatchers.endsWith;
 import static org.mockito.Mockito.mock;
-import static org.springframework.hateoas.MediaTypes.HAL_JSON_VALUE;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -23,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -59,43 +58,29 @@ class ObservedNamespaceControllerTest {
 
     @Test
     void shouldReturnOkResponseAndLinks() throws Exception {
-        mvc.perform(get(URI.create("/namespaces")).accept(HAL_JSON_VALUE))
+        mvc.perform(get(URI.create("/namespaces")).accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.observedNamespaces").exists())
-                .andExpect(jsonPath("$._links.plugins-in-namespace").exists())
-                .andExpect(jsonPath("$._links.apps-in-namespace").exists())
-                .andExpect(jsonPath("$._links.bundles-in-namespace").exists())
-                .andExpect(jsonPath("$._links.app-plugin-links-in-namespace").exists());
+                .andExpect(jsonPath("$.length()").value(2));
     }
 
     @Test
     void shouldReturnSelfLink() throws Exception {
-        mvc.perform(get("/namespaces/{name}", TEST_PLUGIN_NAMESPACE).accept(HAL_JSON_VALUE))
+        mvc.perform(get("/namespaces/{name}", TEST_PLUGIN_NAMESPACE).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value(TEST_PLUGIN_NAMESPACE))
-                .andExpect(jsonPath("$._links.self").exists());
+                .andExpect(jsonPath("$.name").value(TEST_PLUGIN_NAMESPACE));
     }
 
     @Test
     void shouldReturnLinksToEntandoCustomResourceInNamespace() throws Exception {
-        mvc.perform(get(URI.create("/namespaces/" + TEST_PLUGIN_NAMESPACE)).accept(HAL_JSON_VALUE))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$._links.plugins-in-namespace.href").value(
-                        endsWith("/plugins?namespace=" + TEST_PLUGIN_NAMESPACE)))
-                .andExpect(jsonPath("$._links.bundles-in-namespace.href").value(
-                        endsWith("/bundles?namespace=" + TEST_PLUGIN_NAMESPACE + "{&repoUrl}")))
-                .andExpect(jsonPath("$._links.apps-in-namespace.href").value(endsWith("/apps?namespace=" + TEST_PLUGIN_NAMESPACE)))
-                .andExpect(jsonPath("$._links.app-plugin-links-in-namespace.href")
-                        .value(endsWith("/app-plugin-links?namespace=" + TEST_PLUGIN_NAMESPACE)));
-
+        mvc.perform(get(URI.create("/namespaces/" + TEST_PLUGIN_NAMESPACE)).accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk());
     }
 
     @Test
     void shouldThrowExceptionForInvalidNamespaceName() throws Exception {
-
         String invalidNamespace = "Access-Control-Allow-Origin: *";
-        mvc.perform(get("/namespaces/{name}", invalidNamespace).accept(HAL_JSON_VALUE))
+        mvc.perform(get("/namespaces/{name}", invalidNamespace).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
     }
 }

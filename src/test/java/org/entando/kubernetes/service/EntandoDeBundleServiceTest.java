@@ -2,7 +2,6 @@ package org.entando.kubernetes.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.entando.kubernetes.util.EntandoDeBundleTestHelper.TEST_BUNDLE_NAMESPACE;
 import static org.entando.kubernetes.util.EntandoDeBundleTestHelper.getTestEntandoDeBundle;
 
@@ -21,7 +20,6 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Tags;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.migrationsupport.rules.EnableRuleMigrationSupport;
-import org.webjars.NotFoundException;
 import org.zalando.problem.ThrowableProblem;
 
 @Tags({@Tag("component"), @Tag("in-process")})

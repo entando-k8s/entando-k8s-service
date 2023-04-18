@@ -1,8 +1,5 @@
 package org.entando.kubernetes.controller;
 
-import static org.springframework.hateoas.MediaTypes.HAL_JSON_VALUE;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
-import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
@@ -10,7 +7,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
@@ -25,10 +21,6 @@ import org.entando.kubernetes.service.EntandoAppService;
 import org.entando.kubernetes.service.EntandoLinkService;
 import org.entando.kubernetes.service.EntandoPluginService;
 import org.entando.kubernetes.service.IngressService;
-import org.entando.kubernetes.service.assembler.EntandoAppPluginLinkResourceAssembler;
-import org.entando.kubernetes.service.assembler.EntandoAppResourceAssembler;
-import org.springframework.hateoas.CollectionModel;
-import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -50,65 +42,57 @@ public class EntandoAppController {
 
     private static final String UNDEFINED = "undefined";
     private final EntandoAppService appService;
-    private final EntandoAppResourceAssembler appResourceAssembler;
-    private final EntandoAppPluginLinkResourceAssembler linkResourceAssembler;
     private final ObservedNamespaces observedNamespaces;
     private final EntandoLinkService linkService;
     private final IngressService ingressService;
     private final EntandoPluginService pluginService;
 
-    @GetMapping(produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
-    public ResponseEntity<CollectionModel<EntityModel<EntandoApp>>> list() {
+    @GetMapping(produces = {APPLICATION_JSON_VALUE})
+    public ResponseEntity<List<EntandoApp>> list() {
         log.info("Listing apps from all observed namespaces");
         List<EntandoApp> entandoApps = appService.getAll();
-        CollectionModel<EntityModel<EntandoApp>> collection = getAppsCollectionModel(entandoApps);
-        addAppCollectionLinks(collection);
-        return ResponseEntity.ok(collection);
+        return ResponseEntity.ok(entandoApps);
     }
 
 
-    @GetMapping(produces = {APPLICATION_JSON_VALUE,
-            HAL_JSON_VALUE}, params = "namespace")
-    public ResponseEntity<CollectionModel<EntityModel<EntandoApp>>> listInNamespace(@RequestParam String namespace) {
+    @GetMapping(produces = {APPLICATION_JSON_VALUE}, params = "namespace")
+    public ResponseEntity<List<EntandoApp>> listInNamespace(@RequestParam String namespace) {
         log.info("Listing apps");
         List<EntandoApp> entandoApps = appService.getAllInNamespace(namespace);
-        CollectionModel<EntityModel<EntandoApp>> collection = getAppsCollectionModel(entandoApps);
-        addAppCollectionLinks(collection);
-        return ResponseEntity.ok(collection);
+        return ResponseEntity.ok(entandoApps);
     }
 
-    @GetMapping(path = "/{name}", produces = {APPLICATION_JSON_VALUE,
-            HAL_JSON_VALUE})
-    public ResponseEntity<EntityModel<EntandoApp>> get(@PathVariable("name") String appName) {
+    @GetMapping(path = "/{name}", produces = {APPLICATION_JSON_VALUE})
+    public ResponseEntity<EntandoApp> get(@PathVariable("name") String appName) {
         log.debug("Requesting app with name {}", appName);
         EntandoApp entandoApp = getEntandoAppOrFail(appName);
-        return ResponseEntity.ok(appResourceAssembler.toModel(entandoApp));
+        return ResponseEntity.ok(entandoApp);
     }
 
-    @GetMapping(path = "/{name}/ingress", produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
-    public ResponseEntity<EntityModel<Ingress>> getAppIngress(@PathVariable("name") String appName) {
+    @GetMapping(path = "/{name}/ingress", produces = {APPLICATION_JSON_VALUE})
+    public ResponseEntity<Ingress> getAppIngress(@PathVariable("name") String appName) {
         log.debug("Requesting app with name {}", appName);
         EntandoApp entandoApp = getEntandoAppOrFail(appName);
         Ingress appIngress = getEntandoAppIngressOrFail(entandoApp);
-        return ResponseEntity.ok(new EntityModel<>(appIngress));
+        return ResponseEntity.ok(appIngress);
     }
 
     @PostMapping(path = "/{name}/links", consumes = APPLICATION_JSON_VALUE, produces = {
-            APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
-    public ResponseEntity<EntityModel<EntandoAppPluginLink>> linkToPlugin(
+            APPLICATION_JSON_VALUE})
+    public ResponseEntity<EntandoAppPluginLink> linkToPlugin(
             @PathVariable("name") String appName,
             @RequestBody EntandoPlugin entandoPlugin) {
         EntandoApp entandoApp = getEntandoAppOrFail(appName);
         EntandoPlugin plugin = createPlugin(entandoPlugin);
         EntandoAppPluginLink newLink = linkService.buildBetweenAppAndPlugin(entandoApp, plugin);
         EntandoAppPluginLink deployedLink = linkService.deploy(newLink);
-        return ResponseEntity.status(HttpStatus.CREATED).body(linkResourceAssembler.toModel(deployedLink));
+        return ResponseEntity.status(HttpStatus.CREATED).body(deployedLink);
     }
 
     @Operation(description = "Returns application installation status")
     @ApiResponse(responseCode = "200", description = "OK with status phase, used 'undefined' for error")
     @ApiResponse(responseCode = "404", description = "Application by name not found")
-    @GetMapping(path = "/{name}/status", produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
+    @GetMapping(path = "/{name}/status", produces = {APPLICATION_JSON_VALUE})
     public ResponseEntity<ApplicationStatus> getAppStatus(@PathVariable("name") String appName) {
         log.debug("Requesting deployment status of app with name {}", appName);
         EntandoDeploymentPhase status = null;
@@ -146,17 +130,6 @@ public class EntandoAppController {
                 .orElse(observedNamespaces.getCurrentNamespace());
         newPlugin.getMetadata().setNamespace(pluginNamespace);
         return pluginService.deploy(newPlugin, EntandoPluginService.CREATE_OR_REPLACE);
-    }
-
-    private void addAppCollectionLinks(CollectionModel<EntityModel<EntandoApp>> collection) {
-        collection.add(linkTo(methodOn(EntandoAppController.class).get(null)).withRel("app"));
-        collection.add(linkTo(methodOn(EntandoLinksController.class).listAppLinks(null)).withRel("app-links"));
-        collection.add(linkTo(methodOn(EntandoAppController.class).listInNamespace(null)).withRel("apps-in-namespace"));
-    }
-
-    private CollectionModel<EntityModel<EntandoApp>> getAppsCollectionModel(List<EntandoApp> entandoApps) {
-        return new CollectionModel<>(
-                entandoApps.stream().map(appResourceAssembler::toModel).collect(Collectors.toList()));
     }
 
     @Data

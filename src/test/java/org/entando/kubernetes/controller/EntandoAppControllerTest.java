@@ -1,11 +1,9 @@
 package org.entando.kubernetes.controller;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.entando.kubernetes.util.EntandoAppTestHelper.TEST_APP_NAME;
 import static org.entando.kubernetes.util.EntandoAppTestHelper.TEST_APP_NAMESPACE;
 import static org.entando.kubernetes.util.EntandoPluginTestHelper.TEST_PLUGIN_NAME;
 import static org.entando.kubernetes.util.EntandoPluginTestHelper.TEST_PLUGIN_NAMESPACE;
-import static org.hamcrest.CoreMatchers.endsWith;
 import static org.hamcrest.Matchers.allOf;
 import static org.hamcrest.Matchers.hasEntry;
 import static org.junit.Assert.assertEquals;
@@ -23,16 +21,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import java.net.URI;
 import java.util.Collections;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import org.entando.kubernetes.EntandoKubernetesJavaApplication;
 import org.entando.kubernetes.config.TestKubernetesConfig;
-import org.entando.kubernetes.controller.EntandoAppController.ApplicationStatus;
 import org.entando.kubernetes.model.app.EntandoApp;
 import org.entando.kubernetes.model.common.EntandoCustomResourceStatus;
 import org.entando.kubernetes.model.common.EntandoDeploymentPhase;
@@ -45,7 +40,6 @@ import org.entando.kubernetes.service.EntandoPluginService;
 import org.entando.kubernetes.service.IngressService;
 import org.entando.kubernetes.util.EntandoAppTestHelper;
 import org.entando.kubernetes.util.EntandoPluginTestHelper;
-import org.entando.kubernetes.util.HalUtils;
 import org.entando.kubernetes.util.IngressTestHelper;
 import org.hamcrest.core.StringContains;
 import org.junit.jupiter.api.BeforeEach;
@@ -56,11 +50,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.hateoas.CollectionModel;
-import org.springframework.hateoas.EntityModel;
-import org.springframework.hateoas.Link;
-import org.springframework.hateoas.LinkRelation;
-import org.springframework.hateoas.Links;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
@@ -119,7 +108,7 @@ class EntandoAppControllerTest {
 
         mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is2xxSuccessful())
-                .andExpect(content().json("{}"));
+                .andExpect(content().json("[]"));
 
         verify(entandoAppService, times(1)).getAll();
     }
@@ -136,9 +125,9 @@ class EntandoAppControllerTest {
 
         mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is2xxSuccessful())
-                .andExpect(jsonPath("$._embedded.entandoApps").isNotEmpty())
-                .andExpect(jsonPath("$._embedded.entandoApps[0].metadata.name").value(TEST_APP_NAME))
-                .andExpect(jsonPath("$._embedded.entandoApps[0].metadata.namespace").value(TEST_APP_NAMESPACE));
+                .andExpect(jsonPath("$").isNotEmpty())
+                .andExpect(jsonPath("$.[0].metadata.name").value(TEST_APP_NAME))
+                .andExpect(jsonPath("$.[0].metadata.namespace").value(TEST_APP_NAMESPACE));
 
         verify(entandoAppService, times(1)).getAllInNamespace(TEST_APP_NAMESPACE);
     }
@@ -156,6 +145,7 @@ class EntandoAppControllerTest {
                 .andDo(print())
                 .andExpect(status().is2xxSuccessful())
                 .andReturn();
+        /*
         CollectionModel<EntityModel<EntandoApp>> appCollection =
                 HalUtils.halMapper().readValue(
                         result.getResponse().getContentAsString(),
@@ -167,6 +157,7 @@ class EntandoAppControllerTest {
         assertThat(cl.stream().map(Link::getRel).map(LinkRelation::value).collect(Collectors.toList()))
                 .containsExactlyInAnyOrder("app", "apps-in-namespace", "app-links");
         assertThat(cl.stream().allMatch(Link::isTemplated)).isTrue();
+        */
     }
 
     @Test
@@ -200,14 +191,8 @@ class EntandoAppControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(EntandoDeploymentPhase.SUCCESSFUL.toValue()))
                 .andReturn();
-        ApplicationStatus appStatus =
-                HalUtils.halMapper().readValue(
-                        result.getResponse().getContentAsString(),
-                        new TypeReference<ApplicationStatus>() {
-                        }
-                );
-        assertThat(appStatus.getStatus()).isEqualTo(EntandoDeploymentPhase.SUCCESSFUL.toValue());
 
     }
 
@@ -230,15 +215,8 @@ class EntandoAppControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value(UNDEFINED))
                 .andReturn();
-
-        ApplicationStatus appStatus =
-                HalUtils.halMapper().readValue(
-                        result.getResponse().getContentAsString(),
-                        new TypeReference<ApplicationStatus>() {
-                        }
-                );
-        assertThat(appStatus.getStatus()).isEqualTo(UNDEFINED);
 
         when(entandoAppService.findByNameAndDefaultNamespace(TEST_APP_NAME)).thenReturn(Optional.empty());
         mvc.perform(get(uri)
@@ -326,11 +304,7 @@ class EntandoAppControllerTest {
                         hasEntry("entandoPluginNamespace", TEST_PLUGIN_NAMESPACE),
                         hasEntry("entandoPluginName", TEST_PLUGIN_NAME),
                         hasEntry("entandoAppName", TEST_APP_NAME)
-                )))
-                .andExpect(jsonPath("$._links").exists())
-                .andExpect(jsonPath("$._links.app.href").value(endsWith("apps/my-app")))
-                .andExpect(jsonPath("$._links.plugin.href").value(
-                        endsWith("plugins/" + TEST_PLUGIN_NAME + "?namespace=" + TEST_PLUGIN_NAMESPACE)));
+                )));
 
         // ensure entandoPluginService is asked to deploy the plugin
         ArgumentCaptor<EntandoPlugin> argCapt = ArgumentCaptor.forClass(EntandoPlugin.class);

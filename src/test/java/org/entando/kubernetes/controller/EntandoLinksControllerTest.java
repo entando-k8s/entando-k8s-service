@@ -1,6 +1,5 @@
 package org.entando.kubernetes.controller;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.entando.kubernetes.util.EntandoAppTestHelper.TEST_APP_NAME;
 import static org.entando.kubernetes.util.EntandoAppTestHelper.TEST_APP_NAMESPACE;
 import static org.entando.kubernetes.util.EntandoPluginTestHelper.TEST_PLUGIN_NAME;
@@ -14,20 +13,18 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.when;
-import static org.springframework.hateoas.MediaTypes.HAL_JSON;
-import static org.springframework.hateoas.MediaTypes.HAL_JSON_VALUE;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.Collections;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import org.entando.kubernetes.EntandoKubernetesJavaApplication;
 import org.entando.kubernetes.config.TestKubernetesConfig;
 import org.entando.kubernetes.model.app.EntandoApp;
@@ -41,7 +38,6 @@ import org.entando.kubernetes.service.EntandoPluginService;
 import org.entando.kubernetes.util.EntandoAppTestHelper;
 import org.entando.kubernetes.util.EntandoLinkTestHelper;
 import org.entando.kubernetes.util.EntandoPluginTestHelper;
-import org.entando.kubernetes.util.HalUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -51,12 +47,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.hateoas.CollectionModel;
-import org.springframework.hateoas.EntityModel;
-import org.springframework.hateoas.Link;
-import org.springframework.hateoas.LinkRelation;
-import org.springframework.hateoas.Links;
-import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
@@ -102,10 +92,11 @@ class EntandoLinksControllerTest {
     void shouldReturnListOfLinks() throws Exception {
         when(entandoLinkService.getAll()).thenReturn(Collections.singletonList(EntandoLinkTestHelper.getTestLink()));
 
-        MvcResult result = mvc.perform(get("/app-plugin-links").accept(MediaTypes.HAL_JSON_VALUE))
+        MvcResult result = mvc.perform(get("/app-plugin-links").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.entandoAppPluginLinks.length()").value(1))
+                .andExpect(jsonPath("$.length()").value(1))
                 .andReturn();
+        /*
         CollectionModel<EntityModel<EntandoAppPluginLink>> linkCollection =
                 HalUtils.halMapper().readValue(
                         result.getResponse().getContentAsString(),
@@ -123,6 +114,7 @@ class EntandoLinksControllerTest {
                         "delete",
                         "app-plugin-links-in-namespace");
         assertThat(cl.stream().allMatch(Link::isTemplated)).isTrue();
+        */
     }
 
     @Test
@@ -131,9 +123,9 @@ class EntandoLinksControllerTest {
         when(entandoLinkService.getAllInNamespace(el.getMetadata().getNamespace())).thenReturn(Collections.singletonList(el));
 
         mvc.perform(get("/app-plugin-links?namespace={namespace}", el.getMetadata().getNamespace())
-                .accept(MediaTypes.HAL_JSON_VALUE))
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$._embedded.entandoAppPluginLinks.length()").value(1));
+                .andExpect(jsonPath("$.length()").value(1));
     }
 
     @Test
@@ -143,10 +135,11 @@ class EntandoLinksControllerTest {
         when(entandoLinkService.findByName(name)).thenReturn(Optional.of(el));
 
         MvcResult result = mvc.perform(get("/app-plugin-links/{name}", name)
-                .accept(MediaTypes.HAL_JSON_VALUE))
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.metadata.name").value(name))
                 .andReturn();
+        /*
         EntityModel<EntandoAppPluginLink> link =
                 HalUtils.halMapper().readValue(
                         result.getResponse().getContentAsString(),
@@ -157,31 +150,23 @@ class EntandoLinksControllerTest {
         assertThat(cl).isNotEmpty();
         assertThat(cl.stream().map(Link::getRel).map(LinkRelation::value).collect(Collectors.toList()))
                 .containsExactlyInAnyOrder("self", "app", "plugin", "delete", "namespace");
+                */
     }
 
     @Test
     void shouldReturnLinksByPluginName() throws Exception {
         EntandoPlugin tempPlugin = EntandoPluginTestHelper.getTestEntandoPlugin();
         EntandoAppPluginLink tempLink = EntandoLinkTestHelper.getTestLink();
-        String linkName = tempLink.getMetadata().getName();
-        String linkNamespace = tempLink.getMetadata().getNamespace();
 
         String pluginName = tempPlugin.getMetadata().getName();
         when(entandoLinkService.findByPluginName(eq(pluginName))).thenReturn(Collections.singletonList(tempLink));
 
-        String linkEntryJsonPath = "$._embedded.entandoAppPluginLinks[0]";
-        String linkHateoasLinksJsonPath = linkEntryJsonPath + "._links";
-
         mvc.perform(get("/app-plugin-links?plugin={name}", pluginName).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is2xxSuccessful())
-                .andExpect(jsonPath(linkEntryJsonPath + ".spec.entandoPluginName").value(TEST_PLUGIN_NAME))
-                .andExpect(jsonPath(linkEntryJsonPath + ".spec.entandoPluginNamespace").value(TEST_PLUGIN_NAMESPACE))
-                .andExpect(jsonPath(linkHateoasLinksJsonPath).exists())
-                .andExpect(jsonPath(linkHateoasLinksJsonPath + ".app.href").value(endsWith("apps/my-app")))
-                .andExpect(jsonPath(linkHateoasLinksJsonPath + ".plugin.href").value(
-                        endsWith("plugins/" + TEST_PLUGIN_NAME + "?namespace=" + TEST_PLUGIN_NAMESPACE)))
-                .andExpect(jsonPath(linkHateoasLinksJsonPath + ".delete.href").value(endsWith("app-plugin-links/" + linkName)))
-                .andExpect(jsonPath(linkHateoasLinksJsonPath + ".namespace.href").value(endsWith("namespaces/" + linkNamespace)));
+                .andDo(print())
+                .andExpect(jsonPath("$.[0].spec.entandoPluginName").value(TEST_PLUGIN_NAME))
+                .andExpect(
+                        jsonPath("$.[0].spec.entandoPluginNamespace").value(TEST_PLUGIN_NAMESPACE));
 
     }
 
@@ -194,10 +179,9 @@ class EntandoLinksControllerTest {
 
         when(entandoLinkService.findByAppName(eq(appName))).thenReturn(Collections.singletonList(el));
 
-        String linkEntryJsonPath = "$._embedded.entandoAppPluginLinks[0]";
-        String linkHateoasLinksJsonPath = linkEntryJsonPath + "._links";
+        String linkEntryJsonPath = "$.[0]";
 
-        mvc.perform(get("/app-plugin-links?app={name}", appName).accept(HAL_JSON))
+        mvc.perform(get("/app-plugin-links?app={name}", appName).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath(linkEntryJsonPath + ".metadata.name").value(el.getMetadata().getName()))
                 .andExpect(jsonPath(linkEntryJsonPath + ".spec").value(allOf(
@@ -205,14 +189,7 @@ class EntandoLinksControllerTest {
                         hasEntry("entandoPluginNamespace", TEST_PLUGIN_NAMESPACE),
                         hasEntry("entandoPluginName", TEST_PLUGIN_NAME),
                         hasEntry("entandoAppName", TEST_APP_NAME)
-                )))
-                .andExpect(jsonPath(linkHateoasLinksJsonPath).exists())
-                .andExpect(jsonPath(linkHateoasLinksJsonPath + ".app.href").value(endsWith("apps/my-app")))
-                .andExpect(jsonPath(linkHateoasLinksJsonPath + ".plugin.href").value(
-                        endsWith("plugins/" + TEST_PLUGIN_NAME + "?namespace=" + TEST_PLUGIN_NAMESPACE)))
-                .andExpect(jsonPath(linkHateoasLinksJsonPath + ".delete.href")
-                        .value(endsWith("app-plugin-links/" + el.getMetadata().getName())))
-                .andExpect(jsonPath(linkHateoasLinksJsonPath + ".namespace.href").value(endsWith("namespaces/" + linkNamespace)));
+                )));
     }
 
     @Test
@@ -229,10 +206,10 @@ class EntandoLinksControllerTest {
                 .pluginName(ep.getMetadata().getName()).build();
 
         mvc.perform(
-                post("/app-plugin-links")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(HalUtils.halMapper().writeValueAsString(req))
-                        .accept(HAL_JSON_VALUE))
+                        post("/app-plugin-links")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content((new ObjectMapper()).writeValueAsString(req))
+                                .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
                 .andExpect(header().string("Location", endsWith("/app-plugin-links/" + el.getMetadata().getName())));
     }
@@ -310,7 +287,7 @@ class EntandoLinksControllerTest {
         when(entandoLinkService.findByName(anyString())).thenReturn(Optional.empty());
 
         mvc.perform(get("/app-plugin-links/any-name")
-                .accept(MediaTypes.HAL_JSON_VALUE))
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound());
     }
 
