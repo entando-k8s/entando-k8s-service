@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.UnaryOperator;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.entando.kubernetes.model.app.EntandoApp;
@@ -23,18 +24,25 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 public class IngressService {
+    
+    public static final String ENTANDO_TENANTS_LABEL = "EntandoTenant";
 
     private KubernetesUtils kubernetesUtils;
 
     public IngressService(KubernetesUtils kubernetesUtils) {
         this.kubernetesUtils = kubernetesUtils;
     }
-
+    
     public Optional<Ingress> findByEntandoApp(EntandoApp app) {
         List<Ingress> appIngresses = getIngressOperations()
                 .inNamespace(app.getMetadata().getNamespace())
                 .withLabel(app.getKind(), app.getMetadata().getName())
+                .withoutLabel(ENTANDO_TENANTS_LABEL)
                 .list().getItems();
+        if (appIngresses.size() > 1) {
+            log.warn("Extracted more than one app ingress - names '{}'", 
+                    appIngresses.stream().map(i -> i.getMetadata().getName()).collect(Collectors.joining(",")));
+        }
         return appIngresses.stream().findFirst();
     }
 
