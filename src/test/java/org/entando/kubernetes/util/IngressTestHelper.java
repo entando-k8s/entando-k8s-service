@@ -10,15 +10,20 @@ import org.entando.kubernetes.model.common.EntandoBaseCustomResource;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
 
 public class IngressTestHelper {
-
+    
     public static Ingress createAppIngress(KubernetesClient client, EntandoApp app) {
+        return IngressTestHelper.createAppIngress(client, app, "-ingress", Map.of());
+    }
+
+    public static Ingress createAppIngress(KubernetesClient client, EntandoApp app, String nameSuffix, Map<String, String> labels) {
         String namespace = app.getMetadata().getNamespace();
         String name = app.getMetadata().getName();
         Ingress appIngress = new IngressBuilder()
                 .withNewMetadata()
-                .withName(name + "-ingress")
+                .withName(name + nameSuffix)
                 .withNamespace(namespace)
                 .addToLabels(app.getKind(), name)
+                .addToLabels(labels)
                 .endMetadata()
                 .build();
         return client.network().v1().ingresses().inNamespace(namespace).create(appIngress);
