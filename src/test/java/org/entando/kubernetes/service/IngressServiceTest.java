@@ -8,9 +8,11 @@ import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
 import io.fabric8.kubernetes.api.model.networking.v1.IngressRule;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import org.entando.kubernetes.model.app.EntandoApp;
@@ -22,6 +24,7 @@ import org.entando.kubernetes.util.EntandoAppTestHelper;
 import org.entando.kubernetes.util.EntandoLinkTestHelper;
 import org.entando.kubernetes.util.EntandoPluginTestHelper;
 import org.entando.kubernetes.util.IngressTestHelper;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -50,6 +53,44 @@ class IngressServiceTest {
 
         Optional<Ingress> appIngress = ingressService.findByEntandoApp(app);
         assertThat(appIngress).isPresent();
+    }
+
+    @Test
+    void shouldFindFirstIngressInMultitenancyEnv() {
+        EntandoApp app = EntandoAppTestHelper.getTestEntandoApp();
+        List<Ingress> ingresses = new ArrayList<>();
+        try {
+            ingresses.add(IngressTestHelper.createAppIngress(client, app, "-custom1-", Map.of(IngressService.ENTANDO_TENANTS_LABEL, "tenant1")));
+            ingresses.add(IngressTestHelper.createAppIngress(client, app, "-first", Map.of()));
+            ingresses.add(IngressTestHelper.createAppIngress(client, app, "-custom2-", Map.of(IngressService.ENTANDO_TENANTS_LABEL, "tenant2")));
+            ingresses.add(IngressTestHelper.createAppIngress(client, app, "-second", Map.of()));
+            ingresses.add(IngressTestHelper.createAppIngress(client, app, "-custom3-", Map.of(IngressService.ENTANDO_TENANTS_LABEL, "tenant3")));
+            Optional<Ingress> appIngress = ingressService.findByEntandoApp(app);
+            assertThat(appIngress).isPresent();
+            String name = appIngress.get().getMetadata().getName();
+            Assertions.assertTrue(name.endsWith("-first") || name.endsWith("-second"));
+        } finally {
+            String namespace = app.getMetadata().getNamespace();
+            client.network().v1().ingresses().inNamespace(namespace).delete(ingresses);
+        }
+    }
+
+    @Test
+    void shouldFindIngressForAppInMultitenancyEnv() {
+        EntandoApp app = EntandoAppTestHelper.getTestEntandoApp();
+        List<Ingress> ingresses = new ArrayList<>();
+        try {
+            for (int i = 0; i < 3; i++) {
+                ingresses.add(IngressTestHelper.createAppIngress(client, app, "-tenant-" + i, Map.of(IngressService.ENTANDO_TENANTS_LABEL, "tenant" + i)));
+            }
+            ingresses.add(IngressTestHelper.createAppIngress(client, app, "-primary", Map.of()));
+            Optional<Ingress> appIngress = ingressService.findByEntandoApp(app);
+            assertThat(appIngress).isPresent();
+            Assertions.assertTrue(appIngress.get().getMetadata().getName().endsWith("-primary"));
+        } finally {
+            String namespace = app.getMetadata().getNamespace();
+            client.network().v1().ingresses().inNamespace(namespace).delete(ingresses);
+        }
     }
 
     @Test
