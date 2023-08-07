@@ -52,6 +52,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
@@ -261,7 +262,8 @@ class EntandoAppControllerTest {
         Ingress appIngress = IngressTestHelper.getIngressForEntandoResource(ea);
 
         when(entandoAppService.findByNameAndDefaultNamespace(entandoAppName)).thenReturn(Optional.of(ea));
-        when(ingressService.findByEntandoApp(any(EntandoApp.class))).thenReturn(Optional.of(appIngress));
+        when(ingressService.findByEntandoApp(any(EntandoApp.class), ArgumentMatchers.any()))
+                .thenReturn(Optional.of(appIngress));
 
         mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is2xxSuccessful())
@@ -279,7 +281,8 @@ class EntandoAppControllerTest {
         String entandoAppName = ea.getMetadata().getName();
 
         when(entandoAppService.findByNameAndDefaultNamespace(entandoAppName)).thenReturn(Optional.of(ea));
-        when(ingressService.findByEntandoApp(any(EntandoApp.class))).thenReturn(Optional.empty());
+        when(ingressService.findByEntandoApp(any(EntandoApp.class), ArgumentMatchers.anyString()))
+                .thenReturn(Optional.empty());
 
         mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())

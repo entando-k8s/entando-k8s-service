@@ -86,10 +86,12 @@ public class EntandoAppController {
     }
 
     @GetMapping(path = "/{name}/ingress", produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
-    public ResponseEntity<EntityModel<Ingress>> getAppIngress(@PathVariable("name") String appName) {
-        log.debug("Requesting app with name {}", appName);
+    public ResponseEntity<EntityModel<Ingress>> getAppIngress(
+            @PathVariable("name") String appName,
+            @RequestParam(value = "tenantCode", required = false) String tenantCode) {
+        log.debug("Requesting app with name: '{}' and tenantCode: '{}'", appName, tenantCode);
         EntandoApp entandoApp = getEntandoAppOrFail(appName);
-        Ingress appIngress = getEntandoAppIngressOrFail(entandoApp);
+        Ingress appIngress = getEntandoAppIngressOrFail(entandoApp, tenantCode);
         return ResponseEntity.ok(new EntityModel<>(appIngress));
     }
 
@@ -125,8 +127,8 @@ public class EntandoAppController {
         return ResponseEntity.ok(returnStatus);
     }
 
-    public Ingress getEntandoAppIngressOrFail(EntandoApp app) {
-        return ingressService.findByEntandoApp(app).<ThrowableProblem>orElseThrow(() -> {
+    public Ingress getEntandoAppIngressOrFail(EntandoApp app, String tenantCode) {
+        return ingressService.findByEntandoApp(app, tenantCode).<ThrowableProblem>orElseThrow(() -> {
             throw NotFoundExceptionFactory.ingress(app);
         });
     }

@@ -51,7 +51,7 @@ class IngressServiceTest {
         EntandoApp app = EntandoAppTestHelper.getTestEntandoApp();
         IngressTestHelper.createAppIngress(client, app);
 
-        Optional<Ingress> appIngress = ingressService.findByEntandoApp(app);
+        Optional<Ingress> appIngress = ingressService.findByEntandoApp(app, null);
         assertThat(appIngress).isPresent();
     }
 
@@ -65,7 +65,7 @@ class IngressServiceTest {
             ingresses.add(IngressTestHelper.createAppIngress(client, app, "-custom2-", Map.of(IngressService.ENTANDO_TENANTS_LABEL, "tenant2")));
             ingresses.add(IngressTestHelper.createAppIngress(client, app, "-second", Map.of()));
             ingresses.add(IngressTestHelper.createAppIngress(client, app, "-custom3-", Map.of(IngressService.ENTANDO_TENANTS_LABEL, "tenant3")));
-            Optional<Ingress> appIngress = ingressService.findByEntandoApp(app);
+            Optional<Ingress> appIngress = ingressService.findByEntandoApp(app, null);
             assertThat(appIngress).isPresent();
             String name = appIngress.get().getMetadata().getName();
             Assertions.assertTrue(name.endsWith("-first") || name.endsWith("-second"));
@@ -84,9 +84,18 @@ class IngressServiceTest {
                 ingresses.add(IngressTestHelper.createAppIngress(client, app, "-tenant-" + i, Map.of(IngressService.ENTANDO_TENANTS_LABEL, "tenant" + i)));
             }
             ingresses.add(IngressTestHelper.createAppIngress(client, app, "-primary", Map.of()));
-            Optional<Ingress> appIngress = ingressService.findByEntandoApp(app);
+            Optional<Ingress> appIngress = ingressService.findByEntandoApp(app, "tenant1");
+            assertThat(appIngress).isPresent();
+            Assertions.assertTrue(appIngress.get().getMetadata().getName().endsWith("tenant-1"));
+
+            appIngress = ingressService.findByEntandoApp(app, "primary");
             assertThat(appIngress).isPresent();
             Assertions.assertTrue(appIngress.get().getMetadata().getName().endsWith("-primary"));
+
+            appIngress = ingressService.findByEntandoApp(app, null);
+            assertThat(appIngress).isPresent();
+            Assertions.assertTrue(appIngress.get().getMetadata().getName().endsWith("-primary"));
+
         } finally {
             String namespace = app.getMetadata().getNamespace();
             client.network().v1().ingresses().inNamespace(namespace).delete(ingresses);
