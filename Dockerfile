@@ -5,7 +5,7 @@ LABEL name="Entando Kubernetes Service" \
       maintainer="dev@entando.com" \
       vendor="Entando Inc." \
       version="v${VERSION}" \
-      release="7.1" \
+      release="7.3" \
       summary="Entando infrastructure project for Kubernetes APIs" \
       description="Entando infrastructure project for kubernetes APIs"
 
