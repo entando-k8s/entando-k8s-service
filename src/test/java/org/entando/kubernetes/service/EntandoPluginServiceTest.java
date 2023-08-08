@@ -26,12 +26,15 @@ import io.fabric8.kubernetes.client.server.mock.EnableKubernetesMockClient;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.entando.kubernetes.model.namespace.ObservedNamespaces;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
+import org.entando.kubernetes.model.response.PluginConfiguration;
 import org.entando.kubernetes.security.oauth2.KubernetesUtilsTest;
 import org.entando.kubernetes.util.EntandoPluginTestHelper;
 import org.entando.kubernetes.util.JWTTestUtils;
+import org.entando.kubernetes.util.SecretTestHelper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Tags;
@@ -58,7 +61,8 @@ class EntandoPluginServiceTest {
         kubernetesUtils.decode(KubernetesUtilsTest.NON_K8S_TOKEN);
         ObservedNamespaces ons = new ObservedNamespaces(kubernetesUtils, Arrays.asList(namespaces),
                 OperatorDeploymentType.HELM);
-        entandoPluginService = new EntandoPluginService(kubernetesUtils, ons);
+        SecretService secretService = new SecretService(kubernetesUtils);
+        entandoPluginService = new EntandoPluginService(kubernetesUtils, ons, secretService);
     }
 
     @Test
@@ -152,6 +156,44 @@ class EntandoPluginServiceTest {
     }
 
     @Test
+    void shouldThrowExceptionWhilePluginConfigurationIsNotOk() {
+        initializeService(TEST_PLUGIN_NAMESPACE);
+        JWTTestUtils.decodeFakeJWT(entandoPluginService.observedNamespaces.getKubernetesUtils());
+        final String pluginName = "pn-3a0eefc4-13d51bef-88bf4312-simple-ms-server";
+        final String secretName = pluginName + "-conf";
+        final String namespace = entandoPluginService.observedNamespaces.getKubernetesUtils().getDefaultPluginNamespace();
+        final String key = "key";
+        final String value = "{}";
+        SecretTestHelper.createSecretWithStringData(client, namespace, secretName, Map.of(key, value));
+        SecretTestHelper.createSecretWithStringData(client, namespace, "error-conf", Map.of(key, "{ww: 1}"));
+
+        assertThrows(ThrowableProblem.class,
+                () -> entandoPluginService.getPluginConfiguration("pluginNameNotFound", null));
+
+        assertThrows(ThrowableProblem.class,
+                () -> entandoPluginService.getPluginConfiguration(pluginName, "keyNotFound"));
+
+        assertThrows(IllegalStateException.class,
+                () -> entandoPluginService.getPluginConfiguration("error", key));
+    }
+
+    @Test
+    void shouldRetrievePluginConfiguration() {
+        initializeService(TEST_PLUGIN_NAMESPACE);
+        JWTTestUtils.decodeFakeJWT(entandoPluginService.observedNamespaces.getKubernetesUtils());
+        final String pluginName = "pn-3a0eefc4-13d51bef-88bf4312-simple-ms-server";
+        final String secretName = pluginName + "-conf";
+        final String namespace = entandoPluginService.observedNamespaces.getKubernetesUtils().getDefaultPluginNamespace();
+        final String key = "key";
+        final String value = "{\"environmentVariables\":[]}";
+        SecretTestHelper.createSecretWithStringData(client, namespace, secretName, Map.of(key, value));
+
+        assertThat(entandoPluginService.getPluginConfiguration(pluginName, key))
+                .isNotNull()
+                .isInstanceOf(PluginConfiguration.class);
+    }
+
+    @Test
     void shouldOverrideProvidedNamespaceAndCreateOrReplaceAPluginInTheNamespaceReadByJWT() {
         initializeService(TEST_PLUGIN_NAMESPACE);
         JWTTestUtils.decodeFakeJWT(entandoPluginService.observedNamespaces.getKubernetesUtils());
@@ -221,7 +263,9 @@ class EntandoPluginServiceTest {
 
         ObservedNamespaces ons = new ObservedNamespaces(kubernetesUtils, Arrays.asList(TEST_PLUGIN_NAMESPACE),
                 OperatorDeploymentType.HELM);
-        entandoPluginService = new EntandoPluginService(kubernetesUtils, ons);
+
+        SecretService secretMock = mock(SecretService.class);
+        entandoPluginService = new EntandoPluginService(kubernetesUtils, ons, secretMock);
 
         NonNamespaceOperation<Deployment, DeploymentList, RollableScalableResource<Deployment>> ops = mock(
                 NonNamespaceOperation.class, Mockito.RETURNS_DEEP_STUBS);
