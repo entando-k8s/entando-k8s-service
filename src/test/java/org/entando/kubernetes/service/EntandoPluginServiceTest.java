@@ -6,6 +6,7 @@ import static org.entando.kubernetes.util.EntandoPluginTestHelper.TEST_PLUGIN_NA
 import static org.entando.kubernetes.util.EntandoPluginTestHelper.getTestEntandoPlugin;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -185,12 +186,23 @@ class EntandoPluginServiceTest {
         final String secretName = pluginName + "-conf";
         final String namespace = entandoPluginService.observedNamespaces.getKubernetesUtils().getDefaultPluginNamespace();
         final String key = "key";
-        final String value = "{\"environmentVariables\":[]}";
+        final String value = "{\"environment_variables\":[\n"
+                + "      {\n"
+                + "         \"name\":\"SPRING_DATASOURCE_USERNAME\",\n"
+                + "         \"valueFrom\":{\n"
+                + "            \"secretKeyRef\":{\n"
+                + "               \"name\":\"12345678-tttttttt-abcdefgh-external-books-service-mysql-secret\",\n"
+                + "               \"key\":\"SPRING_DATASOURCE_USERNAME\"\n"
+                + "            }\n"
+                + "         }\n"
+                + "      }\n"
+                + "   ]"
+                + "}";
         SecretTestHelper.createSecretWithStringData(client, namespace, secretName, Map.of(key, value));
-
-        assertThat(entandoPluginService.getPluginConfiguration(pluginName, key))
-                .isNotNull()
-                .isInstanceOf(PluginConfiguration.class);
+        PluginConfiguration pc = entandoPluginService.getPluginConfiguration(pluginName, key);
+        assertNotNull(pc);
+        assertEquals(1, pc.getEnvironmentVariables().size());
+        assertEquals("SPRING_DATASOURCE_USERNAME", pc.getEnvironmentVariables().get(0).getName());
     }
 
     @Test
