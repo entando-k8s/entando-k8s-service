@@ -1,10 +1,13 @@
 package org.entando.kubernetes.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.ObjectMetaBuilder;
+import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
@@ -13,9 +16,11 @@ import io.fabric8.zjsonpatch.internal.guava.Strings;
 import java.util.List;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
+import org.entando.kubernetes.exception.NotFoundExceptionFactory;
 import org.entando.kubernetes.model.namespace.ObservedNamespaces;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.entando.kubernetes.model.plugin.EntandoPluginBuilder;
+import org.entando.kubernetes.model.response.PluginConfiguration;
 import org.springframework.stereotype.Service;
 import org.zalando.problem.Problem;
 import org.zalando.problem.Status;
@@ -29,9 +34,12 @@ public class EntandoPluginService extends EntandoKubernetesResourceCollector<Ent
 
     public static final String ENTANDO_TIMESTAMP_NAME = "ENTANDO_TIMESTAMP";
 
+    private final SecretService secretService;
+
     public EntandoPluginService(KubernetesUtils kubernetesUtils,
-            ObservedNamespaces observedNamespaces) {
+                                ObservedNamespaces observedNamespaces, SecretService secretService) {
         super(kubernetesUtils, observedNamespaces);
+        this.secretService = secretService;
     }
 
     @Override
@@ -128,4 +136,28 @@ public class EntandoPluginService extends EntandoKubernetesResourceCollector<Ent
         //CHECKSTYLE:ON
         return kubernetesUtils.getCurrentKubernetesClient().customResources(EntandoPlugin.class);
     }
+
+    public PluginConfiguration getPluginConfiguration(String pluginName, String tenantCode) {
+        String secretName = pluginName + "-conf";
+        return secretService
+                .findByName(secretName)
+                .flatMap(s -> retrievePluginConfigurationByTenantCode(s, tenantCode))
+                .orElseThrow(() -> NotFoundExceptionFactory.secret(secretName, tenantCode));
+    }
+
+    private Optional<PluginConfiguration> retrievePluginConfigurationByTenantCode(Secret secret, String tenantCode) {
+        return secretService.getValueFromSecret(secret, tenantCode)
+                .map(this::unmarshall);
+    }
+
+    private PluginConfiguration unmarshall(String value) {
+        try {
+            return new ObjectMapper().readValue(value, PluginConfiguration.class);
+        } catch (JsonProcessingException e) {
+            log.warn("error unmarshalling value:'{}'", value);
+            throw new IllegalStateException(
+                    String.format("error to unmarshall data from secret:'%s'", value));
+        }
+    }
+
 }
