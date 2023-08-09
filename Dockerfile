@@ -1,4 +1,4 @@
-FROM entando/entando-java-base:11.1.0-IT-411-PR-10
+FROM entando/entando-java-base:11.1.0-ENG-5117-PR-11
 ARG VERSION
 ### Required Openshift Labels
 LABEL name="Entando Kubernetes Service" \
