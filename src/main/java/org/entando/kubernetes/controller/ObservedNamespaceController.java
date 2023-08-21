@@ -54,7 +54,7 @@ public class ObservedNamespaceController {
         nsCollection.add(
                 linkTo(methodOn(EntandoPluginController.class).listInNamespace(null)).withRel("plugins-in-namespace"));
         nsCollection.add(
-                linkTo(methodOn(EntandoDeBundleController.class).list(null, null)).withRel("bundles-in-namespace"));
+                linkTo(methodOn(EntandoDeBundleController.class).list(null, null, null)).withRel("bundles-in-namespace"));
         nsCollection.add(linkTo(methodOn(EntandoLinksController.class).listInNamespace(null)).withRel(
                 "app-plugin-links-in-namespace"));
     }

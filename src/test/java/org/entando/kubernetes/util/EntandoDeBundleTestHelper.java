@@ -2,6 +2,7 @@ package org.entando.kubernetes.util;
 
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.internal.KubernetesDeserializer;
+import java.util.Map;
 import org.entando.kubernetes.model.debundle.EntandoDeBundle;
 import org.entando.kubernetes.model.debundle.EntandoDeBundleBuilder;
 import org.entando.kubernetes.model.debundle.EntandoDeBundleSpec;
@@ -14,17 +15,18 @@ public class EntandoDeBundleTestHelper {
     public static final String TEST_BUNDLE_NAME = "my-bundle";
     public static final String TEST_BUNDLE_NAMESPACE = "test-namespace";
 
-    public static EntandoDeBundle createTestEntandoDeBundle(KubernetesClient client) {
-        EntandoDeBundle eb = getTestEntandoDeBundle();
+    public static EntandoDeBundle createTestEntandoDeBundle(KubernetesClient client, String tenantCode) {
+        EntandoDeBundle eb = getTestEntandoDeBundle(tenantCode);
         KubernetesDeserializer.registerCustomKind(eb.getApiVersion(), eb.getKind(), EntandoDeBundle.class);
         return EntandoDeBundleService.getBundleOperations(client)
                 .inNamespace(eb.getMetadata().getNamespace()).createOrReplace(eb);
 
     }
 
-    public static EntandoDeBundle createTestEntandoDeBundleInNamespace(KubernetesClient client, String namespace) {
-        EntandoDeBundle eb = getTestEntandoDeBundle();
+    public static EntandoDeBundle createTestEntandoDeBundleInNamespace(KubernetesClient client, String namespace, String tenantCode) {
+        EntandoDeBundle eb = getTestEntandoDeBundle(tenantCode);
         eb.getMetadata().setNamespace(namespace);
+        eb.getMetadata().setLabels(Map.of("EntandoTenants", tenantCode));
         KubernetesDeserializer.registerCustomKind(eb.getApiVersion(), eb.getKind(), EntandoDeBundle.class);
         return EntandoDeBundleService.getBundleOperations(client).inNamespace(namespace).createOrReplace(eb);
     }
@@ -53,17 +55,18 @@ public class EntandoDeBundleTestHelper {
                 .build();
     }
 
-    public static EntandoDeBundle getTestEntandoDeBundle() {
+    public static EntandoDeBundle getTestEntandoDeBundle(String tenantCode) {
         String repoUrl = "http://localhost:8081/repository/npm-internal/inail_bundle/-/inail_bundle-0.0.1.tgz";
-        return getTestEntandoDeBundle(repoUrl);
+        return getTestEntandoDeBundle(repoUrl, tenantCode);
     }
 
-    public static EntandoDeBundle getTestEntandoDeBundle(String repoUrl) {
+    public static EntandoDeBundle getTestEntandoDeBundle(String repoUrl, String tenantCode) {
 
         EntandoDeBundle bundle = new EntandoDeBundleBuilder()
                 .withNewMetadata()
                 .withName(TEST_BUNDLE_NAME)
                 .withNamespace(TEST_BUNDLE_NAMESPACE)
+                .withLabels(Map.of("EntandoTenants", tenantCode))
                 .endMetadata()
                 .withSpec(getTestEntandoDeBundleSpec(repoUrl))
                 .build();
