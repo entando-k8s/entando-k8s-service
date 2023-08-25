@@ -26,7 +26,7 @@ public class EntandoDeBundleTestHelper {
     public static EntandoDeBundle createTestEntandoDeBundleInNamespace(KubernetesClient client, String namespace, String tenantCode) {
         EntandoDeBundle eb = getTestEntandoDeBundle(tenantCode);
         eb.getMetadata().setNamespace(namespace);
-        eb.getMetadata().setLabels(Map.of("EntandoTenants", tenantCode));
+        eb.getMetadata().setAnnotations(Map.of("EntandoTenants", tenantCode));
         KubernetesDeserializer.registerCustomKind(eb.getApiVersion(), eb.getKind(), EntandoDeBundle.class);
         return EntandoDeBundleService.getBundleOperations(client).inNamespace(namespace).createOrReplace(eb);
     }
@@ -66,7 +66,7 @@ public class EntandoDeBundleTestHelper {
                 .withNewMetadata()
                 .withName(TEST_BUNDLE_NAME)
                 .withNamespace(TEST_BUNDLE_NAMESPACE)
-                .withLabels(Map.of("EntandoTenants", tenantCode))
+                .withAnnotations(Map.of("EntandoTenants", tenantCode))
                 .endMetadata()
                 .withSpec(getTestEntandoDeBundleSpec(repoUrl))
                 .build();

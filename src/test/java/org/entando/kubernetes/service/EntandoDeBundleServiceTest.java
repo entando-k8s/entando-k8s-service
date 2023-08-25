@@ -67,7 +67,7 @@ class EntandoDeBundleServiceTest {
         List<EntandoDeBundle> bundlesInNamespaceB = entandoDeBundleService.getAllInNamespace("namespaceB", "primary");
         assertThat(bundlesInNamespaceB.size()).isEqualTo(1);
         assertThat(bundlesInNamespaceB.get(0).getMetadata().getNamespace()).isEqualTo("namespaceB");
-        assertThat(bundlesInNamespaceB.get(0).getMetadata().getLabels()).containsEntry("EntandoTenants", "primary");
+        assertThat(bundlesInNamespaceB.get(0).getMetadata().getAnnotations()).containsEntry("EntandoTenants", "primary");
     }
 
     @Test
@@ -96,7 +96,7 @@ class EntandoDeBundleServiceTest {
                 .findByNameAndNamespace(bundleName, bundleNamespace, "primary");
         assertThat(foundBundles).isNotEmpty();
         assertThat(foundBundles.get().getMetadata().getName()).isEqualTo(bundleName);
-        assertThat(foundBundles.get().getMetadata().getLabels().get("EntandoTenants")).contains("primary", "tenant1");
+        assertThat(foundBundles.get().getMetadata().getAnnotations().get("EntandoTenants")).contains("primary", "tenant1");
 
     }
 
@@ -138,7 +138,22 @@ class EntandoDeBundleServiceTest {
         List<String> bundleKeywords = bundle.getSpec().getDetails().getKeywords();
         List<EntandoDeBundle> foundBundles = entandoDeBundleService.findBundlesByAllKeywords(bundleKeywords, "tenant2");
         assertThat(foundBundles).hasSize(1);
-        assertThat(foundBundles.get(0).getMetadata().getLabels().get("EntandoTenants")).contains("tenant2");
+        assertThat(foundBundles.get(0).getMetadata().getAnnotations().get("EntandoTenants")).contains("tenant2");
+    }
+
+    @Test
+    void shouldCreateBundleAlsoIfAnnotationsIsMissing() {
+        initializeService(TEST_BUNDLE_NAMESPACE);
+        EntandoDeBundle bundle = EntandoDeBundleTestHelper.getTestEntandoDeBundle("tenant2");
+        bundle.getMetadata().setAnnotations(null);
+        bundle.getMetadata().setNamespace("test");
+
+        entandoDeBundleService.createBundle(bundle, "tenant2");
+
+        List<String> bundleKeywords = bundle.getSpec().getDetails().getKeywords();
+        List<EntandoDeBundle> foundBundles = entandoDeBundleService.findBundlesByAllKeywords(bundleKeywords, "tenant2");
+        assertThat(foundBundles).hasSize(1);
+        assertThat(foundBundles.get(0).getMetadata().getAnnotations().get("EntandoTenants")).contains("tenant2");
     }
 
     @Test

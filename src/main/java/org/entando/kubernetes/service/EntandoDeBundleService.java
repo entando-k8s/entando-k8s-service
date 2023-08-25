@@ -5,8 +5,11 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -23,7 +26,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class EntandoDeBundleService extends EntandoKubernetesResourceCollector<EntandoDeBundle> {
 
-    public static final String ENTANDO_TENANTS_LABEL = "EntandoTenants";
+    public static final String ENTANDO_TENANTS_ANNOTATION = "EntandoTenants";
+    public static final String TENANTS_ANNOTATION_DELIMITER = ",";
 
     public EntandoDeBundleService(KubernetesUtils kubernetesUtils,
             ObservedNamespaces observedNamespaces) {
@@ -41,19 +45,25 @@ public class EntandoDeBundleService extends EntandoKubernetesResourceCollector<E
     }
 
     public List<EntandoDeBundle> getAllInNamespace(String namespace, String tenantCode) {
-        return getBundleOperations()
-                .inNamespace(namespace)
-                .withLabelIn(ENTANDO_TENANTS_LABEL, tenantCode)
-                .list().getItems();
+        return getBundleOperations().inNamespace(namespace).list().getItems()
+                .stream()
+                .filter(entandoDeBundle -> isTenantPresent(entandoDeBundle, tenantCode))
+                .collect(Collectors.toList());
     }
 
     public List<EntandoDeBundle> getAll(String tenantCode) {
-        return getBundleOperations()
-                .inAnyNamespace()
-                .withLabel(ENTANDO_TENANTS_LABEL)
-                .list().getItems().stream()
-                .filter(entandoDeBundle -> isTenantPresent(entandoDeBundle, tenantCode))
-                .collect(Collectors.toList());
+        List<EntandoDeBundle> entandoDeBundles;
+        if (observedNamespaces.isClusterScoped()) {
+            entandoDeBundles = getInAnyNamespace()
+                    .stream()
+                    .filter(entandoDeBundle -> isTenantPresent(entandoDeBundle, tenantCode))
+                    .collect(Collectors.toList());
+        } else {
+            entandoDeBundles = observedNamespaces.getNames().stream()
+                    .flatMap(ns -> getAllInNamespace(ns, tenantCode).stream())
+                    .collect(Collectors.toList());
+        }
+        return entandoDeBundles;
     }
 
     public List<EntandoDeBundle> findBundlesByAnyKeywords(List<String> keywords, String tenantCode) {
@@ -69,16 +79,18 @@ public class EntandoDeBundleService extends EntandoKubernetesResourceCollector<E
     }
 
     public EntandoDeBundle createBundle(EntandoDeBundle entandoDeBundle, String tenantCode) {
-        List<String> tenantsLabels = new ArrayList<>();
+        List<String> tenantCodes = new ArrayList<>();
         findByName(entandoDeBundle.getMetadata().getName()).ifPresent(
-                bundle -> tenantsLabels.addAll(fetchTenantsList(bundle))
+                bundle -> tenantCodes.addAll(fetchTenantsList(bundle))
         );
-        if (!isTenantPresent(tenantsLabels, tenantCode)) {
-            tenantsLabels.add(tenantCode);
+        if (!isTenantPresent(tenantCodes, tenantCode)) {
+            tenantCodes.add(tenantCode);
         }
-
-        entandoDeBundle.getMetadata().getLabels().put(ENTANDO_TENANTS_LABEL,
-                tenantsLabels.stream().collect(Collectors.joining(",")));
+        if (Objects.isNull(entandoDeBundle.getMetadata().getAnnotations())) {
+            entandoDeBundle.getMetadata().setAnnotations(new HashMap<>());
+        }
+        entandoDeBundle.getMetadata().getAnnotations().put(ENTANDO_TENANTS_ANNOTATION,
+                String.join(TENANTS_ANNOTATION_DELIMITER, tenantCodes));
         String namespace = kubernetesUtils.getDefaultPluginNamespace();
         return getBundleOperations()
                 .inNamespace(namespace).createOrReplace(entandoDeBundle);
@@ -92,7 +104,7 @@ public class EntandoDeBundleService extends EntandoKubernetesResourceCollector<E
 
         findByName(bundleName, tenantCode).ifPresentOrElse(
                 entandoDeBundle -> {
-                    removeTenantLabelFromBundle(entandoDeBundle, tenantCode);
+                    removeTenantAnnotationFromBundle(entandoDeBundle, tenantCode);
                     if (fetchTenantsList(entandoDeBundle).isEmpty()) {
                         deleteBundleWithoutTenants(entandoDeBundle);
                     }
@@ -106,26 +118,28 @@ public class EntandoDeBundleService extends EntandoKubernetesResourceCollector<E
 
     private boolean isTenantPresent(EntandoDeBundle entandoDeBundle, String tenantCode) {
         return fetchTenantsList(entandoDeBundle).stream()
-                .filter(e -> StringUtils.equals(e, tenantCode)).count() > 0;
+                .anyMatch(e -> StringUtils.equals(e, tenantCode));
     }
 
-    private boolean isTenantPresent(List<String> tenantsLabels, String tenantCode) {
-        return tenantsLabels.stream()
-                .filter(e -> StringUtils.equals(e, tenantCode)).count() > 0;
+    private boolean isTenantPresent(List<String> tenantCodes, String tenantCode) {
+        return tenantCodes.stream().anyMatch(e -> StringUtils.equals(e, tenantCode));
     }
 
     private List<String> fetchTenantsList(EntandoDeBundle entandoDeBundle) {
-        return Stream.of(entandoDeBundle.getMetadata().getLabels().get(ENTANDO_TENANTS_LABEL).split(","))
-                .filter(StringUtils::isNotBlank)
-                .collect(Collectors.toList());
+        return Optional.ofNullable(entandoDeBundle.getMetadata().getAnnotations())
+                .map(annotations -> annotations.get(ENTANDO_TENANTS_ANNOTATION))
+                .map(s -> Stream.of(s.split(TENANTS_ANNOTATION_DELIMITER))
+                        .filter(StringUtils::isNotBlank)
+                        .collect(Collectors.toList()))
+                .orElse(Collections.emptyList());
     }
 
-    private void removeTenantLabelFromBundle(EntandoDeBundle entandoDeBundle, String tenantCode) {
+    private void removeTenantAnnotationFromBundle(EntandoDeBundle entandoDeBundle, String tenantCode) {
         String namespace = kubernetesUtils.getDefaultPluginNamespace();
-        entandoDeBundle.getMetadata().getLabels().put(ENTANDO_TENANTS_LABEL,
+        entandoDeBundle.getMetadata().getAnnotations().put(ENTANDO_TENANTS_ANNOTATION,
                 fetchTenantsList(entandoDeBundle).stream()
                         .filter(e -> !StringUtils.equals(e, tenantCode))
-                        .collect(Collectors.joining(",")));
+                        .collect(Collectors.joining(TENANTS_ANNOTATION_DELIMITER)));
         getBundleOperations()
                 .inNamespace(namespace).createOrReplace(entandoDeBundle);
     }
@@ -139,24 +153,20 @@ public class EntandoDeBundleService extends EntandoKubernetesResourceCollector<E
     public Optional<EntandoDeBundle> findByNameAndNamespace(String name, String namespace, String tenantCode) {
         return getAllInNamespace(namespace)
                 .stream()
-                .filter(r -> r.getMetadata().getName().equals(name))
-                .filter(r -> containTenantLabelWithValue(r.getMetadata().getLabels(), tenantCode))
+                .filter(entandoDeBundle -> Objects.nonNull(entandoDeBundle.getMetadata().getAnnotations()))
+                .filter(entandoDeBundle -> entandoDeBundle.getMetadata().getName().equals(name))
+                .filter(r -> containTenantAnnotationWithValue(r.getMetadata().getAnnotations(), tenantCode))
                 .findFirst();
     }
 
     public Optional<EntandoDeBundle> findByName(String name, String tenantCode) {
-
         final String namespace = kubernetesUtils.getDefaultPluginNamespace();
-        return getAllInNamespace(namespace)
-                .stream()
-                .filter(r -> r.getMetadata().getName().equals(name))
-                .filter(r -> containTenantLabelWithValue(r.getMetadata().getLabels(), tenantCode))
-                .findFirst();
+        return findByNameAndNamespace(name, namespace, tenantCode);
     }
 
-    private boolean containTenantLabelWithValue(Map<String, String> labels, String tenantCode) {
-        String values = labels.get(ENTANDO_TENANTS_LABEL);
-        return values != null && Stream.of(values.split(","))
+    private boolean containTenantAnnotationWithValue(Map<String, String> annotations, String tenantCode) {
+        String values = annotations.get(ENTANDO_TENANTS_ANNOTATION);
+        return values != null && Stream.of(values.split(TENANTS_ANNOTATION_DELIMITER))
                 .map(StringUtils::trim)
                 .map(StringUtils::strip)
                 .anyMatch(v -> StringUtils.equals(v, tenantCode));
