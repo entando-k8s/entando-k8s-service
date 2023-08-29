@@ -18,6 +18,7 @@ import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.entando.kubernetes.exception.BadRequestExceptionFactory;
 import org.entando.kubernetes.exception.NotFoundExceptionFactory;
+import org.entando.kubernetes.model.common.EntandoMultiTenancy;
 import org.entando.kubernetes.model.debundle.EntandoDeBundle;
 import org.entando.kubernetes.model.namespace.ObservedNamespaces;
 import org.springframework.stereotype.Service;
@@ -81,9 +82,18 @@ public class EntandoDeBundleService extends EntandoKubernetesResourceCollector<E
     public EntandoDeBundle createBundle(EntandoDeBundle entandoDeBundle, String tenantCode) {
         List<String> tenantCodes = new ArrayList<>();
         findByName(entandoDeBundle.getMetadata().getName()).ifPresent(
-                bundle -> tenantCodes.addAll(fetchTenantsList(bundle))
+                bundle -> {
+                    List<String> fetchedTenantsList = fetchTenantsList(bundle);
+                    if (fetchedTenantsList.isEmpty()) {
+                        // management to add 'primary' code to pre-existing installations (before 7.3)
+                        tenantCodes.add(EntandoMultiTenancy.PRIMARY_TENANT);
+                    } else {
+                        tenantCodes.addAll(fetchedTenantsList);
+                    }
+                }
         );
-        if (!isTenantPresent(tenantCodes, tenantCode)) {
+        if ((EntandoMultiTenancy.PRIMARY_TENANT.equals(tenantCode) && tenantCodes.isEmpty())
+                || !isTenantPresent(tenantCodes, tenantCode)) {
             tenantCodes.add(tenantCode);
         }
         if (Objects.isNull(entandoDeBundle.getMetadata().getAnnotations())) {
@@ -117,12 +127,18 @@ public class EntandoDeBundleService extends EntandoKubernetesResourceCollector<E
     }
 
     private boolean isTenantPresent(EntandoDeBundle entandoDeBundle, String tenantCode) {
-        return fetchTenantsList(entandoDeBundle).stream()
-                .anyMatch(e -> StringUtils.equals(e, tenantCode));
+
+        List<String> fetchedTenantsList = fetchTenantsList(entandoDeBundle);
+        return isTenantPresent(fetchedTenantsList, tenantCode);
     }
 
     private boolean isTenantPresent(List<String> tenantCodes, String tenantCode) {
-        return tenantCodes.stream().anyMatch(e -> StringUtils.equals(e, tenantCode));
+        if ((StringUtils.isBlank(tenantCode) || EntandoMultiTenancy.PRIMARY_TENANT.equals(tenantCode))
+                && tenantCodes.isEmpty()) {
+            return true;
+        }
+        return tenantCodes.stream()
+                .anyMatch(e -> StringUtils.equals(e, tenantCode));
     }
 
     private List<String> fetchTenantsList(EntandoDeBundle entandoDeBundle) {
