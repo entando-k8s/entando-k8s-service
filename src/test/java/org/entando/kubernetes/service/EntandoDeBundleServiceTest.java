@@ -72,7 +72,7 @@ class EntandoDeBundleServiceTest {
         List<EntandoDeBundle> bundlesInNamespaceB = entandoDeBundleService.getAllInNamespace("namespaceB", "primary");
         assertThat(bundlesInNamespaceB.size()).isEqualTo(1);
         assertThat(bundlesInNamespaceB.get(0).getMetadata().getNamespace()).isEqualTo("namespaceB");
-        assertThat(bundlesInNamespaceB.get(0).getMetadata().getAnnotations()).containsEntry("EntandoTenants", "primary");
+        assertThat(bundlesInNamespaceB.get(0).getMetadata().getAnnotations()).containsEntry("entando.org/tenants", "primary");
     }
 
     @Test
@@ -101,7 +101,7 @@ class EntandoDeBundleServiceTest {
                 .findByNameAndNamespace(bundleName, bundleNamespace, "primary");
         assertThat(foundBundles).isNotEmpty();
         assertThat(foundBundles.get().getMetadata().getName()).isEqualTo(bundleName);
-        assertThat(foundBundles.get().getMetadata().getAnnotations().get("EntandoTenants")).contains("primary", "tenant1");
+        assertThat(foundBundles.get().getMetadata().getAnnotations().get("entando.org/tenants")).contains("primary", "tenant1");
 
     }
 
@@ -143,7 +143,7 @@ class EntandoDeBundleServiceTest {
         List<String> bundleKeywords = bundle.getSpec().getDetails().getKeywords();
         List<EntandoDeBundle> foundBundles = entandoDeBundleService.findBundlesByAllKeywords(bundleKeywords, "tenant2");
         assertThat(foundBundles).hasSize(1);
-        assertThat(foundBundles.get(0).getMetadata().getAnnotations().get("EntandoTenants")).contains("tenant2");
+        assertThat(foundBundles.get(0).getMetadata().getAnnotations().get("entando.org/tenants")).contains("tenant2");
     }
 
     @Test
@@ -163,7 +163,7 @@ class EntandoDeBundleServiceTest {
         List<String> bundleKeywords = bundle.getSpec().getDetails().getKeywords();
         List<EntandoDeBundle> foundBundles = entandoDeBundleService.findBundlesByAllKeywords(bundleKeywords, "tenant2");
         assertThat(foundBundles).hasSize(1);
-        assertThat(foundBundles.get(0).getMetadata().getAnnotations().get("EntandoTenants")).contains("primary",
+        assertThat(foundBundles.get(0).getMetadata().getAnnotations().get("entando.org/tenants")).contains("primary",
                 "tenant2");
     }
 
@@ -179,7 +179,7 @@ class EntandoDeBundleServiceTest {
         List<String> bundleKeywords = bundle.getSpec().getDetails().getKeywords();
         List<EntandoDeBundle> foundBundles = entandoDeBundleService.findBundlesByAllKeywords(bundleKeywords, "tenant2");
         assertThat(foundBundles).hasSize(1);
-        assertThat(foundBundles.get(0).getMetadata().getAnnotations().get("EntandoTenants")).contains("tenant2");
+        assertThat(foundBundles.get(0).getMetadata().getAnnotations().get("entando.org/tenants")).contains("tenant2");
     }
 
     @Test

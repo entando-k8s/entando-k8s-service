@@ -27,7 +27,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class EntandoDeBundleService extends EntandoKubernetesResourceCollector<EntandoDeBundle> {
 
-    public static final String ENTANDO_TENANTS_ANNOTATION = "EntandoTenants";
+    public static final String ENTANDO_TENANTS_ANNOTATION = "entando.org/tenants";
     public static final String TENANTS_ANNOTATION_DELIMITER = ",";
 
     public EntandoDeBundleService(KubernetesUtils kubernetesUtils,
