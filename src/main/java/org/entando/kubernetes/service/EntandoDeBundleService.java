@@ -181,7 +181,12 @@ public class EntandoDeBundleService extends EntandoKubernetesResourceCollector<E
     }
 
     private boolean containTenantAnnotationWithValue(Map<String, String> annotations, String tenantCode) {
+
         String values = annotations.get(ENTANDO_TENANTS_ANNOTATION);
+        if ((StringUtils.isBlank(tenantCode) || EntandoMultiTenancy.PRIMARY_TENANT.equals(tenantCode))
+                && StringUtils.isBlank(values)) {
+            return true;
+        }
         return values != null && Stream.of(values.split(TENANTS_ANNOTATION_DELIMITER))
                 .map(StringUtils::trim)
                 .map(StringUtils::strip)
