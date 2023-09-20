@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.entando.kubernetes.exception.NotFoundExceptionFactory;
+import org.entando.kubernetes.model.common.EntandoMultiTenancy;
 import org.entando.kubernetes.model.debundle.EntandoDeBundle;
 import org.entando.kubernetes.service.EntandoDeBundleService;
 import org.entando.kubernetes.service.assembler.EntandoDeBundleResourceAssembler;
@@ -40,15 +41,18 @@ public class EntandoDeBundleController {
     @GetMapping(produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
     public ResponseEntity<CollectionModel<EntityModel<EntandoDeBundle>>> list(
             @RequestParam(value = "namespace", required = false) String namespace,
-            @RequestParam(value = "repoUrl", required = false) String repoUrl) {
+            @RequestParam(value = "repoUrl", required = false) String repoUrl,
+            @RequestParam(value = "tenantCode", required = false) String tenantCode) {
 
-        log.info("Listing available entando-de-bundles in {} namespace with repoUrl:'{}'",
+        final String tenantCodeOrDefault = getTenantOrDefault(tenantCode);
+        log.info("Listing available entando-de-bundles for tenantCode:'{}' in {} namespace with repoUrl:'{}'",
+                tenantCode,
                 StringUtils.isEmpty(namespace) ? "all" :
                         namespace, repoUrl);
 
         List<EntandoDeBundle> deBundles = ofNullable(namespace)
-                .map(bundleService::getAllInNamespace)
-                .orElseGet(bundleService::getAll);
+                .map(n -> bundleService.getAllInNamespace(n, tenantCodeOrDefault))
+                .orElseGet(() -> bundleService.getAll(tenantCodeOrDefault));
 
         return ResponseEntity.ok(getCollectionWithLinks(
                 ofNullable(repoUrl).map(r ->
@@ -60,34 +64,48 @@ public class EntandoDeBundleController {
         return bundle.getSpec().getTags().stream().anyMatch(t -> StringUtils.equals(repoUrl, t.getTarball()));
     }
 
+    private String getTenantOrDefault(String tenantCode) {
+        return ofNullable(tenantCode)
+                .filter(StringUtils::isNotBlank)
+                .orElse(EntandoMultiTenancy.PRIMARY_TENANT);
+    }
+
     @GetMapping(path = "/{name}", produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
     public ResponseEntity<EntityModel<EntandoDeBundle>> get(@PathVariable String name,
-            @RequestParam(value = "namespace", required = false) String namespace) {
+                                                            @RequestParam(value = "namespace", required = false) String namespace,
+                                                            @RequestParam(value = "tenantCode", required = false) String tenantCode) {
 
+        final String tenantCodeOrDefault = getTenantOrDefault(tenantCode);
         if (StringUtils.isEmpty(namespace)) {
-            log.info("Getting entando-de-bundle with name {} in observed namespaces", name);
+            log.info("Getting entando-de-bundle for tenantCode:'{}' with name {} in observed namespaces", tenantCodeOrDefault, name);
         } else {
-            log.info("Getting entando-de-bundle with name {} in namespace {}", name, namespace);
+            log.info("Getting entando-de-bundle for tenantCode:'{}' with name {} in namespace {}", tenantCodeOrDefault, name, namespace);
         }
 
         EntandoDeBundle bundle = ofNullable(namespace)
-                .flatMap(ns -> bundleService.findByNameAndNamespace(name, ns))
-                .or(() -> bundleService.findByName(name))
+                .flatMap(ns -> bundleService.findByNameAndNamespace(name, ns, tenantCodeOrDefault))
+                .or(() -> bundleService.findByName(name, tenantCodeOrDefault))
                 .orElseThrow(() -> NotFoundExceptionFactory.entandoDeBundle(name));
         return ResponseEntity.ok(resourceAssembler.toModel(bundle));
     }
 
     @PostMapping(produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
-    public ResponseEntity<EntityModel<EntandoDeBundle>> create(@RequestBody EntandoDeBundle entandoDeBundle) {
-        return ResponseEntity.ok(resourceAssembler.toModel(bundleService.createBundle(entandoDeBundle)));
+    public ResponseEntity<EntityModel<EntandoDeBundle>> create(@RequestBody EntandoDeBundle entandoDeBundle,
+                                                               @RequestParam(value = "tenantCode", required = false) String tenantCode) {
+
+        final String tenantCodeOrDefault = getTenantOrDefault(tenantCode);
+        log.info("Creating '{}' EntandoDeBundle for tenantCode:'{}'", entandoDeBundle.getMetadata().getName(), tenantCodeOrDefault);
+        return ResponseEntity.ok(resourceAssembler.toModel(bundleService.createBundle(entandoDeBundle, tenantCodeOrDefault)));
     }
 
     @DeleteMapping(path = "/{name}", produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
-    public ResponseEntity<Void> delete(@PathVariable String name) {
+    public ResponseEntity<Void> delete(@PathVariable String name,
+                                       @RequestParam(value = "tenantCode", required = false) String tenantCode) {
 
-        log.info("Deleting {} EntandoDeBundle", name);
+        final String tenantCodeOrDefault = getTenantOrDefault(tenantCode);
+        log.info("Deleting {} EntandoDeBundle for tenantCode:'{}'", name, tenantCodeOrDefault);
 
-        bundleService.deleteBundle(name);
+        bundleService.deleteBundle(name, tenantCodeOrDefault);
         return ResponseEntity.noContent().build();
     }
 
@@ -100,8 +118,8 @@ public class EntandoDeBundleController {
 
     private Links getCollectionLinks() {
         return Links.of(
-                linkTo(methodOn(EntandoDeBundleController.class).get(null, null)).withRel("bundle"),
-                linkTo(methodOn(EntandoDeBundleController.class).list(null, null)).withRel("bundles-list")
+                linkTo(methodOn(EntandoDeBundleController.class).get(null, null, null)).withRel("bundle"),
+                linkTo(methodOn(EntandoDeBundleController.class).list(null, null, null)).withRel("bundles-list")
         );
     }
 
