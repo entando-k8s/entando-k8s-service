@@ -55,4 +55,12 @@ public final class NotFoundExceptionFactory {
 
     }
 
+    public static ThrowableProblem secret(String name, String key) {
+        return Problem.builder()
+                .withStatus(Status.NOT_FOUND)
+                .withDetail(String.format("Secret not found for name:'%s' and key: '%s'", name, key))
+                .build();
+
+    }
+
 }

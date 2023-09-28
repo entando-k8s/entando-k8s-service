@@ -34,6 +34,8 @@ public class EntandoPluginResourceAssembler implements
                         "plugins-in-namespace"),
                 linkTo(methodOn(EntandoPluginController.class).getPluginIngress(pluginName, pluginNamespace)).withRel(
                         "plugin-ingress"),
+                linkTo(methodOn(EntandoPluginController.class).getPluginConfiguration(pluginName, null))
+                        .withRel("plugin-configuration"),
                 linkTo(methodOn(EntandoPluginController.class).deletePluginIngressPath(pluginName,
                         pluginNamespace)).withRel("delete-plugin-ingress-path"),
                 linkTo(methodOn(ObservedNamespaceController.class).getByName(pluginNamespace)).withRel("namespace")

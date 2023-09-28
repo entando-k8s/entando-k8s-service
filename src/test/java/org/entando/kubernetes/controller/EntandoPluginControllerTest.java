@@ -30,7 +30,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import org.entando.kubernetes.EntandoKubernetesJavaApplication;
 import org.entando.kubernetes.config.TestKubernetesConfig;
+import org.entando.kubernetes.exception.NotFoundExceptionFactory;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
+import org.entando.kubernetes.model.response.PluginConfiguration;
 import org.entando.kubernetes.service.EntandoLinkService;
 import org.entando.kubernetes.service.EntandoPluginService;
 import org.entando.kubernetes.service.IngressService;
@@ -211,6 +213,43 @@ class EntandoPluginControllerTest {
         mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(content().string(StringContains.containsString("Ingress not found for EntandoPlugin")));
+    }
+
+    @Test
+    void shouldReturn404IfConfigurationNotFound() throws Exception {
+        String pluginName = "pn-3a0eefc4-13d51bef-88bf4312-simple-ms-server";
+        String tenantCode = "primary";
+        String confSuffix = "-conf";
+        URI uri = UriComponentsBuilder
+                .fromUriString(BASE_PLUGIN_ENDPOINT)
+                .pathSegment(pluginName, "config")
+                .build().toUri();
+
+        when(entandoPluginService.getPluginConfiguration(pluginName, tenantCode))
+                .thenThrow(NotFoundExceptionFactory.secret(pluginName + confSuffix, tenantCode));
+
+        mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(StringContains.containsString(String.format(
+                        "Secret not found for name:'%s' and key: '%s'", pluginName + confSuffix, tenantCode))));
+    }
+
+    @Test
+    void shouldReturnConfiguration() throws Exception {
+        String pluginName = "pn-3a0eefc4-13d51bef-88bf4312-simple-ms-server";
+        String tenantCode = "tenant1";
+        URI uri = UriComponentsBuilder
+                .fromUriString(BASE_PLUGIN_ENDPOINT)
+                .pathSegment(pluginName, "config")
+                .queryParam("tenantCode", tenantCode)
+                .build().toUri();
+
+        when(entandoPluginService.getPluginConfiguration(pluginName, tenantCode))
+                .thenReturn(new PluginConfiguration());
+
+        mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().string(StringContains.containsString("environment_variables")));
     }
 
     @Test

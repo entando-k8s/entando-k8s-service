@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.entando.kubernetes.model.app.EntandoApp;
+import org.entando.kubernetes.model.common.EntandoMultiTenancy;
 import org.entando.kubernetes.model.common.ServerStatus;
 import org.entando.kubernetes.model.link.EntandoAppPluginLink;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
@@ -33,12 +34,22 @@ public class IngressService {
         this.kubernetesUtils = kubernetesUtils;
     }
     
-    public Optional<Ingress> findByEntandoApp(EntandoApp app) {
-        List<Ingress> appIngresses = getIngressOperations()
-                .inNamespace(app.getMetadata().getNamespace())
-                .withLabel(app.getKind(), app.getMetadata().getName())
-                .withoutLabel(ENTANDO_TENANTS_LABEL)
-                .list().getItems();
+    public Optional<Ingress> findByEntandoApp(EntandoApp app, String tenantCode) {
+        List<Ingress> appIngresses = null;
+        if (StringUtils.isBlank(tenantCode) || EntandoMultiTenancy.PRIMARY_TENANT.equalsIgnoreCase(tenantCode)) {
+            appIngresses = getIngressOperations()
+                    .inNamespace(app.getMetadata().getNamespace())
+                    .withLabel(app.getKind(), app.getMetadata().getName())
+                    .withoutLabel(ENTANDO_TENANTS_LABEL)
+                    .list().getItems();
+
+        } else {
+            appIngresses = getIngressOperations()
+                    .inNamespace(app.getMetadata().getNamespace())
+                    .withLabels(Map.of(app.getKind(), app.getMetadata().getName(), ENTANDO_TENANTS_LABEL, tenantCode))
+                    .list().getItems();
+
+        }
         if (appIngresses.size() > 1) {
             log.warn("Extracted more than one app ingress - names '{}'", 
                     appIngresses.stream().map(i -> i.getMetadata().getName()).collect(Collectors.joining(",")));

@@ -60,16 +60,18 @@ public class EntandoLinkService extends EntandoKubernetesResourceCollector<Entan
     }
 
     public EntandoAppPluginLink deploy(EntandoAppPluginLink newLink) {
-        log.info("Link creation between EntandoApp {} on namespace {} and EntandoPlugin {} on namespace {}",
+        log.info("Link creation between EntandoApp {} on namespace {} and EntandoPlugin {} on namespace {} for tenant {}",
                 newLink.getSpec().getEntandoAppName(), newLink.getSpec().getEntandoAppNamespace(),
-                newLink.getSpec().getEntandoPluginName(), newLink.getSpec().getEntandoPluginNamespace());
+                newLink.getSpec().getEntandoPluginName(), newLink.getSpec().getEntandoPluginNamespace(),
+                newLink.getSpec().getTenantCode());
         return getLinksOperations().inNamespace(newLink.getMetadata().getNamespace()).createOrReplace(newLink);
     }
 
     public void delete(EntandoAppPluginLink l) {
-        log.info("Deleting link between EntandoApp {} on namespace {} and EntandoPlugin {} on namespace {}",
+        log.info("Deleting link between EntandoApp {} on namespace {} and EntandoPlugin {} on namespace {} for tenant {}",
                 l.getSpec().getEntandoAppName(), l.getSpec().getEntandoAppNamespace(),
-                l.getSpec().getEntandoPluginName(), l.getSpec().getEntandoPluginNamespace());
+                l.getSpec().getEntandoPluginName(), l.getSpec().getEntandoPluginNamespace(),
+                l.getSpec().getTenantCode());
         getLinksOperations().inNamespace(l.getMetadata().getNamespace()).delete(l);
     }
 
@@ -78,6 +80,7 @@ public class EntandoLinkService extends EntandoKubernetesResourceCollector<Entan
         String appName = app.getMetadata().getName();
         String pluginName = plugin.getMetadata().getName();
         String pluginNamespace = kubernetesUtils.getDefaultPluginNamespace();
+        String tenantCode = plugin.getSpec().getTenantCode();
         return new EntandoAppPluginLinkBuilder()
                 .withNewMetadata()
                 .withName(createAppPluginLinkName(appName, pluginName))
@@ -86,6 +89,7 @@ public class EntandoLinkService extends EntandoKubernetesResourceCollector<Entan
                 .withNewSpec()
                 .withEntandoApp(appNamespace, appName)
                 .withEntandoPlugin(pluginNamespace, pluginName)
+                .withTenantCode(tenantCode)
                 .endSpec()
                 .build();
     }

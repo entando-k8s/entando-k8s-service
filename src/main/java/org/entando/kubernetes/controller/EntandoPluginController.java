@@ -16,8 +16,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.entando.kubernetes.exception.BadRequestExceptionFactory;
 import org.entando.kubernetes.exception.NotFoundExceptionFactory;
+import org.entando.kubernetes.model.common.EntandoMultiTenancy;
 import org.entando.kubernetes.model.link.EntandoAppPluginLink;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
+import org.entando.kubernetes.model.response.PluginConfiguration;
 import org.entando.kubernetes.service.EntandoLinkService;
 import org.entando.kubernetes.service.EntandoPluginService;
 import org.entando.kubernetes.service.IngressService;
@@ -129,7 +131,6 @@ public class EntandoPluginController {
         return ResponseEntity.accepted().build();
     }
 
-
     @PostMapping(consumes = APPLICATION_JSON_VALUE, produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
     public ResponseEntity<EntityModel<EntandoPlugin>> create(
             @RequestBody EntandoPlugin entandoPlugin) {
@@ -143,6 +144,17 @@ public class EntandoPluginController {
             @RequestBody EntandoPlugin entandoPlugin) {
 
         return this.excuteCreateOrReplacePlugin(entandoPlugin, EntandoPluginService.CREATE_OR_REPLACE);
+    }
+
+    @GetMapping(path = "/{name}/config", produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
+    public ResponseEntity<EntityModel<PluginConfiguration>> getPluginConfiguration(
+            @PathVariable("name") final String pluginName,
+            @RequestParam(value = "tenantCode", required = false) String tenantCode) {
+
+        tenantCode = Optional.ofNullable(tenantCode)
+                .filter(StringUtils::isNotBlank)
+                .orElse(EntandoMultiTenancy.PRIMARY_TENANT);
+        return ResponseEntity.ok(EntityModel.of(pluginService.getPluginConfiguration(pluginName, tenantCode)));
     }
 
     private ResponseEntity<EntityModel<EntandoPlugin>> excuteCreateOrReplacePlugin(EntandoPlugin entandoPlugin,

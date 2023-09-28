@@ -5,6 +5,7 @@ import static org.entando.kubernetes.util.EntandoDeBundleTestHelper.TEST_BUNDLE_
 import static org.hamcrest.Matchers.hasKey;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -78,13 +79,13 @@ class EntandoDeBundleControllerTest {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoDeBundleTestHelper.BASE_BUNDLES_ENDPOINT)
                 .build().toUri();
-        when(entandoDeBundleService.getAll()).thenReturn(Collections.emptyList());
+        when(entandoDeBundleService.getAll("primary")).thenReturn(Collections.emptyList());
 
         mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is2xxSuccessful())
                 .andExpect(content().json("{}"));
 
-        verify(entandoDeBundleService, times(1)).getAll();
+        verify(entandoDeBundleService, times(1)).getAll("primary");
     }
 
     @Test
@@ -93,8 +94,8 @@ class EntandoDeBundleControllerTest {
                 .fromUriString(EntandoDeBundleTestHelper.BASE_BUNDLES_ENDPOINT)
                 .build().toUri();
 
-        EntandoDeBundle tempBundle = EntandoDeBundleTestHelper.getTestEntandoDeBundle();
-        when(entandoDeBundleService.getAll()).thenReturn(Collections.singletonList(tempBundle));
+        EntandoDeBundle tempBundle = EntandoDeBundleTestHelper.getTestEntandoDeBundle("primary");
+        when(entandoDeBundleService.getAll("primary")).thenReturn(Collections.singletonList(tempBundle));
 
         mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is2xxSuccessful())
@@ -104,7 +105,7 @@ class EntandoDeBundleControllerTest {
                 .andExpect(jsonPath("$._links", hasKey("bundle")))
                 .andExpect(jsonPath("$._links", hasKey("bundles-list")));
 
-        verify(entandoDeBundleService, times(1)).getAll();
+        verify(entandoDeBundleService, times(1)).getAll("primary");
     }
 
     @Test
@@ -113,11 +114,12 @@ class EntandoDeBundleControllerTest {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoDeBundleTestHelper.BASE_BUNDLES_ENDPOINT)
                 .queryParam("repoUrl", Optional.of(repoUrl))
+                .queryParam("tenantCode", "tenant1")
                 .build().toUri();
 
-        EntandoDeBundle tempBundle1 = EntandoDeBundleTestHelper.getTestEntandoDeBundle();
-        EntandoDeBundle tempBundle2 = EntandoDeBundleTestHelper.getTestEntandoDeBundle(repoUrl);
-        when(entandoDeBundleService.getAll()).thenReturn(Arrays.asList(tempBundle1, tempBundle2));
+        EntandoDeBundle tempBundle1 = EntandoDeBundleTestHelper.getTestEntandoDeBundle("tenant1");
+        EntandoDeBundle tempBundle2 = EntandoDeBundleTestHelper.getTestEntandoDeBundle(repoUrl, "tenant1");
+        when(entandoDeBundleService.getAll("tenant1")).thenReturn(Arrays.asList(tempBundle1, tempBundle2));
 
         mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is2xxSuccessful())
@@ -128,7 +130,7 @@ class EntandoDeBundleControllerTest {
                 .andExpect(jsonPath("$._links", hasKey("bundle")))
                 .andExpect(jsonPath("$._links", hasKey("bundles-list")));
 
-        verify(entandoDeBundleService, times(1)).getAll();
+        verify(entandoDeBundleService, times(1)).getAll("tenant1");
     }
 
     @Test
@@ -136,10 +138,11 @@ class EntandoDeBundleControllerTest {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoDeBundleTestHelper.BASE_BUNDLES_ENDPOINT)
                 .queryParam("namespace", TEST_BUNDLE_NAMESPACE)
+                .queryParam("tenantCode", "tenant2")
                 .build().toUri();
 
-        EntandoDeBundle tempBundle = EntandoDeBundleTestHelper.getTestEntandoDeBundle();
-        when(entandoDeBundleService.getAllInNamespace(anyString())).thenReturn(Collections.singletonList(tempBundle));
+        EntandoDeBundle tempBundle = EntandoDeBundleTestHelper.getTestEntandoDeBundle("tenant2");
+        when(entandoDeBundleService.getAllInNamespace(anyString(), eq("tenant2"))).thenReturn(Collections.singletonList(tempBundle));
 
         mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is2xxSuccessful())
@@ -147,7 +150,7 @@ class EntandoDeBundleControllerTest {
                 .andExpect(jsonPath("$._embedded.entandoDeBundles[0].metadata.name").value(TEST_BUNDLE_NAME))
                 .andExpect(jsonPath("$._embedded.entandoDeBundles[0].metadata.namespace").value(TEST_BUNDLE_NAMESPACE));
 
-        verify(entandoDeBundleService, times(1)).getAllInNamespace(TEST_BUNDLE_NAMESPACE);
+        verify(entandoDeBundleService, times(1)).getAllInNamespace(TEST_BUNDLE_NAMESPACE, "tenant2");
     }
 
     @Test
@@ -155,10 +158,11 @@ class EntandoDeBundleControllerTest {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoDeBundleTestHelper.BASE_BUNDLES_ENDPOINT)
                 .pathSegment(TEST_BUNDLE_NAME)
+                .queryParam("tenantCode", "primary")
                 .build().toUri();
 
-        EntandoDeBundle tempBundle = EntandoDeBundleTestHelper.getTestEntandoDeBundle();
-        when(entandoDeBundleService.findByName(anyString())).thenReturn(Optional.of(tempBundle));
+        EntandoDeBundle tempBundle = EntandoDeBundleTestHelper.getTestEntandoDeBundle("primary");
+        when(entandoDeBundleService.findByName(anyString(), eq("primary"))).thenReturn(Optional.of(tempBundle));
 
         mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is2xxSuccessful())
@@ -166,7 +170,7 @@ class EntandoDeBundleControllerTest {
                 .andExpect(jsonPath("$.metadata.namespace").value(TEST_BUNDLE_NAMESPACE));
 
         verify(entandoDeBundleService, times(1))
-                .findByName(TEST_BUNDLE_NAME);
+                .findByName(TEST_BUNDLE_NAME, "primary");
 
         mvc.perform(get(uri).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is2xxSuccessful())
@@ -178,10 +182,11 @@ class EntandoDeBundleControllerTest {
     void shouldCreateBundle() throws Exception {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoDeBundleTestHelper.BASE_BUNDLES_ENDPOINT)
+                .queryParam("tenantCode", "primary")
                 .build().toUri();
 
-        EntandoDeBundle bundle = EntandoDeBundleTestHelper.getTestEntandoDeBundle();
-        when(entandoDeBundleService.createBundle(any())).thenReturn(bundle);
+        EntandoDeBundle bundle = EntandoDeBundleTestHelper.getTestEntandoDeBundle("primary");
+        when(entandoDeBundleService.createBundle(any(), eq("primary"))).thenReturn(bundle);
 
         mvc.perform(post(uri).accept(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(bundle))
@@ -197,6 +202,7 @@ class EntandoDeBundleControllerTest {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoDeBundleTestHelper.BASE_BUNDLES_ENDPOINT)
                 .path("/" + EntandoDeBundleTestHelper.TEST_BUNDLE_NAME)
+                .queryParam("tenantCode", "primary")
                 .build().toUri();
 
         mvc.perform(delete(uri).accept(MediaType.APPLICATION_JSON)
@@ -212,9 +218,10 @@ class EntandoDeBundleControllerTest {
         URI uri = UriComponentsBuilder
                 .fromUriString(EntandoDeBundleTestHelper.BASE_BUNDLES_ENDPOINT)
                 .path("/" + bundleName)
+                .queryParam("tenantCode", "tenant45")
                 .build().toUri();
 
-        doThrow(NotFoundExceptionFactory.entandoDeBundle(bundleName)).when(entandoDeBundleService).deleteBundle(any());
+        doThrow(NotFoundExceptionFactory.entandoDeBundle(bundleName)).when(entandoDeBundleService).deleteBundle(any(), any());
 
         mvc.perform(delete(uri).accept(MediaType.APPLICATION_JSON)
                         .contentType(MediaType.APPLICATION_JSON))

@@ -29,8 +29,8 @@ public class EntandoDeBundleResourceAssembler implements
                 (bundle.getSpec().getTags() != null && !bundle.getSpec().getTags().isEmpty()) ? bundle.getSpec()
                         .getTags().get(0).getTarball() : null;
         return Links.of(
-                linkTo(methodOn(EntandoDeBundleController.class).get(bundleName, bundleNamespace)).withSelfRel(),
-                linkTo(methodOn(EntandoDeBundleController.class).list(bundleNamespace, repoUrl)).withRel("bundles"),
+                linkTo(methodOn(EntandoDeBundleController.class).get(bundleName, bundleNamespace, null)).withSelfRel(),
+                linkTo(methodOn(EntandoDeBundleController.class).list(bundleNamespace, repoUrl, null)).withRel("bundles"),
                 linkTo(methodOn(ObservedNamespaceController.class).getByName(bundleNamespace)).withRel("namespace")
         );
     }

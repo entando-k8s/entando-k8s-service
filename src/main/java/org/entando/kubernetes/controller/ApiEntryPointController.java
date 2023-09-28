@@ -19,7 +19,7 @@ public class ApiEntryPointController {
         CollectionModel<Object> cm = new CollectionModel<>(Collections.emptyList());
         cm.add(linkTo(methodOn(EntandoAppController.class).list()).withRel("apps"));
         cm.add(linkTo(methodOn(EntandoPluginController.class).list()).withRel("plugins"));
-        cm.add(linkTo(methodOn(EntandoDeBundleController.class).list(null, null)).withRel("bundles"));
+        cm.add(linkTo(methodOn(EntandoDeBundleController.class).list(null, null, null)).withRel("bundles"));
         cm.add(linkTo(methodOn(EntandoLinksController.class).list()).withRel("app-plugin-links"));
         cm.add(linkTo(methodOn(ObservedNamespaceController.class).list()).withRel("observed-namespaces"));
         return ResponseEntity.ok(cm);
