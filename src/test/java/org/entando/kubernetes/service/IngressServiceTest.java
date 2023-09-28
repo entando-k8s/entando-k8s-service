@@ -66,6 +66,7 @@ class IngressServiceTest {
             ingresses.add(IngressTestHelper.createAppIngress(client, app, "-second", Map.of()));
             ingresses.add(IngressTestHelper.createAppIngress(client, app, "-custom3-", Map.of(IngressService.ENTANDO_TENANTS_LABEL, "tenant3")));
             Optional<Ingress> appIngress = ingressService.findByEntandoApp(app, null);
+
             assertThat(appIngress).isPresent();
             String name = appIngress.get().getMetadata().getName();
             Assertions.assertTrue(name.endsWith("-first") || name.endsWith("-second"));

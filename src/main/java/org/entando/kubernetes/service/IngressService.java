@@ -50,7 +50,6 @@ public class IngressService {
                     .list().getItems();
 
         }
-
         if (appIngresses.size() > 1) {
             log.warn("Extracted more than one app ingress - names '{}'", 
                     appIngresses.stream().map(i -> i.getMetadata().getName()).collect(Collectors.joining(",")));
