@@ -199,6 +199,8 @@ public class EntandoPluginController {
                 "delete-plugin-ingress-path"));
         collection.add(linkTo(methodOn(EntandoPluginController.class).createOrReplace(null)).withRel(
                 "create-or-replace-plugin"));
+        collection.add(linkTo(methodOn(EntandoPluginController.class).getPluginConfiguration(null, null))
+                .withRel("plugin-configuration"));
     }
 
     private CollectionModel<EntityModel<EntandoPlugin>> getPluginCollectionModel(List<EntandoPlugin> plugins) {
