@@ -6,7 +6,7 @@
     <parent>
         <groupId>org.entando</groupId>
         <artifactId>entando-spring-boot-parent</artifactId>
-        <version>7.2.1</version>
+        <version>7.3.0-ENG-5268-PR-49</version>
     </parent>
 
     <groupId>org.entando</groupId>
