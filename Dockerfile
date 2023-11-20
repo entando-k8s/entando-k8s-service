@@ -1,11 +1,11 @@
-FROM entando/entando-java-base:11.1.0-ENG-5117-PR-11
+FROM entando/entando-java-base:v17.0.9-ENG-5316-PR-17-BB-release-2F-17.0
 ARG VERSION
 ### Required Openshift Labels
 LABEL name="Entando Kubernetes Service" \
       maintainer="dev@entando.com" \
       vendor="Entando Inc." \
       version="v${VERSION}" \
-      release="7.3" \
+      release="7.4" \
       summary="Entando infrastructure project for Kubernetes APIs" \
       description="Entando infrastructure project for kubernetes APIs"
 
