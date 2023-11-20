@@ -10,7 +10,7 @@ env:
   ENTANDO_BOT_TOKEN: ${{ secrets.ENTANDO_BOT_TOKEN }}
   PR_CHECKER_PATH: ".github/pr-title-checker-config.json"
 
-  JDK_VERSION: 11
+  JDK_VERSION: 17
   BUILD_COMMANDS: mvn package -Pjvm;
   DOCKER_IMAGE_BASE_NAME: entando/entando-k8s-service
   DOCKER_IMAGE_ARCHITECTURE: linux/amd64,linux/arm64
