@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.entando.kubernetes.exception.BadRequestExceptionFactory;
 import org.entando.kubernetes.exception.NotFoundExceptionFactory;
+import org.entando.kubernetes.model.PluginVariable;
 import org.entando.kubernetes.model.link.EntandoAppPluginLink;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.entando.kubernetes.service.EntandoLinkService;
@@ -95,6 +96,20 @@ public class EntandoPluginController {
         EntandoPlugin plugin = getEntandoPluginOrFail(pluginName, namespace);
         Ingress pluginIngress = getEntandoPluginIngressOrFail(plugin);
         return ResponseEntity.ok(new EntityModel<>(pluginIngress));
+    }
+
+    @GetMapping(path = "/resolve", produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
+    public ResponseEntity<CollectionModel<PluginVariable>> resolvePluginVariable(@RequestParam("variableName") final List<String> variableNames,
+            @RequestParam(value = "namespace", required = false) String namespace) {
+
+        if (StringUtils.isEmpty(namespace)) {
+            log.info("Searching plugin variables with name {} in observed namespaces", variableNames);
+        } else {
+            log.info("Searching plugin variables with name {} in namespace {}", variableNames, namespace);
+        }
+
+        final List<PluginVariable> pluginVariables = pluginService.resolvePluginVariables(variableNames, namespace);
+        return ResponseEntity.ok(new CollectionModel<>(pluginVariables));
     }
 
     @DeleteMapping(path = "/{name}", produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
