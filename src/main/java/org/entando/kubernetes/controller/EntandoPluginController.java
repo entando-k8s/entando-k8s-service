@@ -16,8 +16,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.entando.kubernetes.exception.BadRequestExceptionFactory;
 import org.entando.kubernetes.exception.NotFoundExceptionFactory;
-import org.entando.kubernetes.model.common.EntandoMultiTenancy;
 import org.entando.kubernetes.model.PluginVariable;
+import org.entando.kubernetes.model.common.EntandoMultiTenancy;
 import org.entando.kubernetes.model.link.EntandoAppPluginLink;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.entando.kubernetes.model.response.PluginConfiguration;
@@ -101,7 +101,7 @@ public class EntandoPluginController {
     }
 
     @GetMapping(path = "/resolve", produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
-    public ResponseEntity<CollectionModel<PluginVariable>> resolvePluginVariable(@RequestParam("variableName") final List<String> variableNames,
+    public CollectionModel<PluginVariable> resolvePluginVariable(@RequestParam("variableName") final List<String> variableNames,
             @RequestParam(value = "namespace", required = false) String namespace) {
 
         if (StringUtils.isEmpty(namespace)) {
@@ -111,7 +111,7 @@ public class EntandoPluginController {
         }
 
         final List<PluginVariable> pluginVariables = pluginService.resolvePluginVariables(variableNames, namespace);
-        return ResponseEntity.ok(new CollectionModel<>(pluginVariables));
+        return CollectionModel.of(pluginVariables);
     }
 
     @DeleteMapping(path = "/{name}", produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
@@ -214,6 +214,8 @@ public class EntandoPluginController {
                 "delete-plugin-ingress-path"));
         collection.add(linkTo(methodOn(EntandoPluginController.class).createOrReplace(null)).withRel(
                 "create-or-replace-plugin"));
+        collection.add(linkTo(methodOn(EntandoPluginController.class).resolvePluginVariable(null, null)).withRel(
+                "resolve-variables"));
         collection.add(linkTo(methodOn(EntandoPluginController.class).getPluginConfiguration(null, null))
                 .withRel("plugin-configuration"));
     }
