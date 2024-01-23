@@ -24,6 +24,11 @@ public final class NotFoundExceptionFactory {
                 String.format("EntandoPlugin with name %s not found in observed namespaces", name));
     }
 
+    public static ThrowableProblem configMap(String name, String namespace) {
+        return Problem.valueOf(Status.NOT_FOUND,
+                String.format("ConfigMap with name %s not found in namespace %s", name, namespace));
+    }
+
     public static ThrowableProblem entandoDeBundle(String name) {
         return Problem.valueOf(Status.NOT_FOUND,
                 String.format("Bundle with name %s not found in observed namespace", name));
