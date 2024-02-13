@@ -2,6 +2,8 @@ package org.entando.kubernetes.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.fabric8.kubernetes.api.model.ConfigMap;
+import io.fabric8.kubernetes.api.model.ConfigMapList;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.EnvVarBuilder;
 import io.fabric8.kubernetes.api.model.KubernetesResourceList;
@@ -13,15 +15,20 @@ import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.dsl.RollableScalableResource;
 import io.fabric8.zjsonpatch.internal.guava.Strings;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.entando.kubernetes.exception.NotFoundExceptionFactory;
+import org.entando.kubernetes.model.PluginVariable;
 import org.entando.kubernetes.model.namespace.ObservedNamespaces;
 import org.entando.kubernetes.model.plugin.EntandoPlugin;
 import org.entando.kubernetes.model.plugin.EntandoPluginBuilder;
 import org.entando.kubernetes.model.response.PluginConfiguration;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.zalando.problem.Problem;
 import org.zalando.problem.Status;
 
@@ -33,6 +40,7 @@ public class EntandoPluginService extends EntandoKubernetesResourceCollector<Ent
     public static final boolean CREATE_OR_REPLACE = true;
 
     public static final String ENTANDO_TIMESTAMP_NAME = "ENTANDO_TIMESTAMP";
+    public static final String ENTANDO_PLUGINS_VARIABLES_CONFIG_MAP = "entando-plugins-variables";
 
     private final SecretService secretService;
 
@@ -50,6 +58,20 @@ public class EntandoPluginService extends EntandoKubernetesResourceCollector<Ent
     @Override
     protected List<EntandoPlugin> getInNamespaceWithoutChecking(String namespace) {
         return getPluginOperations().inNamespace(namespace).list().getItems();
+    }
+
+    public List<PluginVariable> resolvePluginVariables(List<String> pluginVariables, String namespace) {
+        if (CollectionUtils.isEmpty(pluginVariables)) {
+            return Collections.emptyList();
+        }
+
+        final Map<String, String> data = getConfigMap(namespace, ENTANDO_PLUGINS_VARIABLES_CONFIG_MAP)
+                .map(ConfigMap::getData)
+                .orElseThrow(() -> NotFoundExceptionFactory.configMap(ENTANDO_PLUGINS_VARIABLES_CONFIG_MAP, namespace));
+
+        return pluginVariables.stream()
+                .map(var -> new PluginVariable(var, data.get(var)))
+                .collect(Collectors.toList());
     }
 
     public void deletePlugin(String pluginId) {
@@ -135,6 +157,17 @@ public class EntandoPluginService extends EntandoKubernetesResourceCollector<Ent
     private MixedOperation<EntandoPlugin, KubernetesResourceList<EntandoPlugin>, Resource<EntandoPlugin>> getPluginOperations() {
         //CHECKSTYLE:ON
         return kubernetesUtils.getCurrentKubernetesClient().customResources(EntandoPlugin.class);
+    }
+
+    private Optional<ConfigMap> getConfigMap(String namespace, String configMapName) {
+        MixedOperation<ConfigMap, ConfigMapList, Resource<ConfigMap>> configMapMixedOperation = kubernetesUtils.getCurrentKubernetesClient()
+                .configMaps();
+        if (! Strings.isNullOrEmpty(namespace)) {
+            configMapMixedOperation = (MixedOperation<ConfigMap, ConfigMapList, Resource<ConfigMap>>) configMapMixedOperation.inNamespace(namespace);
+        } else {
+            configMapMixedOperation = (MixedOperation<ConfigMap, ConfigMapList, Resource<ConfigMap>>) configMapMixedOperation.inAnyNamespace();
+        }
+        return Optional.ofNullable(configMapMixedOperation.withName(configMapName).get());
     }
 
     public PluginConfiguration getPluginConfiguration(String pluginName, String tenantCode) {
