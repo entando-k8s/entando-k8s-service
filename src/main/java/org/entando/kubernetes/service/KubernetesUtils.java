@@ -5,6 +5,8 @@ import static java.util.Optional.ofNullable;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.JWTParser;
+import io.fabric8.kubernetes.client.Config;
+import io.fabric8.kubernetes.client.ConfigBuilder;
 import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import java.text.ParseException;
@@ -42,25 +44,41 @@ public class KubernetesUtils implements JwtDecoder {
     }
 
     public String getDefaultPluginNamespace() {
-        return ofNullable(callerNamespace.get()).orElse(getCurrentNamespace());
+//        return ofNullable(callerNamespace.get()).orElse(getCurrentNamespace());
+        return getCurrentNamespace();
     }
 
     public String getCurrentNamespace() {
         return getCurrentKubernetesClient().getNamespace();
     }
 
+    public KubernetesClient getCurrentKubernetesClient(String serverUrl, String token, String namespace) {
+    // Creiamo un nuovo KubernetesClient configurato con l'URL del server specificato
+    Config config = new ConfigBuilder()
+            .withMasterUrl(serverUrl)
+            .withOauthToken(token)
+            .withNamespace(namespace)
+            .build();
+    
+    // Usiamo ancora il token di default, ma con l'URL del server specificato
+    return new DefaultKubernetesClient(config);
+}
+
     public KubernetesClient getCurrentKubernetesClient() {
         //at this point, we always use the service account of the entando-k8s-service which should be the same as the operator's service
         // account
-        return this.kubernetesClients.get(DefaultKubernetesClientBuilder.NOT_K8S_TOKEN);
+//        return this.kubernetesClients.get(DefaultKubernetesClientBuilder.NOT_K8S_TOKEN);
         //If we ever require serviceAccount propagation from component-manager, reactivate this line:
         //return this.kubernetesClients.get(currentToken.get());
+
+        return getCurrentKubernetesClient("https://rancher.entando.org/k8s/clusters/c-m-tlkbhgpx","kubeconfig-u-lzyzo5b3ijj7lss:6zkl29dmmsq2djk576zqflqrdrhr62z6946nv92kv4m9nxbldzwxj4", "entando73");
     }
 
     @Override
     public Jwt decode(String token) throws JwtException {
         try {
             final JWT parsedJwt = JWTParser.parse(token);
+
             if (parsedJwt.getJWTClaimsSet().getClaims().get("kubernetes.io/serviceaccount/namespace") != null) {
                 //Leaving this here for now. We may still want to use the consumer's K8S token, but for now
                 // none of our consumers are passing the K8S token
