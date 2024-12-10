@@ -81,7 +81,7 @@ public class KubernetesUtils implements JwtDecoder {
 //        return this.kubernetesClients.get(DefaultKubernetesClientBuilder.NOT_K8S_TOKEN);
         //If we ever require serviceAccount propagation from component-manager, reactivate this line:
         //return this.kubernetesClients.get(currentToken.get());
-        Logger.getLogger(getClass().getName()).log(Level.INFO, namespacesToObserve);
+        Logger.getLogger(getClass().getName()).log(Level.INFO, "NAMESPACE_TO_OBSERVE: "+namespacesToObserve);
         return getCurrentKubernetesClient(clusterAddress,clusterToken, namespacesToObserve);
     }
 
