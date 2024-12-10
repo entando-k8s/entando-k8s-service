@@ -17,6 +17,8 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtClaimNames;
@@ -33,6 +35,15 @@ public class KubernetesUtils implements JwtDecoder {
     private final ThreadLocal<String> currentToken = new ThreadLocal<>();
     @SuppressWarnings("java:S5164")
     private final ThreadLocal<String> callerNamespace = new ThreadLocal<>();
+
+    @Value("${entando.namespaces-to-observe:}")
+    private String namespacesToObserve;
+
+    @Value("${entando.cluster.address:}")
+    private String clusterAddress;
+
+    @Value("${entando.cluster.token:}")
+    private String clusterToken;
 
     public KubernetesUtils() {
         this(s -> new DefaultKubernetesClient());
@@ -71,7 +82,7 @@ public class KubernetesUtils implements JwtDecoder {
         //If we ever require serviceAccount propagation from component-manager, reactivate this line:
         //return this.kubernetesClients.get(currentToken.get());
 
-        return getCurrentKubernetesClient("https://rancher.entando.org/k8s/clusters/c-m-tlkbhgpx","kubeconfig-u-lzyzo5b3ijj7lss:6zkl29dmmsq2djk576zqflqrdrhr62z6946nv92kv4m9nxbldzwxj4", "entando73");
+        return getCurrentKubernetesClient(clusterAddress,clusterToken, namespacesToObserve);
     }
 
     @Override
