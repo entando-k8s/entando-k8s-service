@@ -36,7 +36,7 @@ public class KubernetesUtils implements JwtDecoder {
     @SuppressWarnings("java:S5164")
     private final ThreadLocal<String> callerNamespace = new ThreadLocal<>();
 
-    @Value("${entando.namespaces-to-observe:}")
+    @Value("${entando.namespaces.to.observe:}")
     private String namespacesToObserve;
 
     @Value("${entando.cluster.address:}")
@@ -81,7 +81,7 @@ public class KubernetesUtils implements JwtDecoder {
 //        return this.kubernetesClients.get(DefaultKubernetesClientBuilder.NOT_K8S_TOKEN);
         //If we ever require serviceAccount propagation from component-manager, reactivate this line:
         //return this.kubernetesClients.get(currentToken.get());
-
+        Logger.getLogger(getClass().getName()).log(Level.INFO, namespacesToObserve);
         return getCurrentKubernetesClient(clusterAddress,clusterToken, namespacesToObserve);
     }
 
