@@ -20,7 +20,7 @@ public class KubernetesNamespaceResourceAssembler implements
     @Override
     public EntityModel<ObservedNamespace> toModel(ObservedNamespace ons) {
 
-        EntityModel<ObservedNamespace> em = new EntityModel<>(ons);
+        EntityModel<ObservedNamespace> em = EntityModel.of(ons);
 
         String ns = ons.getName();
         em.add(linkTo(methodOn(ObservedNamespaceController.class).getByName(ns)).withSelfRel());

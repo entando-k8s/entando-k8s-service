@@ -19,8 +19,9 @@ public class EntandoPluginTestHelper {
 
     public static EntandoPlugin createTestEntandoPlugin(KubernetesClient client) {
         EntandoPlugin ep = getTestEntandoPlugin();
-        KubernetesDeserializer.registerCustomKind(ep.getApiVersion(), ep.getKind(), EntandoPlugin.class);
-        return getEntandoPluginOperations(client).inNamespace(ep.getMetadata().getNamespace()).createOrReplace(ep);
+        KubernetesDeserializer deserializer = new KubernetesDeserializer();
+        deserializer.registerCustomKind(ep.getApiVersion(), ep.getKind(), EntandoPlugin.class);
+        return getEntandoPluginOperations(client).inNamespace(ep.getMetadata().getNamespace()).resource(ep).createOrReplace();
     }
 
     public static EntandoPlugin getTestEntandoPlugin() {
@@ -65,6 +66,6 @@ public class EntandoPluginTestHelper {
 
     public static MixedOperation<EntandoPlugin, KubernetesResourceList<EntandoPlugin>, Resource<EntandoPlugin>> getEntandoPluginOperations(
             KubernetesClient client) {
-        return client.customResources(EntandoPlugin.class);
+        return client.resources(EntandoPlugin.class);
     }
 }

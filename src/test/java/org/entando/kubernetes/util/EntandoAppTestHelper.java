@@ -17,8 +17,8 @@ public class EntandoAppTestHelper {
 
     public static EntandoApp createTestEntandoApp(KubernetesClient client) {
         EntandoApp ea = getTestEntandoApp();
-
-        KubernetesDeserializer.registerCustomKind(ea.getApiVersion(), ea.getKind(), EntandoApp.class);
+        KubernetesDeserializer deserializer = new KubernetesDeserializer();
+        deserializer.registerCustomKind(ea.getApiVersion(), ea.getKind(), EntandoApp.class);
 
         return EntandoAppService.getEntandoAppsOperations(client)
                 .inNamespace(ea.getMetadata().getNamespace()).createOrReplace(ea);

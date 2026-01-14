@@ -61,7 +61,7 @@ public class ObservedNamespaceController {
 
 
     private CollectionModel<EntityModel<ObservedNamespace>> getNamespaceCollectionModel() {
-        return new CollectionModel<>(
+        return CollectionModel.of(
                 observedNamespaces.getList().stream().map(resAssembler::toModel).collect(Collectors.toList())
         );
     }

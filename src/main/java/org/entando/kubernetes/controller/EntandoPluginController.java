@@ -96,7 +96,7 @@ public class EntandoPluginController {
 
         EntandoPlugin plugin = getEntandoPluginOrFail(pluginName, namespace);
         Ingress pluginIngress = getEntandoPluginIngressOrFail(plugin);
-        return ResponseEntity.ok(new EntityModel<>(pluginIngress));
+        return ResponseEntity.ok(EntityModel.of(pluginIngress));
     }
 
     @DeleteMapping(path = "/{name}", produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
@@ -204,7 +204,7 @@ public class EntandoPluginController {
     }
 
     private CollectionModel<EntityModel<EntandoPlugin>> getPluginCollectionModel(List<EntandoPlugin> plugins) {
-        return new CollectionModel<>(plugins.stream().map(resourceAssembler::toModel).collect(Collectors.toList()));
+        return CollectionModel.of(plugins.stream().map(resourceAssembler::toModel).collect(Collectors.toList()));
     }
 
 

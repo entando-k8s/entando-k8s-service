@@ -20,7 +20,7 @@ public class EntandoAppPluginLinkResourceAssembler implements
 
     @Override
     public EntityModel<EntandoAppPluginLink> toModel(EntandoAppPluginLink entity) {
-        EntityModel<EntandoAppPluginLink> response = new EntityModel<>(entity);
+        EntityModel<EntandoAppPluginLink> response = EntityModel.of(entity);
 
         response.add(getLinks(entity));
 

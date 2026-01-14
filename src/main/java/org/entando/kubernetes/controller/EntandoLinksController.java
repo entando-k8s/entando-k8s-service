@@ -129,7 +129,7 @@ public class EntandoLinksController {
     }
 
     private CollectionModel<EntityModel<EntandoAppPluginLink>> getCollectionWithLinks(List<EntandoAppPluginLink> all) {
-        CollectionModel<EntityModel<EntandoAppPluginLink>> cm = new CollectionModel<>(all
+        CollectionModel<EntityModel<EntandoAppPluginLink>> cm = CollectionModel.of(all
                 .stream().map(linkResourceAssembler::toModel).collect(
                         Collectors.toList()));
         cm.add(getCollectionLinks());

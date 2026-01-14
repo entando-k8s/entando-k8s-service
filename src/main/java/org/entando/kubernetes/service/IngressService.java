@@ -1,8 +1,7 @@
 package org.entando.kubernetes.service;
 
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
-import io.fabric8.kubernetes.api.model.networking.v1.IngressFluent;
-import io.fabric8.kubernetes.api.model.networking.v1.IngressFluentImpl;
+import io.fabric8.kubernetes.api.model.networking.v1.IngressBuilder;
 import io.fabric8.kubernetes.api.model.networking.v1.IngressList;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
@@ -103,7 +102,7 @@ public class IngressService {
     public static class PathIngressRemover {
 
         private final UnaryOperator<Ingress> action;
-        private final IngressFluent<?> fluent;
+        private final IngressBuilder builder;
 
         public PathIngressRemover(String namespace, String ingressName,
                 MixedOperation<Ingress, IngressList, Resource<Ingress>> ingressOperations) {
@@ -111,18 +110,16 @@ public class IngressService {
                     .inNamespace(namespace)
                     .withName(ingressName);
 
-            this.fluent = new IngressFluentImpl<>(ingressResource.get());
+            this.builder = new IngressBuilder(ingressResource.get());
             this.action = ingressResource::patch;
 
         }
 
         private Ingress done() {
-            Ingress built = new Ingress(fluent.getApiVersion(), fluent.getKind(), fluent.buildMetadata(),
-                    fluent.buildSpec(), fluent.buildStatus());
             try {
-                return action.apply(built);
+                return action.apply(builder.build());
             } catch (Exception ex) {
-                log.error("error editing ingress:'{}'", fluent.buildMetadata().getName(), ex);
+                log.error("error editing ingress:'{}'", builder.buildMetadata().getName(), ex);
                 return null;
             }
 
@@ -132,16 +129,16 @@ public class IngressService {
             Ingress ingress = null;
             for (String httpPath : httpPaths) {
                 ingress = Optional.ofNullable(httpPath).map(path -> {
-                            log.debug("Try to remove path:'{}' from Ingress:'{}'", path, fluent.buildMetadata().getName());
-                            return fluent.buildSpec().getRules().get(0).getHttp().getPaths()
+                            log.debug("Try to remove path:'{}' from Ingress:'{}'", path, builder.buildMetadata().getName());
+                            return builder.buildSpec().getRules().get(0).getHttp().getPaths()
                                     .stream()
                                     .filter(p -> StringUtils.equals(p.getPath(), path))
                                     .findFirst().orElse(null);
                         }
                 ).map(p -> {
-                    String annotationPathKey = retrieveAnnotationKeyFromPath(fluent.buildMetadata().getAnnotations(),
+                    String annotationPathKey = retrieveAnnotationKeyFromPath(builder.buildMetadata().getAnnotations(),
                             p.getPath());
-                    fluent.editSpec().editFirstRule().editHttp()
+                    builder.editSpec().editFirstRule().editHttp()
                             .removeFromPaths(p)
                             .endHttp()
                             .endRule()

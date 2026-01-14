@@ -12,9 +12,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class JwtAuthorityExtractor extends JwtAuthenticationConverter {
 
-    @Override
-    protected Collection<GrantedAuthority> extractAuthorities(Jwt jwt) {
-        return this.extractAuthorityFromClaims(jwt.getClaims());
+    public JwtAuthorityExtractor() {
+        // MIGRATION: Instead of overriding extractAuthorities(Jwt),
+        this.setJwtGrantedAuthoritiesConverter(jwt -> extractAuthorityFromClaims(jwt.getClaims()));
     }
 
     @SuppressWarnings("unchecked")

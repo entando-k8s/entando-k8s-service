@@ -17,7 +17,7 @@ public class EntandoDeBundleResourceAssembler implements
 
     @Override
     public EntityModel<EntandoDeBundle> toModel(EntandoDeBundle bundle) {
-        EntityModel<EntandoDeBundle> response = new EntityModel<>(bundle);
+        EntityModel<EntandoDeBundle> response = EntityModel.of(bundle);
         response.add(getLinks(bundle));
         return response;
     }

@@ -18,7 +18,8 @@ public class EntandoLinkTestHelper {
 
     public static EntandoAppPluginLink createTestEntandoAppPluginLink(KubernetesClient client) {
         EntandoAppPluginLink el = getTestLink();
-        KubernetesDeserializer.registerCustomKind(el.getApiVersion(), el.getKind(), EntandoAppPluginLink.class);
+        KubernetesDeserializer deserializer = new KubernetesDeserializer();
+        deserializer.registerCustomKind(el.getApiVersion(), el.getKind(), EntandoAppPluginLink.class);
         return EntandoLinkService.getLinksOperations(client)
                 .inNamespace(el.getMetadata().getNamespace()).createOrReplace(el);
     }
@@ -29,14 +30,16 @@ public class EntandoLinkTestHelper {
         EntandoCustomResourceStatus status = new EntandoCustomResourceStatus();
         status.putServerStatus(serverStatus);
         el.setStatus(status);
-        KubernetesDeserializer.registerCustomKind(el.getApiVersion(), el.getKind(), EntandoAppPluginLink.class);
+        KubernetesDeserializer deserializer = new KubernetesDeserializer();
+        deserializer.registerCustomKind(el.getApiVersion(), el.getKind(), EntandoAppPluginLink.class);
         return EntandoLinkService.getLinksOperations(client)
                 .inNamespace(el.getMetadata().getNamespace()).createOrReplace(el);
     }
 
     public static void deleteInAllNamespaces(KubernetesClient client) {
         EntandoAppPluginLink el = getTestLink();
-        KubernetesDeserializer.registerCustomKind(el.getApiVersion(), el.getKind(), EntandoAppPluginLink.class);
+        KubernetesDeserializer deserializer = new KubernetesDeserializer();
+        deserializer.registerCustomKind(el.getApiVersion(), el.getKind(), EntandoAppPluginLink.class);
         EntandoLinkService.getLinksOperations(client).inAnyNamespace().delete();
     }
 

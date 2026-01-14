@@ -18,7 +18,7 @@ public class EntandoPluginResourceAssembler implements
 
     @Override
     public EntityModel<EntandoPlugin> toModel(EntandoPlugin entity) {
-        EntityModel<EntandoPlugin> response = new EntityModel<>(entity);
+        EntityModel<EntandoPlugin> response = EntityModel.of(entity);
         response.add(getLinks(entity));
         return response;
 

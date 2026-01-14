@@ -16,7 +16,7 @@ public class ApiEntryPointController {
 
     @GetMapping(value = "/", produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
     public ResponseEntity<CollectionModel<Object>> root() {
-        CollectionModel<Object> cm = new CollectionModel<>(Collections.emptyList());
+        CollectionModel<Object> cm = CollectionModel.of(Collections.emptyList());
         cm.add(linkTo(methodOn(EntandoAppController.class).list()).withRel("apps"));
         cm.add(linkTo(methodOn(EntandoPluginController.class).list()).withRel("plugins"));
         cm.add(linkTo(methodOn(EntandoDeBundleController.class).list(null, null, null)).withRel("bundles"));

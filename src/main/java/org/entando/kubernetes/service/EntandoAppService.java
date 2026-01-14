@@ -38,6 +38,6 @@ public class EntandoAppService extends EntandoKubernetesResourceCollector<Entand
     public static MixedOperation<EntandoApp, KubernetesResourceList<EntandoApp>, Resource<EntandoApp>> getEntandoAppsOperations(
             KubernetesClient client) {
         //~
-        return client.customResources(EntandoApp.class);
+        return client.resources(EntandoApp.class);
     }
 }
