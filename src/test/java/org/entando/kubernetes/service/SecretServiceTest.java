@@ -32,6 +32,7 @@ class SecretServiceTest {
         ku = new KubernetesUtils(token -> client);
         ku.decode(KubernetesUtilsTest.NON_K8S_TOKEN);
         secretService = new SecretService(ku);
+        client.secrets().inAnyNamespace().withGracePeriod(0).delete();
     }
 
     @Test

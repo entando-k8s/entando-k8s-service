@@ -61,7 +61,7 @@ public class EntandoPluginController {
 
 
     @GetMapping(produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE}, params = "namespace")
-    public ResponseEntity<CollectionModel<EntityModel<EntandoPlugin>>> listInNamespace(@RequestParam String namespace) {
+    public ResponseEntity<CollectionModel<EntityModel<EntandoPlugin>>> listInNamespace(@RequestParam(name = "namespace") String namespace) {
         log.info("Listing all deployed plugins in {} observed namespace", namespace);
         List<EntandoPlugin> plugins = pluginService.getAllInNamespace(namespace);
         CollectionModel<EntityModel<EntandoPlugin>> collection = getPluginCollectionModel(plugins);

@@ -36,7 +36,7 @@ public class ObservedNamespaceController {
     }
 
     @GetMapping(value = "/{name}", produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
-    public ResponseEntity<EntityModel<ObservedNamespace>> getByName(@PathVariable String name) {
+    public ResponseEntity<EntityModel<ObservedNamespace>> getByName(@PathVariable("name") String name) {
         String validNamespace = validateNamespace(name);
         return ResponseEntity.ok(resAssembler.toModel(new ObservedNamespace(validNamespace)));
     }

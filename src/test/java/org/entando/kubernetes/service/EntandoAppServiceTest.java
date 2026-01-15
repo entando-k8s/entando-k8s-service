@@ -32,6 +32,7 @@ class EntandoAppServiceTest {
     @BeforeEach
     public void setUp() {
         EntandoAppService.getEntandoAppsOperations(client).inNamespace(TEST_APP_NAMESPACE).delete();
+        EntandoAppService.getEntandoAppsOperations(client).inNamespace("namespace2").delete();
     }
 
     private void initalizeService(String... namespaces) {

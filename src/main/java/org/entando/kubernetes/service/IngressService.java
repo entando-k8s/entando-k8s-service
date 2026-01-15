@@ -126,29 +126,44 @@ public class IngressService {
         }
 
         public Ingress removeHttpPath(List<String> httpPaths) {
-            Ingress ingress = null;
+            boolean isModified = false;
+            // 1. Apply all changes to the builder in memory
             for (String httpPath : httpPaths) {
-                ingress = Optional.ofNullable(httpPath).map(path -> {
-                            log.debug("Try to remove path:'{}' from Ingress:'{}'", path, builder.buildMetadata().getName());
-                            return builder.buildSpec().getRules().get(0).getHttp().getPaths()
-                                    .stream()
-                                    .filter(p -> StringUtils.equals(p.getPath(), path))
-                                    .findFirst().orElse(null);
-                        }
-                ).map(p -> {
+                if (httpPath == null) {
+                    continue;
+                }
+                log.debug("Try to remove path:'{}' from Ingress:'{}'", httpPath, builder.buildMetadata().getName());
+                // Find the path object safely
+                var pathObject = builder.buildSpec().getRules().get(0).getHttp().getPaths()
+                        .stream()
+                        .filter(p -> StringUtils.equals(p.getPath(), httpPath))
+                        .findFirst()
+                        .orElse(null);
+
+                if (pathObject != null) {
                     String annotationPathKey = retrieveAnnotationKeyFromPath(builder.buildMetadata().getAnnotations(),
-                            p.getPath());
-                    builder.editSpec().editFirstRule().editHttp()
-                            .removeFromPaths(p)
+                            pathObject.getPath());
+                    // Apply edits for this path
+                    builder.editSpec()
+                            .editFirstRule()
+                            .editHttp()
+                            .removeFromPaths(pathObject) // Remove from list
                             .endHttp()
                             .endRule()
                             .endSpec()
-                            .editMetadata().removeFromAnnotations(annotationPathKey).endMetadata();
-                    return this.done();
+                            .editMetadata()
+                            .removeFromAnnotations(annotationPathKey)
+                            .endMetadata();
 
-                }).orElse(null);
+                    isModified = true;
+                }
             }
-            return ingress;
+            // 2. Commit changes to the server ONLY ONCE
+            if (isModified) {
+                return this.done();
+            } else {
+                return null;
+            }
         }
 
         private String retrieveAnnotationKeyFromPath(Map<String, String> annotations, String path) {

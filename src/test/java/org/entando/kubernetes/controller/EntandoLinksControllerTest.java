@@ -50,7 +50,6 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
@@ -60,6 +59,7 @@ import org.springframework.hateoas.MediaTypes;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -78,13 +78,13 @@ class EntandoLinksControllerTest {
 
     private MockMvc mvc;
 
-    @MockBean
+    @MockitoBean
     private EntandoLinkService entandoLinkService;
 
-    @MockBean
+    @MockitoBean
     private EntandoAppService entandoAppService;
 
-    @MockBean
+    @MockitoBean
     private EntandoPluginService entandoPluginService;
 
     @Autowired

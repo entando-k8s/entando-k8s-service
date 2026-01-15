@@ -33,7 +33,7 @@ public class EntandoLinkTestHelper {
         KubernetesDeserializer deserializer = new KubernetesDeserializer();
         deserializer.registerCustomKind(el.getApiVersion(), el.getKind(), EntandoAppPluginLink.class);
         return EntandoLinkService.getLinksOperations(client)
-                .inNamespace(el.getMetadata().getNamespace()).createOrReplace(el);
+                .inNamespace(el.getMetadata().getNamespace()).resource(el).createOrReplace();
     }
 
     public static void deleteInAllNamespaces(KubernetesClient client) {

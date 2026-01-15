@@ -31,6 +31,7 @@ public class SecretService {
 
     public Optional<String> getValueFromSecret(Secret secret, String key) {
         return Optional.ofNullable(secret.getData())
+                .filter(data -> !data.isEmpty())
                 .map(data -> Optional.ofNullable(data.get(key))
                         .map(s -> new String(Base64.getDecoder().decode(s), StandardCharsets.UTF_8)))
                 .orElseGet(() -> Optional.ofNullable(secret.getStringData())

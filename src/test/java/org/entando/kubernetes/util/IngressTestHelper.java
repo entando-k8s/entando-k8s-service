@@ -26,7 +26,7 @@ public class IngressTestHelper {
                 .addToLabels(labels)
                 .endMetadata()
                 .build();
-        return client.network().v1().ingresses().inNamespace(namespace).create(appIngress);
+        return client.network().v1().ingresses().inNamespace(namespace).resource(appIngress).create();
     }
 
     public static Ingress createPluginIngress(KubernetesClient client, EntandoPlugin plugin) {
@@ -40,7 +40,7 @@ public class IngressTestHelper {
                 .addToLabels(plugin.getKind(), name)
                 .endMetadata()
                 .build();
-        return client.network().v1().ingresses().inNamespace(namespace).create(appIngress);
+        return client.network().v1().ingresses().inNamespace(namespace).resource(appIngress).create();
     }
 
     public static Ingress createPluginIngressWithRuleAndAnnotation(KubernetesClient client, EntandoPlugin plugin,
@@ -59,7 +59,7 @@ public class IngressTestHelper {
                 .addToRules(rule)
                 .endSpec()
                 .build();
-        return client.network().v1().ingresses().inNamespace(namespace).create(appIngress);
+        return client.network().v1().ingresses().inNamespace(namespace).resource(appIngress).create();
     }
 
     public static Ingress getIngressForEntandoResource(EntandoBaseCustomResource ebcr) {

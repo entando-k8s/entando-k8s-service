@@ -69,7 +69,7 @@ public class EntandoAppController {
 
     @GetMapping(produces = {APPLICATION_JSON_VALUE,
             HAL_JSON_VALUE}, params = "namespace")
-    public ResponseEntity<CollectionModel<EntityModel<EntandoApp>>> listInNamespace(@RequestParam String namespace) {
+    public ResponseEntity<CollectionModel<EntityModel<EntandoApp>>> listInNamespace(@RequestParam(name = "namespace") String namespace) {
         log.info("Listing apps");
         List<EntandoApp> entandoApps = appService.getAllInNamespace(namespace);
         CollectionModel<EntityModel<EntandoApp>> collection = getAppsCollectionModel(entandoApps);
