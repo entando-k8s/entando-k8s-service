@@ -69,7 +69,7 @@ public class EntandoAppController {
 
     @GetMapping(produces = {APPLICATION_JSON_VALUE,
             HAL_JSON_VALUE}, params = "namespace")
-    public ResponseEntity<CollectionModel<EntityModel<EntandoApp>>> listInNamespace(@RequestParam String namespace) {
+    public ResponseEntity<CollectionModel<EntityModel<EntandoApp>>> listInNamespace(@RequestParam(name = "namespace") String namespace) {
         log.info("Listing apps");
         List<EntandoApp> entandoApps = appService.getAllInNamespace(namespace);
         CollectionModel<EntityModel<EntandoApp>> collection = getAppsCollectionModel(entandoApps);
@@ -92,7 +92,7 @@ public class EntandoAppController {
         log.debug("Requesting app with name: '{}' and tenantCode: '{}'", appName, tenantCode);
         EntandoApp entandoApp = getEntandoAppOrFail(appName);
         Ingress appIngress = getEntandoAppIngressOrFail(entandoApp, tenantCode);
-        return ResponseEntity.ok(new EntityModel<>(appIngress));
+        return ResponseEntity.ok(EntityModel.of(appIngress));
     }
 
     @PostMapping(path = "/{name}/links", consumes = APPLICATION_JSON_VALUE, produces = {
@@ -157,7 +157,7 @@ public class EntandoAppController {
     }
 
     private CollectionModel<EntityModel<EntandoApp>> getAppsCollectionModel(List<EntandoApp> entandoApps) {
-        return new CollectionModel<>(
+        return CollectionModel.of(
                 entandoApps.stream().map(appResourceAssembler::toModel).collect(Collectors.toList()));
     }
 

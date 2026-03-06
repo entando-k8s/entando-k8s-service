@@ -55,6 +55,7 @@ class EntandoPluginServiceTest {
     @BeforeEach
     void setUp() {
         EntandoPluginTestHelper.getEntandoPluginOperations(client).inAnyNamespace().delete();
+        client.secrets().inAnyNamespace().delete();
     }
 
     private void initializeService(String... namespaces) {

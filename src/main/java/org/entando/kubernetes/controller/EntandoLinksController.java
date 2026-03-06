@@ -72,7 +72,7 @@ public class EntandoLinksController {
     }
 
     @GetMapping(value = "/{name}", produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
-    public ResponseEntity<EntityModel<EntandoAppPluginLink>> get(@PathVariable String name) {
+    public ResponseEntity<EntityModel<EntandoAppPluginLink>> get(@PathVariable("name") String name) {
         EntandoAppPluginLink link = getLinkByNameOrFail(name);
         return ResponseEntity.ok(linkResourceAssembler.toModel(link));
     }
@@ -89,14 +89,14 @@ public class EntandoLinksController {
     }
 
     @DeleteMapping(value = "/{name}")
-    public ResponseEntity<Object> delete(@PathVariable String name) {
+    public ResponseEntity<Object> delete(@PathVariable("name") String name) {
         EntandoAppPluginLink link = getLinkByNameOrFail(name);
         linkService.delete(link);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     @DeleteMapping(value = "/delete-and-scale-down/{name}")
-    public ResponseEntity<Object> deleteAndScaleDown(@PathVariable String name) {
+    public ResponseEntity<Object> deleteAndScaleDown(@PathVariable("name") String name) {
         EntandoAppPluginLink link = getLinkByNameOrFail(name);
         disableActivePlugin(link);
         linkService.delete(link);
@@ -129,7 +129,7 @@ public class EntandoLinksController {
     }
 
     private CollectionModel<EntityModel<EntandoAppPluginLink>> getCollectionWithLinks(List<EntandoAppPluginLink> all) {
-        CollectionModel<EntityModel<EntandoAppPluginLink>> cm = new CollectionModel<>(all
+        CollectionModel<EntityModel<EntandoAppPluginLink>> cm = CollectionModel.of(all
                 .stream().map(linkResourceAssembler::toModel).collect(
                         Collectors.toList()));
         cm.add(getCollectionLinks());

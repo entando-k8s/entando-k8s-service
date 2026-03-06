@@ -1,8 +1,7 @@
 package org.entando.kubernetes.service;
 
 import io.fabric8.kubernetes.api.model.networking.v1.Ingress;
-import io.fabric8.kubernetes.api.model.networking.v1.IngressFluent;
-import io.fabric8.kubernetes.api.model.networking.v1.IngressFluentImpl;
+import io.fabric8.kubernetes.api.model.networking.v1.IngressBuilder;
 import io.fabric8.kubernetes.api.model.networking.v1.IngressList;
 import io.fabric8.kubernetes.client.dsl.MixedOperation;
 import io.fabric8.kubernetes.client.dsl.Resource;
@@ -103,7 +102,7 @@ public class IngressService {
     public static class PathIngressRemover {
 
         private final UnaryOperator<Ingress> action;
-        private final IngressFluent<?> fluent;
+        private final IngressBuilder builder;
 
         public PathIngressRemover(String namespace, String ingressName,
                 MixedOperation<Ingress, IngressList, Resource<Ingress>> ingressOperations) {
@@ -111,47 +110,60 @@ public class IngressService {
                     .inNamespace(namespace)
                     .withName(ingressName);
 
-            this.fluent = new IngressFluentImpl<>(ingressResource.get());
+            this.builder = new IngressBuilder(ingressResource.get());
             this.action = ingressResource::patch;
 
         }
 
         private Ingress done() {
-            Ingress built = new Ingress(fluent.getApiVersion(), fluent.getKind(), fluent.buildMetadata(),
-                    fluent.buildSpec(), fluent.buildStatus());
             try {
-                return action.apply(built);
+                return action.apply(builder.build());
             } catch (Exception ex) {
-                log.error("error editing ingress:'{}'", fluent.buildMetadata().getName(), ex);
+                log.error("error editing ingress:'{}'", builder.buildMetadata().getName(), ex);
                 return null;
             }
 
         }
 
         public Ingress removeHttpPath(List<String> httpPaths) {
-            Ingress ingress = null;
+            boolean isModified = false;
+            // 1. Apply all changes to the builder in memory
             for (String httpPath : httpPaths) {
-                ingress = Optional.ofNullable(httpPath).map(path -> {
-                            log.debug("Try to remove path:'{}' from Ingress:'{}'", path, fluent.buildMetadata().getName());
-                            return fluent.buildSpec().getRules().get(0).getHttp().getPaths()
-                                    .stream()
-                                    .filter(p -> StringUtils.equals(p.getPath(), path))
-                                    .findFirst().orElse(null);
-                        }
-                ).map(p -> {
-                    String annotationPathKey = retrieveAnnotationKeyFromPath(fluent.buildMetadata().getAnnotations(),
-                            p.getPath());
-                    fluent.editSpec().editFirstRule().editHttp()
-                            .removeFromPaths(p)
+                if (httpPath == null) {
+                    continue;
+                }
+                log.debug("Try to remove path:'{}' from Ingress:'{}'", httpPath, builder.buildMetadata().getName());
+                // Find the path object safely
+                var pathObject = builder.buildSpec().getRules().get(0).getHttp().getPaths()
+                        .stream()
+                        .filter(p -> StringUtils.equals(p.getPath(), httpPath))
+                        .findFirst()
+                        .orElse(null);
+
+                if (pathObject != null) {
+                    String annotationPathKey = retrieveAnnotationKeyFromPath(builder.buildMetadata().getAnnotations(),
+                            pathObject.getPath());
+                    // Apply edits for this path
+                    builder.editSpec()
+                            .editFirstRule()
+                            .editHttp()
+                            .removeFromPaths(pathObject) // Remove from list
                             .endHttp()
                             .endRule()
                             .endSpec()
-                            .editMetadata().removeFromAnnotations(annotationPathKey).endMetadata();
-                    return this.done();
+                            .editMetadata()
+                            .removeFromAnnotations(annotationPathKey)
+                            .endMetadata();
 
-                }).orElse(null);
+                    isModified = true;
+                }
             }
-            return ingress;
+            // 2. Commit changes to the server ONLY ONCE
+            if (isModified) {
+                return this.done();
+            } else {
+                return null;
+            }
         }
 
         private String retrieveAnnotationKeyFromPath(Map<String, String> annotations, String path) {

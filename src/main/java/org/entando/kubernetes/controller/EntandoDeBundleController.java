@@ -71,7 +71,7 @@ public class EntandoDeBundleController {
     }
 
     @GetMapping(path = "/{name}", produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
-    public ResponseEntity<EntityModel<EntandoDeBundle>> get(@PathVariable String name,
+    public ResponseEntity<EntityModel<EntandoDeBundle>> get(@PathVariable("name") String name,
                                                             @RequestParam(value = "namespace", required = false) String namespace,
                                                             @RequestParam(value = "tenantCode", required = false) String tenantCode) {
 
@@ -99,7 +99,7 @@ public class EntandoDeBundleController {
     }
 
     @DeleteMapping(path = "/{name}", produces = {APPLICATION_JSON_VALUE, HAL_JSON_VALUE})
-    public ResponseEntity<Void> delete(@PathVariable String name,
+    public ResponseEntity<Void> delete(@PathVariable("name") String name,
                                        @RequestParam(value = "tenantCode", required = false) String tenantCode) {
 
         final String tenantCodeOrDefault = getTenantOrDefault(tenantCode);

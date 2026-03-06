@@ -110,7 +110,7 @@ public class EntandoLinkService extends EntandoKubernetesResourceCollector<Entan
     //CHECKSTYLE:OFF
     public static MixedOperation<EntandoAppPluginLink, KubernetesResourceList<EntandoAppPluginLink>, Resource<EntandoAppPluginLink>> getLinksOperations(
             KubernetesClient client) {
-        return client.customResources(EntandoAppPluginLink.class);
+        return client.resources(EntandoAppPluginLink.class);
     }
 
 }

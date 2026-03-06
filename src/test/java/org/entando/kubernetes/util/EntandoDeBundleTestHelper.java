@@ -17,7 +17,8 @@ public class EntandoDeBundleTestHelper {
 
     public static EntandoDeBundle createTestEntandoDeBundle(KubernetesClient client, String tenantCode) {
         EntandoDeBundle eb = getTestEntandoDeBundle(tenantCode);
-        KubernetesDeserializer.registerCustomKind(eb.getApiVersion(), eb.getKind(), EntandoDeBundle.class);
+        KubernetesDeserializer deserializer = new KubernetesDeserializer();
+        deserializer.registerCustomKind(eb.getApiVersion(), eb.getKind(), EntandoDeBundle.class);
         return EntandoDeBundleService.getBundleOperations(client)
                 .inNamespace(eb.getMetadata().getNamespace()).createOrReplace(eb);
 
@@ -27,7 +28,8 @@ public class EntandoDeBundleTestHelper {
         EntandoDeBundle eb = getTestEntandoDeBundle(tenantCode);
         eb.getMetadata().setNamespace(namespace);
         eb.getMetadata().setAnnotations(Map.of("entando.org/tenants", tenantCode));
-        KubernetesDeserializer.registerCustomKind(eb.getApiVersion(), eb.getKind(), EntandoDeBundle.class);
+        KubernetesDeserializer deserializer = new KubernetesDeserializer();
+        deserializer.registerCustomKind(eb.getApiVersion(), eb.getKind(), EntandoDeBundle.class);
         return EntandoDeBundleService.getBundleOperations(client).inNamespace(namespace).createOrReplace(eb);
     }
 

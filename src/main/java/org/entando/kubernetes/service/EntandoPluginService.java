@@ -134,7 +134,7 @@ public class EntandoPluginService extends EntandoKubernetesResourceCollector<Ent
     //CHECKSTYLE:OFF
     private MixedOperation<EntandoPlugin, KubernetesResourceList<EntandoPlugin>, Resource<EntandoPlugin>> getPluginOperations() {
         //CHECKSTYLE:ON
-        return kubernetesUtils.getCurrentKubernetesClient().customResources(EntandoPlugin.class);
+        return kubernetesUtils.getCurrentKubernetesClient().resources(EntandoPlugin.class);
     }
 
     public PluginConfiguration getPluginConfiguration(String pluginName, String tenantCode) {

@@ -162,7 +162,8 @@ public class EntandoDeBundleService extends EntandoKubernetesResourceCollector<E
 
     private void deleteBundleWithoutTenants(EntandoDeBundle entandoDeBundle) {
         String namespace = kubernetesUtils.getDefaultPluginNamespace();
-        Boolean deleted = getBundleOperations().inNamespace(namespace).delete(entandoDeBundle);
+        var result = getBundleOperations().inNamespace(namespace).resource(entandoDeBundle).delete();
+        boolean deleted = result != null && !result.isEmpty();
         log.info("Deleted EntandoDeBundle with name:'{}' ? '{}'", entandoDeBundle.getMetadata().getName(), deleted);
     }
 
@@ -202,7 +203,7 @@ public class EntandoDeBundleService extends EntandoKubernetesResourceCollector<E
     //CHECKSTYLE:OFF
     public static MixedOperation<EntandoDeBundle, KubernetesResourceList<EntandoDeBundle>, Resource<EntandoDeBundle>> getBundleOperations(
             KubernetesClient client) {
-        return client.customResources(EntandoDeBundle.class);
+        return client.resources(EntandoDeBundle.class);
     }
 
 }

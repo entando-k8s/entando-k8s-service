@@ -44,6 +44,7 @@ class IngressServiceTest {
         final KubernetesUtils ku = new KubernetesUtils(token -> client);
         ku.decode(KubernetesUtilsTest.NON_K8S_TOKEN);
         ingressService = new IngressService(ku);
+        client.network().v1().ingresses().inAnyNamespace().withGracePeriod(0).delete();
     }
 
     @Test
@@ -127,7 +128,10 @@ class IngressServiceTest {
                 mainServerStatus);
         res = ingressService.deletePathFromIngressByEntandoPlugin(plugin, Collections.singletonList(testLink));
         assertThat(res).isEmpty();
- 
+
+        // The Mock Server persists state. We must delete the previous ingress to avoid 409 Conflict.
+        client.network().v1().ingresses().inNamespace(ingress.getMetadata().getNamespace()).withGracePeriod(0).delete();
+
         // link ingressName no path
         ingress = IngressTestHelper.createPluginIngress(client, plugin);
         mainServerStatus = new ServerStatus("main");

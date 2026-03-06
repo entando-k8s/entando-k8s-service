@@ -17,7 +17,7 @@ public class EntandoAppResourceAssembler implements RepresentationModelAssembler
 
     @Override
     public EntityModel<EntandoApp> toModel(EntandoApp entity) {
-        EntityModel<EntandoApp> response = new EntityModel<>(entity);
+        EntityModel<EntandoApp> response = EntityModel.of(entity);
 
         response.add(getLinks(entity));
 

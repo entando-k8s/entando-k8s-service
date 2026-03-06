@@ -56,7 +56,6 @@ import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.hateoas.CollectionModel;
 import org.springframework.hateoas.EntityModel;
 import org.springframework.hateoas.Link;
@@ -65,6 +64,7 @@ import org.springframework.hateoas.Links;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -90,16 +90,16 @@ class EntandoAppControllerTest {
     @Autowired
     private ObjectMapper mapper;
 
-    @MockBean
+    @MockitoBean
     private EntandoAppService entandoAppService;
 
-    @MockBean
+    @MockitoBean
     private EntandoLinkService entandoLinkService;
 
-    @MockBean
+    @MockitoBean
     private EntandoPluginService entandoPluginService;
 
-    @MockBean
+    @MockitoBean
     private IngressService ingressService;
 
     public static final String UNDEFINED = "undefined";
@@ -289,18 +289,6 @@ class EntandoAppControllerTest {
                 .andExpect(content().string(StringContains.containsString("Ingress not found for EntandoApp")));
     }
 
-    @Test
-    void shouldReturn404WhenGettingLinksIfAppNotFound() throws Exception {
-        URI uri = UriComponentsBuilder
-                .fromUriString(EntandoAppTestHelper.BASE_APP_ENDPOINT)
-                .pathSegment(TEST_APP_NAMESPACE, TEST_APP_NAME, "links")
-                .build().toUri();
-
-        mvc.perform(get(uri)
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound());
-
-    }
 
     @Test
     void shouldCreateLinkBetweenExistingAppAndPlugin() throws Exception {

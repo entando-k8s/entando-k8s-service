@@ -6,11 +6,11 @@
     <parent>
         <groupId>org.entando</groupId>
         <artifactId>entando-spring-boot-parent</artifactId>
-        <version>7.3.0</version>
+        <version>7.5.0-ESB-808-PR58</version>
     </parent>
     <groupId>org.entando</groupId>
     <artifactId>entando-k8s-service</artifactId>
-    <version>7.3.0-fix.1</version>
+    <version>7.5.0-SNAPSHOT</version>
 
     <modelVersion>4.0.0</modelVersion>
     <name>Entando Kubernetes Service</name>
@@ -47,14 +47,14 @@
         <postDeploymentTestGroups></postDeploymentTestGroups>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <github.organization>entando-k8s</github.organization>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
         <!-- LOCAL OVERRIDES -->
-        <entando-k8s-custom-model.version>7.3.0</entando-k8s-custom-model.version>
-        <fabric8.version>5.3.2</fabric8.version>
-        <logback.version>1.2.13</logback.version>
-        <okio.version>1.17.6</okio.version>
-        <guava.version>32.0.0-jre</guava.version>
+<!--        <entando-k8s-custom-model.version>7.3.0</entando-k8s-custom-model.version>-->
+        <logback.version>1.5.18</logback.version>
+        <okio.version>3.6.0</okio.version>
+        <guava.version>33.4.8-jre</guava.version>
+        <jacoco.version>0.8.12</jacoco.version>
     </properties>
 
     <dependencies>
@@ -145,7 +145,7 @@
 
         <dependency>
             <groupId>org.springdoc</groupId>
-            <artifactId>springdoc-openapi-ui</artifactId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
         </dependency>
 
         <!-- Not working yet with Spring Boot 2.2.0 and Spring Hateoas, waiting for fix -->
@@ -180,6 +180,11 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-hateoas</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
 
         <dependency>
@@ -274,7 +279,13 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-deploy-plugin</artifactId>
-                <version>2.8.2</version>
+                <version>${maven-deploy-plugin.version}</version>
+            </plugin>
+
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco.version}</version>
             </plugin>
         </plugins>
     </build>
