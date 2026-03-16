@@ -6,11 +6,11 @@
     <parent>
         <groupId>org.entando</groupId>
         <artifactId>entando-spring-boot-parent</artifactId>
-        <version>7.5.0-ESB-808-PR58</version>
+        <version>7.5.0</version>
     </parent>
     <groupId>org.entando</groupId>
     <artifactId>entando-k8s-service</artifactId>
-    <version>7.5.0-SNAPSHOT</version>
+    <version>7.5.0</version>
 
     <modelVersion>4.0.0</modelVersion>
     <name>Entando Kubernetes Service</name>
