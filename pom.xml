@@ -10,7 +10,7 @@
     </parent>
     <groupId>org.entando</groupId>
     <artifactId>entando-k8s-service</artifactId>
-    <version>7.5.1-SNAPSHOT</version>
+    <version>7.5.1</version>
 
     <modelVersion>4.0.0</modelVersion>
     <name>Entando Kubernetes Service</name>
